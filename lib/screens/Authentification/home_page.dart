@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../constants/theme.dart';
-import '../widgets/custom_button.dart';
+import '../../constants/theme.dart';
+import '../../widgets/custom_button.dart';
 import 'login_page.dart';
 import 'signup_page.dart';
 
@@ -32,7 +32,7 @@ class HomePage extends StatelessWidget {
                 height: MediaQuery.of(context).size.height / 3,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage("assets/images/welcome.png"),
+                    image: AssetImage("assets/images/Authentification/welcome.png"),
                   ),
                 ),
               ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../widgets/custom_text_field.dart';
-import '../widgets/custom_button.dart';
-import '../constants/theme.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/custom_button.dart';
+import '../../constants/theme.dart';
 import 'login_page.dart';
 
 class SignupPage extends StatelessWidget {

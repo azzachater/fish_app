@@ -5,6 +5,7 @@ class CustomTextField extends StatelessWidget {
   final bool obscureText;
   final String? hintText; // Added hintText parameter
   final int maxLines; // Added maxLines parameter
+  final TextEditingController? controller;
 
   const CustomTextField({
     super.key,
@@ -12,6 +13,7 @@ class CustomTextField extends StatelessWidget {
     this.obscureText = false,
     this.hintText,
     this.maxLines = 1, // Default value for maxLines
+    this.controller,
   });
 
   @override

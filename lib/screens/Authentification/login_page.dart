@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../widgets/custom_text_field.dart';
-import '../widgets/custom_button.dart';
-import '../constants/theme.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/custom_button.dart';
+import '../../constants/theme.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatelessWidget {
@@ -55,7 +55,7 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 50),
               SizedBox(
                 height: 200,
-                child: Image.asset("assets/images/background.png", fit: BoxFit.cover),
+                child: Image.asset("assets/images/Authentification/background.png", fit: BoxFit.cover),
               ),
             ],
           ),
