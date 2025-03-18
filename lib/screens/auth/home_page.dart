@@ -1,6 +1,7 @@
+import 'package:fish_app/widgets/custom_nav_bar.dart';
 import 'package:flutter/material.dart';
-import '../constants/theme.dart';
-import '../widgets/custom_button.dart';
+import '../../constants/theme.dart';
+import '../../widgets/custom_button.dart';
 import 'login_page.dart';
 import 'signup_page.dart';
 
@@ -40,19 +41,25 @@ class HomePage extends StatelessWidget {
                 children: <Widget>[
                   CustomButton(
                     text: "Login",
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    ),
+                    onPressed:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginPage(),
+                          ),
+                        ),
                     isPrimary: false, // Added the missing isPrimary parameter
                   ),
                   const SizedBox(height: 20),
                   CustomButton(
                     text: "Sign up",
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SignupPage()),
-                    ),
+                    onPressed:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignupPage(),
+                          ),
+                        ),
                     isPrimary: true,
                   ),
                 ],
@@ -60,6 +67,10 @@ class HomePage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: CustomNavBar(
+        currentIndex: 2, // Utiliser une valeur entière valide
+        onTabChange: (index) {},
       ),
     );
   }
