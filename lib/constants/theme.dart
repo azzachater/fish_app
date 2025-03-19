@@ -11,42 +11,42 @@ class AppTheme {
   static const Color accentColor = Color.fromARGB(255, 222, 239, 255);
 
   static final TextStyle heading2 = TextStyle(
-  color: Colors.black, // Utilise la couleur principale pour un look moderne
-  fontSize: 20, // Taille un peu plus grande pour donner plus de présence
-  fontWeight: FontWeight.w700, // FontWeight plus lourd pour plus d'impact
-  letterSpacing: 1.2, // Espacement un peu plus serré pour plus de fluidité
-  fontFamily: GoogleFonts.poppins().fontFamily, // Une police moderne
+  color: Colors.black, 
+  fontSize: 22, // Taille légèrement augmentée pour plus de présence
+  fontWeight: FontWeight.bold, // Plus d'impact visuel
+  letterSpacing: 0.8, // Espacement plus naturel
+  fontFamily: GoogleFonts.nunito().fontFamily, // Style moderne et épuré
 );
 
 static final TextStyle chatSenderName = TextStyle(
-  color: Colors.white, // Garder le texte en blanc pour le contraste
-  fontSize: 22, // Une taille de texte un peu plus grande pour le nom de l'expéditeur
-  fontWeight: FontWeight.w600, // Un poids de police plus modéré, mais toujours audacieux
-  letterSpacing: 0.5, // Moins d'espacement pour un texte plus compact et moderne
-  fontFamily: GoogleFonts.roboto().fontFamily, // Roboto pour un look moderne et lisible
+  color: Colors.white, 
+  fontSize: 20, // Légèrement réduit pour un look plus fluide
+  fontWeight: FontWeight.w700, // Plus proche du style Messenger
+  letterSpacing: 0.3, // Moins d'espacement pour plus de compacité
+  fontFamily: GoogleFonts.notoSans().fontFamily, // Style plus naturel et fluide
 );
 
 static final TextStyle bodyText1 = TextStyle(
-  color: Color(0xffA8A9B5), // Une teinte de gris pour un texte plus doux et moderne
-  fontSize: 15, // Augmenter légèrement la taille pour plus de confort de lecture
-  letterSpacing: 1.1, // Espacement plus naturel
-  fontWeight: FontWeight.w400, // Un poids léger et élégant
-  fontFamily: GoogleFonts.openSans().fontFamily, // Open Sans est moderne et lisible
+  color: Color(0xffA8A9B5), 
+  fontSize: 16, // Augmenté pour plus de lisibilité
+  letterSpacing: 1.0, // Espacement plus naturel
+  fontWeight: FontWeight.w500, // Plus proche de Facebook et Messenger
+  fontFamily: GoogleFonts.mulish().fontFamily, // Optimisé pour le confort de lecture
 );
 
 static final TextStyle bodyTextMessage = TextStyle(
-  color: Colors.black, // Texte noir pour un contraste plus net et moderne
-  fontSize: 14, // Une taille plus petite pour le message, mais toujours lisible
-  letterSpacing: 0.8, // Espacement léger pour plus de fluidité
-  fontWeight: FontWeight.w500, // Poids moyen pour une lecture agréable
-  fontFamily: GoogleFonts.lato().fontFamily, // Lato, une autre police moderne
+  color: Colors.black, 
+  fontSize: 15, // Augmenté pour mieux correspondre aux messages Messenger
+  letterSpacing: 0.5, // Espacement amélioré pour la lisibilité
+  fontWeight: FontWeight.w400, // Texte fluide et lisible
+  fontFamily: GoogleFonts.inter().fontFamily, // L'inter fait partie des meilleures polices pour le chat
 );
 
 static final TextStyle bodyTextTime = TextStyle(
-  color: Color(0xffA8A9B5), // Utiliser une couleur plus claire pour l'heure
-  fontSize: 12, // Plus petite taille pour l'heure, car elle ne doit pas dominer
-  fontWeight: FontWeight.w400, // Poids léger pour garder l'heure discrète
-  letterSpacing: 0.5, // Un espacement léger pour la clarté
-  fontFamily: GoogleFonts.robotoMono().fontFamily, // Pour un look moderne et simple
+  color: Color(0xffA8A9B5), 
+  fontSize: 13, // Taille légèrement augmentée pour éviter d'être trop petit
+  fontWeight: FontWeight.w500, // Meilleure lisibilité sans être trop audacieux
+  letterSpacing: 0.2, // Espacement minimal pour ne pas distraire
+  fontFamily: GoogleFonts.sourceSans3().fontFamily, // Police adaptée aux petits textes
 );
 }

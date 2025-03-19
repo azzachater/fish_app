@@ -1,23 +1,42 @@
-import 'package:fish_app/models/tip_model.dart';
 import 'package:flutter/material.dart';
+import '../../models/tip_model.dart'; // Import Tip model
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
-import '../../constants/theme.dart';
-// Assurez-vous d'importer la liste de tips
+import '../../constants/theme.dart'; // Ensure theme is correctly imported
 
-class AddTipScreen extends StatelessWidget {
-  AddTipScreen({super.key, required this.onAdd});
+class EditTipScreen extends StatefulWidget {
+  final Tip? tip;
+  final Function(Tip) onUpdate; // Add the update callback
 
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  
-  // Fonction callback pour ajouter un tip
-  final Function(Tip) onAdd;
+  const EditTipScreen({super.key, this.tip, required this.onUpdate});
+
+  @override
+  EditTipScreenState createState() => EditTipScreenState();
+}
+
+class EditTipScreenState extends State<EditTipScreen> {
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill the fields if the tip exists
+    _titleController = TextEditingController(text: widget.tip?.title ?? '');
+    _descriptionController = TextEditingController(text: widget.tip?.description ?? '');
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryColor,
+      backgroundColor: AppTheme.primaryColor, // Use the primary color from theme
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -29,7 +48,7 @@ class AddTipScreen extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 80), // Espace au-dessus du formulaire
+          const SizedBox(height: 80), // Space above the form
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 40),
@@ -45,7 +64,7 @@ class AddTipScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Add Tips',
+                      'Edit Tip',
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
@@ -55,23 +74,22 @@ class AddTipScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: "Title",
-                      controller: titleController,
+                      controller: _titleController,
                     ),
                     const SizedBox(height: 15),
                     CustomTextField(
                       label: "Description",
                       maxLines: 5,
-                      controller: descriptionController,
+                      controller: _descriptionController,
                     ),
                     const SizedBox(height: 50),
                     SizedBox(
                       width: double.infinity,
                       child: CustomButton(
-                        text: "Save",
+                        text: "Save Changes",
                         onPressed: () {
-                          // Récupération des valeurs
-                          String title = titleController.text.trim();
-                          String description = descriptionController.text.trim();
+                          String title = _titleController.text.trim();
+                          String description = _descriptionController.text.trim();
 
                           if (title.isEmpty || description.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -83,14 +101,24 @@ class AddTipScreen extends StatelessWidget {
                             return;
                           }
 
-                          // Création d'un nouveau Tip
-                          Tip newTip = Tip(title: title, description: description);
+                          // Create a new Tip with updated values
+                          Tip updatedTip = Tip(
+                            title: title,
+                            description: description,
+                          );
 
-                          // Ajouter le tip dans la liste
-                          onAdd(newTip);
+                          // Call onUpdate with the updated tip
+                          widget.onUpdate(updatedTip);
 
-                          // Retour à la page des tips
-                          Navigator.pop(context);
+                          Navigator.pop(context); // Go back to the previous page
+
+                          // Show success message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Tip updated successfully!"),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
                         },
                         isPrimary: true,
                       ),

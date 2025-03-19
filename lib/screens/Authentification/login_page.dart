@@ -3,6 +3,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../constants/theme.dart';
 import 'signup_page.dart';
+import '../social_network/social_home_page.dart'; // Import HomePage
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -37,7 +38,11 @@ class LoginPage extends StatelessWidget {
               CustomButton(
                 text: "Login",
                 onPressed: () {
-                  // Logique de connexion
+                  // After login, navigate to HomePage
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SocialHomePage()),
+                  );
                 },
                 isPrimary: true, // Added the missing isPrimary parameter
               ),

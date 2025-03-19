@@ -1,24 +1,23 @@
-import '../../screens/chat/chat_room.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../data/message_data.dart';
-import '../../models/message_model.dart';
-
+import '../../models/group_model.dart';
 import '../../constants/theme.dart';
+import 'package:flutter/cupertino.dart'; // Import CupertinoPageRoute
+import '../../screens/chat/group_chat_page.dart'; 
+import '../../data/group_data.dart';// Import GroupChatPage
 
-class AllChats extends StatefulWidget {
-  const AllChats({super.key});
+class AllGroups extends StatefulWidget {
+  const AllGroups({super.key});
 
   @override
-  AllChatsState createState() => AllChatsState();
+  AllGroupsState createState() => AllGroupsState();
 }
 
-class AllChatsState extends State<AllChats> {
-  final List<Message> _allChats = allChats;
+class AllGroupsState extends State<AllGroups> {
+ final List<Group> _allGroups = allGroups;
 
-  void markMessageAsRead(int index) {
+  void markGroupAsRead(int index) {
     setState(() {
-      _allChats[index] = _allChats[index].copyWith(isRead: true, unreadCount: 0);
+      _allGroups[index] = _allGroups[index].copyWith(isRead: true, unreadCount: 0);
     });
   }
 
@@ -31,7 +30,7 @@ class AllChatsState extends State<AllChats> {
           child: Row(
             children: [
               Text(
-                'All Chats',
+                'All Groups',
                 style: AppTheme.heading2,
               ),
             ],
@@ -40,25 +39,25 @@ class AllChatsState extends State<AllChats> {
         ListView.builder(
           shrinkWrap: true,
           physics: ScrollPhysics(),
-          itemCount: _allChats.length,
+          itemCount: _allGroups.length,
           itemBuilder: (context, int index) {
-            final allChat = _allChats[index];
+            final allGroup = _allGroups[index];
             return Container(
               margin: const EdgeInsets.only(top: 20),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundImage: AssetImage(allChat.avatar),
+                    backgroundImage: AssetImage(allGroup.avatar),
                   ),
                   SizedBox(width: 20),
                   GestureDetector(
                     onTap: () {
-                      markMessageAsRead(index); // Marquer le message comme lu
+                      markGroupAsRead(index); // Marquer le groupe comme lu
                       Navigator.push(
                         context,
                         CupertinoPageRoute(
-                          builder: (context) => ChatRoom(user: allChat.sender),
+                          builder: (context) => GroupChatPage(group: allGroup),
                         ),
                       );
                     },
@@ -67,11 +66,11 @@ class AllChatsState extends State<AllChats> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          allChat.sender.name,
+                          allGroup.name,
                           style: AppTheme.heading2.copyWith(fontSize: 16),
                         ),
                         Text(
-                          allChat.text,
+                          '${allGroup.members.length} members',
                           style: AppTheme.bodyText1,
                         ),
                       ],
@@ -81,7 +80,7 @@ class AllChatsState extends State<AllChats> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      allChat.unreadCount == 0
+                      allGroup.unreadCount == 0
                           ? Icon(
                               Icons.done_all,
                               color: AppTheme.bodyTextTime.color,
@@ -90,7 +89,7 @@ class AllChatsState extends State<AllChats> {
                               radius: 8,
                               backgroundColor: AppTheme.unreadChatBG,
                               child: Text(
-                                allChat.unreadCount.toString(),
+                                allGroup.unreadCount.toString(),
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 11,
@@ -99,7 +98,7 @@ class AllChatsState extends State<AllChats> {
                             ),
                       SizedBox(height: 10),
                       Text(
-                        allChat.time,
+                        allGroup.time,
                         style: AppTheme.bodyTextTime,
                       ),
                     ],

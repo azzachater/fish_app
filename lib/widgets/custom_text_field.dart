@@ -26,6 +26,7 @@ class CustomTextField extends StatelessWidget {
         TextField(
           obscureText: obscureText,
           maxLines: maxLines, // Added maxLines
+          controller: controller,
           decoration: InputDecoration(
             hintText: hintText, // Added hintText
             contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),

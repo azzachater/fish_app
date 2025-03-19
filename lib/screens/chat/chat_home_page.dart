@@ -1,0 +1,131 @@
+import 'package:fish_app/screens/chat/group_page.dart';
+import '../../constants/theme.dart';
+import 'package:flutter/material.dart';
+import '../../widgets/chat/chat_widgets.dart';
+import 'chat_page.dart';
+import 'search_users_page.dart';
+import 'create_search_group.dart';
+import 'package:logger/logger.dart';
+import '../social_network/social_home_page.dart';
+
+class ChatHomePage extends StatefulWidget {
+  const ChatHomePage({super.key});
+
+  @override
+  HomePageState createState() => HomePageState();
+}
+
+class HomePageState extends State<ChatHomePage> with TickerProviderStateMixin {
+  late TabController tabController;
+  int currentTabIndex = 0;
+  final logger = Logger();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // Créez un utilisateur fictif pour l'exemple
+ 
+  void onTabChange() {
+    setState(() {
+      currentTabIndex = tabController.index;
+      logger.d('Current tab index: $currentTabIndex'); // Utiliser logger à la place de print
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    tabController = TabController(length: 2, vsync: this);
+    tabController.addListener(onTabChange);
+  }
+
+  @override
+  void dispose() {
+    tabController.removeListener(onTabChange);
+    tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: _scaffoldKey,
+      appBar: AppBar(
+        backgroundColor: AppTheme.primaryColor,
+        leading: IconButton(
+          onPressed: () {
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => SocialHomePage()),
+  );
+},
+          icon: Icon(Icons.arrow_back_ios),
+          color: Colors.white,
+        ),
+        title: Text(
+          'Chattie',
+          style: AppTheme.chatTitle.copyWith(
+            color: Colors.white, // Changer la couleur en blanc
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      backgroundColor: AppTheme.primaryColor,
+      body: Column(
+        children: [
+          MyTabBar(key: UniqueKey(), tabController: tabController), // Pass the key parameter
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
+              ),
+              child: TabBarView(
+                controller: tabController,
+                children: [
+                  ChatPage(),
+                  GroupPage(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (currentTabIndex == 0) {
+            // Naviguer vers la page de recherche des utilisateurs (pour l'onglet Chat)
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SearchUsersPage(),
+              ),
+            );
+          } else if (currentTabIndex == 1) {
+            // Naviguer vers la page de création de groupe (pour l'onglet Groupes)
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CreateSearchGroup(), // À implémenter plus tard
+              ),
+            );
+          }
+        },
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Icon(
+          currentTabIndex == 0
+              ? Icons.message_outlined // Icône pour l'onglet Chat
+              : currentTabIndex == 1
+                  ? Icons.add // Icône pour l'onglet Groupes
+                  : Icons.call, // Icône par défaut (au cas où)
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}

@@ -1,12 +1,14 @@
-import '../../models/message_model.dart';
+//import '../../models/message_model.dart';
 import '../../models/user_model.dart';
 import '../../constants/theme.dart';
 import 'package:flutter/material.dart';
+import '../../data/user_data.dart';
+import '../../data/message_data.dart';
 
 class Conversation extends StatelessWidget {
   final User user;
 
-  const Conversation({Key? key, required this.user}) : super(key: key);
+  const Conversation({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
