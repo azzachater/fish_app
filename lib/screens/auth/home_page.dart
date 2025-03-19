@@ -68,10 +68,6 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: CustomNavBar(
-        currentIndex: 2, // Utiliser une valeur entière valide
-        onTabChange: (index) {},
-      ),
     );
   }
 }

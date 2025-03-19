@@ -1,4 +1,6 @@
 import 'package:fish_app/main_screen.dart';
+import 'package:fish_app/screens/auth/home_page.dart';
+import 'package:fish_app/widgets/journal_table.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fish_app/providers/cart_provider.dart';
