@@ -1,5 +1,6 @@
 import 'package:fish_app/main_screen.dart';
 import 'package:fish_app/screens/auth/home_page.dart';
+import 'package:fish_app/screens/map_page.dart';
 import 'package:fish_app/widgets/journal_table.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: MainScreen());
+    return MaterialApp(debugShowCheckedModeBanner: false, home: MapPage());
   }
 }
