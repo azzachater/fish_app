@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../constants/theme.dart';
-import 'package:flutter/cupertino.dart'; // Import CupertinoPageRoute
-import '../../screens/chat/group_chat_page.dart'; 
-import '../../data/group_data.dart';// Import GroupChatPage
+import 'package:flutter/cupertino.dart';
+import '../../screens/chat/group_chat_page.dart';
+import '../../data/group_data.dart';
 import '../../models/group_model.dart';
+import 'dart:io'; // Import to use FileImage
 
 class RecentGroups extends StatefulWidget {
   const RecentGroups({super.key});
@@ -13,7 +14,7 @@ class RecentGroups extends StatefulWidget {
 }
 
 class RecentGroupsState extends State<RecentGroups> {
- final List<Group> _recentGroups = recentGroups;
+  final List<Group> _recentGroups = recentGroups;
 
   void markGroupAsRead(int index) {
     setState(() {
@@ -43,18 +44,29 @@ class RecentGroupsState extends State<RecentGroups> {
           itemCount: _recentGroups.length,
           itemBuilder: (context, int index) {
             final recentGroup = _recentGroups[index];
+
+            // Check if the avatar is a file or asset path
+            ImageProvider avatarImage;
+            if (recentGroup.avatar.startsWith('/')) {
+              // If the avatar starts with '/', it's a local file
+              avatarImage = FileImage(File(recentGroup.avatar));
+            } else {
+              // Otherwise, it's an asset image
+              avatarImage = AssetImage(recentGroup.avatar);
+            }
+
             return Container(
               margin: const EdgeInsets.only(top: 20),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundImage: AssetImage(recentGroup.avatar),
+                    backgroundImage: avatarImage, // Use appropriate ImageProvider
                   ),
                   SizedBox(width: 20),
                   GestureDetector(
                     onTap: () {
-                      markGroupAsRead(index); // Marquer le groupe comme lu
+                      markGroupAsRead(index);
                       Navigator.push(
                         context,
                         CupertinoPageRoute(

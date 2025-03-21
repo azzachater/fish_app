@@ -1,12 +1,12 @@
 import 'package:fish_app/screens/chat/group_page.dart';
 import '../../constants/theme.dart';
 import 'package:flutter/material.dart';
-import '../../widgets/chat/chat_widgets.dart';
 import 'chat_page.dart';
 import 'search_users_page.dart';
 import 'create_search_group.dart';
 import 'package:logger/logger.dart';
 import '../social_network/social_home_page.dart';
+import '../../widgets/chat/my_tab_bar.dart'; // Assurez-vous d'importer votre widget MyTabBar
 
 class ChatHomePage extends StatefulWidget {
   const ChatHomePage({super.key});
@@ -21,12 +21,10 @@ class HomePageState extends State<ChatHomePage> with TickerProviderStateMixin {
   final logger = Logger();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // Créez un utilisateur fictif pour l'exemple
- 
   void onTabChange() {
     setState(() {
       currentTabIndex = tabController.index;
-      logger.d('Current tab index: $currentTabIndex'); // Utiliser logger à la place de print
+      logger.d('Current tab index: $currentTabIndex');
     });
   }
 
@@ -52,27 +50,30 @@ class HomePageState extends State<ChatHomePage> with TickerProviderStateMixin {
         backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
           onPressed: () {
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => SocialHomePage()),
-  );
-},
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => SocialHomePage()),
+            );
+          },
           icon: Icon(Icons.arrow_back_ios),
           color: Colors.white,
         ),
         title: Text(
-          'Chattie',
-          style: AppTheme.chatTitle.copyWith(
-            color: Colors.white, // Changer la couleur en blanc
+          'Messages',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            fontFamily: 'Roboto',
           ),
         ),
-        centerTitle: true,
+        //centerTitle: true,
         elevation: 0,
       ),
       backgroundColor: AppTheme.primaryColor,
       body: Column(
         children: [
-          MyTabBar(key: UniqueKey(), tabController: tabController), // Pass the key parameter
+          SizedBox(height: 40), // Espace avant le TabBar
           Expanded(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -83,11 +84,18 @@ class HomePageState extends State<ChatHomePage> with TickerProviderStateMixin {
                   topRight: Radius.circular(30),
                 ),
               ),
-              child: TabBarView(
-                controller: tabController,
+              child: Column(
                 children: [
-                  ChatPage(),
-                  GroupPage(),
+                  MyTabBar(tabController: tabController, key: Key('tab_bar')), // Utilisation de MyTabBar
+                  Expanded(
+                    child: TabBarView(
+                      controller: tabController,
+                      children: [
+                        ChatPage(),
+                        GroupPage(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -97,20 +105,14 @@ class HomePageState extends State<ChatHomePage> with TickerProviderStateMixin {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (currentTabIndex == 0) {
-            // Naviguer vers la page de recherche des utilisateurs (pour l'onglet Chat)
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => SearchUsersPage(),
-              ),
+              MaterialPageRoute(builder: (context) => SearchUsersPage()),
             );
           } else if (currentTabIndex == 1) {
-            // Naviguer vers la page de création de groupe (pour l'onglet Groupes)
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => CreateSearchGroup(), // À implémenter plus tard
-              ),
+              MaterialPageRoute(builder: (context) => CreateSearchGroup()),
             );
           }
         },
@@ -118,11 +120,7 @@ class HomePageState extends State<ChatHomePage> with TickerProviderStateMixin {
           borderRadius: BorderRadius.circular(15),
         ),
         child: Icon(
-          currentTabIndex == 0
-              ? Icons.message_outlined // Icône pour l'onglet Chat
-              : currentTabIndex == 1
-                  ? Icons.add // Icône pour l'onglet Groupes
-                  : Icons.call, // Icône par défaut (au cas où)
+          currentTabIndex == 0 ? Icons.message_outlined : Icons.add,
           color: Colors.white,
         ),
       ),

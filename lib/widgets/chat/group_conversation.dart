@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/group_model.dart';
 import '../../models/message_model.dart';
 import '../../constants/theme.dart';
-import '../../data/user_data.dart'; // Import currentUser
+import '../../data/user_data.dart';
 
 class GroupConversation extends StatelessWidget {
   final Group group;
