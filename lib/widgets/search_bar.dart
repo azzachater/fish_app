@@ -11,7 +11,12 @@ class SearchBarWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       decoration: BoxDecoration(
-        color: Colors.grey[200], // Fond plus clair pour être visible
+        color: const Color.fromARGB(
+          255,
+          236,
+          237,
+          237,
+        ), // Fond plus clair pour être visible
         borderRadius: BorderRadius.circular(12.0),
         border: Border.all(color: Colors.grey.shade400), // Ajout d'une bordure
       ),

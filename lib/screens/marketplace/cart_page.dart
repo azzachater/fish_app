@@ -155,7 +155,7 @@ class CartPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(25),
                   ),
                   padding: EdgeInsets.all(12),
-                  backgroundColor: Color.fromARGB(255, 6, 15, 190),
+                  backgroundColor: Colors.blue,
                 ),
                 child: Text(
                   "Checkout",

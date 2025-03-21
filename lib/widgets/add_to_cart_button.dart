@@ -31,7 +31,7 @@ class _AddToCartButtonState extends State<AddToCartButton> {
       },
       icon: Icon(
         isAdded ? Icons.shopping_cart : Icons.shopping_cart,
-        color: isAdded ? const Color.fromARGB(255, 63, 17, 200) : Colors.grey,
+        color: isAdded ? Colors.blue : Colors.grey,
       ),
     );
   }

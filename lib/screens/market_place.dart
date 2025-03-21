@@ -18,17 +18,21 @@ class Marketplace extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
-        title: const Text("Marketplace", style: AppTheme.titleStyle),
+        title: const Text(
+          "🎣 Catch the Best Deals",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold, // Texte en gras
+          ),
+        ),
+
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.favorite,
-              color: Color.fromARGB(255, 65, 26, 206),
-            ),
+            icon: const Icon(Icons.favorite, color: Colors.red),
             onPressed: () {
               Navigator.push(
                 context,
@@ -37,7 +41,10 @@ class Marketplace extends StatelessWidget {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.shopping_cart, color: Colors.blue),
+            icon: const Icon(
+              Icons.shopping_cart,
+              color: Color.fromARGB(255, 37, 151, 245),
+            ),
             onPressed: () {
               Navigator.push(
                 context,

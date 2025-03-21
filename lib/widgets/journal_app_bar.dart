@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const JournalAppBar({super.key});
+  final String selectedView;
+  final Function(String) onViewChange;
+
+  const JournalAppBar({
+    super.key,
+    required this.selectedView,
+    required this.onViewChange,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +38,8 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           child: Row(
             children: [
-              _toggleButton('Day', true),
-              _toggleButton('Week', false),
+              _toggleButton('Day', selectedView == "Day"),
+              _toggleButton('Week', selectedView == "Week"),
             ],
           ),
         ),
@@ -40,7 +47,7 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blueAccent, Colors.white],
+            colors: [Colors.blue, Colors.white], // Dégradé plus visible
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -50,23 +57,25 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _toggleButton(String text, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: isSelected ? Colors.blue : Colors.transparent,
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black,
-          fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: () => onViewChange(text),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue : Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
   }
 
   @override
-  // TODO: implement preferredSize
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
