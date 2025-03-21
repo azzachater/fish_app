@@ -1,10 +1,10 @@
-import 'package:fish_app/data/group_data.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';  // Importer le package image_picker
-import 'dart:io';  // Importer pour manipuler les fichiers image
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';  
 import '../../models/group_model.dart';
 import '../../models/user_model.dart';
 import '../../constants/theme.dart';
+import '../../data/user_data.dart';
 
 class GroupDetailsPage extends StatefulWidget {
   final List<User> selectedUsers;
@@ -17,39 +17,37 @@ class GroupDetailsPage extends StatefulWidget {
 
 class GroupDetailsPageState extends State<GroupDetailsPage> {
   TextEditingController groupNameController = TextEditingController();
-  String? groupImage; // Variable pour stocker l'image du groupe
-  final ImagePicker _picker = ImagePicker();  // Instance de ImagePicker
+  String? groupImage; 
+  final ImagePicker _picker = ImagePicker();
 
-  // Fonction pour sélectionner une image depuis la galerie
   Future<void> pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        groupImage = pickedFile.path;  // Enregistrer le chemin de l'image
+        groupImage = pickedFile.path;
       });
     }
   }
 
   void createGroup() {
-    if (groupNameController.text.isNotEmpty && groupImage != null) {  // Vérifier que le nom et l'image sont renseignés
-      final newGroup = Group(
-        name: groupNameController.text,
-        avatar: groupImage!, // Utiliser l'image sélectionnée pour l'avatar
-        admin: widget.selectedUsers[0],  // Le premier utilisateur sélectionné comme administrateur
-        members: widget.selectedUsers,
-        unreadCount: 0,
-        isRead: true,
-        time: '12:00 PM',
-        id: '',
-      );
+  if (groupNameController.text.isNotEmpty && groupImage != null) {
+    // S'assurer que currentUser n'est ajouté qu'une seule fois
+    final Set<User> uniqueMembers = {currentUser, ...widget.selectedUsers};
 
-      // Ajouter le nouveau groupe à la liste de tous les groupes
-      allGroups.add(newGroup);
+    final newGroup = Group(
+      name: groupNameController.text,
+      avatar: groupImage!,
+      admin: currentUser,
+      members: uniqueMembers.toList(), // Convertir en liste unique
+      unreadCount: 0,
+      isRead: true,
+      time: '12:00 PM',
+      id: '',
+    );
 
-      // Naviguer vers la page précédente avec le nouveau groupe ajouté
-      Navigator.pop(context, newGroup);  // Retourner le groupe créé
-    }
+    Navigator.pop(context, newGroup);
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +70,6 @@ class GroupDetailsPageState extends State<GroupDetailsPage> {
               ),
             ),
             SizedBox(height: 20),
-            // Section pour sélectionner une image
             GestureDetector(
               onTap: pickImage,
               child: Container(
@@ -102,9 +99,8 @@ class GroupDetailsPageState extends State<GroupDetailsPage> {
                     ),
                     title: Text(
                       user.name,
-                      style: AppTheme.heading2.copyWith(fontSize: 16),
-                    ),
-                  );
+                      style: AppTheme.heading2.copyWith(fontSize: 16)),
+                    );
                 },
               ),
             ),

@@ -1,56 +1,46 @@
 import 'package:flutter/material.dart';
-import '../../constants/theme.dart';
 
 class MyTabBar extends StatelessWidget {
   const MyTabBar({
     required this.tabController,
     required Key key,
   }) : super(key: key);
+
   final TabController tabController;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
-      height: 80,
-      color:  AppTheme.primaryColor,
-      child: TabBar(
-        controller: tabController,
-        indicatorSize: TabBarIndicatorSize.tab,
-        indicator: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(width: 4, color: AppTheme.accentColor),
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 15),
+      padding: const EdgeInsets.all(8),
+      height: 55, // Augmenté pour plus de visibilité
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5), // Gris clair pour l’arrière-plan
+        borderRadius: BorderRadius.circular(30), // Coins plus arrondis
+      ),
+      child: Expanded(
+        child: TabBar(
+          controller: tabController,
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicator: BoxDecoration(
+            color: const Color(0xff0095FF), // Violet pour l’onglet sélectionné
+            borderRadius: BorderRadius.circular(30), // Arrondi parfait
           ),
-          boxShadow: [
-            BoxShadow(
-            color: AppTheme.accentColor.withValues(alpha: 0.5),
-              blurRadius: 10,
-              spreadRadius: 1,
-            ),
+          labelColor: Colors.white, // Texte blanc pour l’onglet actif
+          unselectedLabelColor: Colors.black, // Texte noir pour les inactifs
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18, // Taille augmentée
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 18,
+          ),
+          tabs: const [
+            Tab(text: 'chats'),
+            Tab(text: 'groups'),
           ],
         ),
-        unselectedLabelColor: Colors.grey[700], // Gris plus foncé
-        tabs: [
-          Tab(
-            icon: Text(
-              'Chat',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Tab(
-            icon: Text(
-              'groups',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

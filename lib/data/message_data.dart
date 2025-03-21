@@ -6,7 +6,7 @@ final List<Message> recentChats = [
   Message(
     sender: addison,
     receiver: currentUser, // Ajout du receiver
-    avatar: 'assets/images/users/Addison.jpg',
+    avatar: 'assets/images/users/Addison.png',
     time: '01:25',
     text: "typing...",
     unreadCount: 1,
@@ -15,7 +15,7 @@ final List<Message> recentChats = [
   Message(
     sender: jason,
     receiver: currentUser, // Ajout du receiver
-    avatar: 'assets/images/users/Jason.jpg',
+    avatar: 'assets/images/users/Jason.png',
     time: '12:46',
     text: "Will I be in it?",
     unreadCount: 1,
@@ -24,7 +24,7 @@ final List<Message> recentChats = [
   Message(
     sender: deanna,
     receiver: currentUser, // Ajout du receiver
-    avatar: 'assets/images/users/Deanna.jpg',
+    avatar: 'assets/images/users/Deanna.png',
     time: '05:26',
     text: "That's so cute.",
     unreadCount: 3,
@@ -33,7 +33,7 @@ final List<Message> recentChats = [
   Message(
     sender: nathan,
     receiver: currentUser, // Ajout du receiver
-    avatar: 'assets/images/users/Nathan.jpg',
+    avatar: 'assets/images/users/Nathan.png',
     time: '12:45',
     text: "Let me see what I can do.",
     unreadCount: 2,
@@ -45,7 +45,7 @@ final List<Message> allChats = [
   Message(
     sender: virgil,
     receiver: currentUser, // Ajout du receiver
-    avatar: 'assets/images/users/Virgil.jpg',
+    avatar: 'assets/images/users/Virgil.png',
     time: '12:59',
     text: "No! I just wanted",
     unreadCount: 0,
@@ -54,7 +54,7 @@ final List<Message> allChats = [
   Message(
     sender: stanley,
     receiver: currentUser, // Ajout du receiver
-    avatar: 'assets/images/users/Stanley.jpg',
+    avatar: 'assets/images/users/Stanley.png',
     time: '10:41',
     text: "You did what?",
     unreadCount: 1,
@@ -63,7 +63,7 @@ final List<Message> allChats = [
   Message(
     sender: leslie,
     receiver: currentUser, // Ajout du receiver
-    avatar: 'assets/images/users/Leslie.jpg',
+    avatar: 'assets/images/users/Leslie.png',
     time: '05:51',
     text: "just signed up for a tutor",
     unreadCount: 0,
@@ -72,7 +72,7 @@ final List<Message> allChats = [
   Message(
     sender: judd,
     receiver: currentUser, // Ajout du receiver
-    avatar: 'assets/images/users/Judd.jpg',
+    avatar: 'assets/images/users/Judd.png',
     time: '10:16',
     text: "May I ask you something?",
     unreadCount: 2,

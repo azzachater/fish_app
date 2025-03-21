@@ -3,10 +3,12 @@ import '../../models/group_model.dart';
 import '../../models/message_model.dart';
 import '../../constants/theme.dart';
 import '../../widgets/chat/group_conversation.dart';
-import '../../widgets/chat/chat_composer.dart'; // Import the ChatComposer widget
+import '../../widgets/chat/chat_composer.dart';
 import 'add_user_to_group_page.dart';
-import '../../data/user_data.dart'; // Import currentUser
-import '../../data/message_data.dart'; // Import groupMessages
+import '../../data/user_data.dart';
+import '../../data/message_data.dart';
+import '../../data/group_data.dart';
+import 'dart:io';
 
 class GroupChatPage extends StatefulWidget {
   const GroupChatPage({super.key, required this.group});
@@ -23,27 +25,44 @@ class GroupChatPageState extends State<GroupChatPage> {
   @override
   void initState() {
     super.initState();
-    // Load existing messages for the group
     groupMessagesForThisGroup = groupMessages
         .where((message) => message.groupId == widget.group.id)
         .toList();
   }
 
   void _handleSendMessage(String text) {
-    final newMessage = Message(
-      sender: currentUser,
-      groupId: widget.group.id,
-      avatar: currentUser.avatar,
-      text: text,
-      time: 'Now', // You can replace this with the actual time
-      unreadCount: 0,
-      isRead: true,
-    );
+  if (text.trim().isEmpty) return; // Évite d'envoyer des messages vides
 
+  final newMessage = Message(
+    sender: currentUser,
+    groupId: widget.group.id,
+    avatar: currentUser.avatar,
+    text: text,
+    time: 'Now',
+    unreadCount: 0,
+    isRead: true,
+  );
+
+  setState(() {
+    groupMessagesForThisGroup.insert(0, newMessage);
+  });
+
+  // Ajouter le message à la liste globale des messages
+  groupMessages.add(newMessage);
+
+  // Vérifier et ajouter le groupe dans recentGroups et allGroups
+  if (!recentGroups.any((group) => group.id == widget.group.id)) {
     setState(() {
-      groupMessagesForThisGroup.insert(0, newMessage);
+      recentGroups.insert(0, widget.group);
     });
   }
+
+  if (!allGroups.any((group) => group.id == widget.group.id)) {
+    setState(() {
+      allGroups.insert(0, widget.group);
+    });
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +76,9 @@ class GroupChatPageState extends State<GroupChatPage> {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundImage: AssetImage(widget.group.avatar),
+              backgroundImage: widget.group.avatar.startsWith('/')
+                  ? FileImage(File(widget.group.avatar))
+                  : AssetImage(widget.group.avatar) as ImageProvider,
             ),
             SizedBox(width: 20),
             Column(

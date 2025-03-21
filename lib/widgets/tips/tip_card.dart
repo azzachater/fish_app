@@ -19,56 +19,66 @@ class TipCardWidget extends StatelessWidget {
       margin: const EdgeInsets.all(8.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    tip.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          image: const DecorationImage(
+            image: AssetImage("assets/images/tips/tipBackground.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      tip.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black, // Texte en blanc pour contraste
+                      ),
                     ),
                   ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (String value) {
-                    if (value == 'edit') {
-                      onEdit(); // Appeler la fonction d'édition
-                    } else if (value == 'delete') {
-                      _showDeleteConfirmation(context); // Afficher la confirmation de suppression
-                    }
-                  },
-                  itemBuilder: (BuildContext context) {
-                    return [
-                      const PopupMenuItem<String>(
-                        value: 'edit',
-                        child: Text('Edit'),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Text('Delete'),
-                      ),
-                    ];
-                  },
-                  icon: const Icon(Icons.more_vert, color: Colors.black),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              tip.description,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
+                  PopupMenuButton<String>(
+                    onSelected: (String value) {
+                      if (value == 'edit') {
+                        onEdit();
+                      } else if (value == 'delete') {
+                        _showDeleteConfirmation(context);
+                      }
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return [
+                        const PopupMenuItem<String>(
+                          value: 'edit',
+                          child: Text('Edit'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'delete',
+                          child: Text('Delete'),
+                        ),
+                      ];
+                    },
+                    icon: const Icon(Icons.more_vert, color: Colors.black),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                tip.description,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black, // Texte blanc pour meilleure lisibilité
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -89,7 +99,7 @@ class TipCardWidget extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                onDelete(); // Appeler la méthode de suppression
+                onDelete();
               },
               child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
             ),

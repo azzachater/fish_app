@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../../models/group_model.dart';
 import '../../models/user_model.dart';
 import '../../constants/theme.dart';
-import 'group_details_page.dart'; // Import GroupDetailsPage
-import 'group_chat_page.dart';
+import 'group_details_page.dart';
 import '../../data/user_data.dart';
 import '../../data/group_data.dart';
+import 'dart:io';
+import 'group_chat_page.dart';
 
 class CreateSearchGroup extends StatefulWidget {
   const CreateSearchGroup({super.key});
@@ -15,28 +16,21 @@ class CreateSearchGroup extends StatefulWidget {
 }
 
 class CreateSearchGroupState extends State<CreateSearchGroup> {
-  List<Group> filteredGroups = allGroups; // Initialize with all groups
-  List<User> selectedUsers = [];
-  List<User> filteredUsers = users; // Initialize with all users
+  List<Group> filteredGroups = List.from(allGroups);
+  List<User> selectedUsers = [currentUser]; // currentUser est sélectionné par défaut
+  List<User> filteredUsers = List.from(users);
   TextEditingController searchController = TextEditingController();
 
-  void filterGroups(String query) {
-    final List<Group> results = allGroups.where((group) {
-      final String groupName = group.name.toLowerCase();
-      final String searchQuery = query.toLowerCase();
-      return groupName.contains(searchQuery);
-    }).toList();
-
-    setState(() {
-      filteredGroups = results;
-    });
+  @override
+  void initState() {
+    super.initState();
+    //selectedUsers.add(); // currentUser est sélectionné par défaut
   }
 
   void filterUsers(String query) {
     final List<User> results = users.where((user) {
       final String userName = user.name.toLowerCase();
-      final String searchQuery = query.toLowerCase();
-      return userName.contains(searchQuery);
+      return userName.contains(query.toLowerCase());
     }).toList();
 
     setState(() {
@@ -44,8 +38,10 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
     });
   }
 
-  // Fonction pour naviguer vers la page de détails du groupe
   void _navigateToGroupDetails() async {
+     if (!selectedUsers.contains(currentUser)) {
+    selectedUsers.add(currentUser);
+  }
     final newGroup = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -55,8 +51,10 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
 
     if (newGroup != null) {
       setState(() {
-        // Ajouter le groupe créé à la liste des groupes filtrés
-        filteredGroups.add(newGroup);
+        allGroups.add(newGroup);
+        filteredGroups = List.from(allGroups); // Met à jour la liste affichée
+        selectedUsers.clear(); // Désélectionne les utilisateurs
+        selectedUsers.add(currentUser); // Réajoute currentUser par défaut
       });
     }
   }
@@ -69,29 +67,23 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
           controller: searchController,
           decoration: InputDecoration(
             hintText: 'Search users...',
-            hintStyle: TextStyle(color: Colors.white.withAlpha(179)), // 0.7 * 255 = 179
+            hintStyle: TextStyle(color: Colors.white.withAlpha(179)),
             border: InputBorder.none,
           ),
           style: TextStyle(color: Colors.white),
-          onChanged: (value) {
-            filterUsers(value);
-          },
+          onChanged: filterUsers,
         ),
         backgroundColor: AppTheme.primaryColor,
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
-          // Partie 1: Créer un groupe
           Container(
             padding: EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Create Group',
-                  style: AppTheme.heading2,
-                ),
+                Text('Create Group', style: AppTheme.heading2),
                 SizedBox(height: 10),
                 SizedBox(
                   height: 80,
@@ -104,11 +96,7 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
                       return GestureDetector(
                         onTap: () {
                           setState(() {
-                            if (isSelected) {
-                              selectedUsers.remove(user);
-                            } else {
-                              selectedUsers.add(user);
-                            }
+                            isSelected ? selectedUsers.remove(user) : selectedUsers.add(user);
                           });
                         },
                         child: Stack(
@@ -124,10 +112,7 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
                               Positioned(
                                 right: 0,
                                 bottom: 0,
-                                child: Icon(
-                                  Icons.check_circle,
-                                  color: Colors.green,
-                                ),
+                                child: Icon(Icons.check_circle, color: Colors.green),
                               ),
                           ],
                         ),
@@ -138,7 +123,7 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
                 SizedBox(height: 10),
                 Center(
                   child: ElevatedButton(
-                    onPressed: _navigateToGroupDetails,  // Appeler la fonction pour naviguer vers la page de détails du groupe
+                    onPressed: _navigateToGroupDetails,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
@@ -147,24 +132,17 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
                       ),
                       padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                     ),
-                    child: Text(
-                      'Next',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                    child: Text('Next', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
             ),
           ),
           Divider(),
-          // Partie 2: Tous les groupes
           Container(
             padding: EdgeInsets.all(10),
             alignment: Alignment.centerLeft,
-            child: Text(
-              'All Groups',
-              style: AppTheme.heading2,
-            ),
+            child: Text('All Groups', style: AppTheme.heading2),
           ),
           Expanded(
             child: ListView.builder(
@@ -174,12 +152,11 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
                 return ListTile(
                   leading: CircleAvatar(
                     radius: 25,
-                    backgroundImage: AssetImage(group.avatar),
+                    backgroundImage: group.avatar.startsWith('/')
+                        ? FileImage(File(group.avatar)) as ImageProvider
+                        : AssetImage(group.avatar),
                   ),
-                  title: Text(
-                    group.name,
-                    style: AppTheme.heading2.copyWith(fontSize: 16),
-                  ),
+                  title: Text(group.name, style: AppTheme.heading2.copyWith(fontSize: 16)),
                   subtitle: Text('${group.members.length} members'),
                   onTap: () {
                     Navigator.push(

@@ -1,12 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-//import 'package:google_maps_flutter/google_maps_flutter.dart';
-//import 'map_selection_page.dart';
-import 'package:logger/logger.dart'; 
-//import '../models/user_model.dart';
+import 'package:logger/logger.dart';
 import '../../data/user_data.dart';
-import 'create_status_page.dart'; // Importation du modèle utilisateur
 
 class CreatePostPage extends StatefulWidget {
   const CreatePostPage({super.key});
@@ -16,7 +12,6 @@ class CreatePostPage extends StatefulWidget {
 }
 
 class CreatePostPageState extends State<CreatePostPage> {
-  //LatLng? selectedLocation;
   String _postText = '';
   XFile? _image;
   final ImagePicker _picker = ImagePicker();
@@ -57,7 +52,7 @@ class CreatePostPageState extends State<CreatePostPage> {
                 children: [
                   CircleAvatar(
                     radius: 25,
-                    backgroundImage: AssetImage(currentUser.avatar), // Utilisation de l'avatar actuel
+                    backgroundImage: AssetImage(currentUser.avatar),
                   ),
                   SizedBox(width: 12),
                   Text(currentUser.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
@@ -99,18 +94,6 @@ class CreatePostPageState extends State<CreatePostPage> {
                       onPressed: _pickImage,
                       icon: Icon(Icons.photo_library, color: Colors.green),
                       label: Text("Photo", style: TextStyle(color: Colors.black)),
-                    ),
-                  ),
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () {
-                            Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => CreateStatusPage()),
-                                );      
-                              },
-                      icon: Icon(Icons.edit, color: Colors.blue),
-                      label: Text("Status", style: TextStyle(color: Colors.black)),
                     ),
                   ),
                 ],

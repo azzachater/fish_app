@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-//import '../models/user_model.dart';
-import '../../data/user_data.dart'; // Assure-toi que ces fichiers sont bien configurés
+import '../../data/user_data.dart';
 import '../../screens/social_network/create_post_page.dart';
 
 class CreatePostWidget extends StatelessWidget {
@@ -31,7 +30,7 @@ class CreatePostWidget extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundImage: AssetImage(currentUser.avatar), // Utilisation de l'avatar de currentUser
+                backgroundImage: AssetImage(currentUser.avatar),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -44,36 +43,19 @@ class CreatePostWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(25),
                     ),
                     child: Text(
-                      "What's on your mind, ${currentUser.name}?",
+                      "Quoi de neuf, ${currentUser.name}?",
                       style: const TextStyle(color: Colors.black54, fontSize: 16),
                     ),
                   ),
                 ),
               ),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: Icon(Icons.photo_library, color: Colors.green),
+                onPressed: () => _navigateToCreatePost(context),
+              ),
             ],
           ),
-          const SizedBox(height: 10),
-          Divider(thickness: 1, color: Colors.grey[300]),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildPostOption(context, Icons.photo_library, "Photo", Colors.green),
-              _buildPostOption(context, Icons.edit, "Status", Colors.blue),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostOption(BuildContext context, IconData icon, String label, Color color) {
-    return InkWell(
-      onTap: () => _navigateToCreatePost(context),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(width: 6),
-          Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
         ],
       ),
     );
