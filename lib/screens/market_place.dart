@@ -59,7 +59,7 @@ class Marketplace extends StatelessWidget {
         children: [
           const SizedBox(height: 10),
           SearchBarWidget(
-            hintText: 'Rechercher un produit...',
+            hintText: 'search',
             onChanged: (value) {
               print('Recherche: $value');
             },
