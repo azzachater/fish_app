@@ -86,6 +86,7 @@ class HomePageState extends State<ChatHomePage> with TickerProviderStateMixin {
               ),
               child: Column(
                 children: [
+                  SizedBox(height: 20),
                   MyTabBar(tabController: tabController, key: Key('tab_bar')), // Utilisation de MyTabBar
                   Expanded(
                     child: TabBarView(
