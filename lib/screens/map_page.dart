@@ -1,27 +1,10 @@
+import 'package:fish_app/controller/map_controller_X.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:get/get.dart';
 
-class MapPage extends StatefulWidget {
-  @override
-  _MapPageState createState() => _MapPageState();
-}
-
-class _MapPageState extends State<MapPage> {
-  MapController controller = MapController(
-    initPosition: GeoPoint(latitude: 47.4358055, longitude: 8.4737324),
-    areaLimit: BoundingBox(
-      east: 10.4922941,
-      north: 47.8084648,
-      south: 45.817995,
-      west: 5.9559113,
-    ),
-  );
-
-  @override
-  void dispose() {
-    controller.dispose(); // Libérer la mémoire
-    super.dispose();
-  }
+class MapPage extends StatelessWidget {
+  final MapControllerX controller = Get.put(MapControllerX());
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +13,7 @@ class _MapPageState extends State<MapPage> {
       body: Stack(
         children: [
           OSMFlutter(
-            controller: controller,
+            controller: controller.mapController,
             osmOption: OSMOption(
               userTrackingOption: UserTrackingOption(
                 enableTracking: true,
@@ -61,9 +44,7 @@ class _MapPageState extends State<MapPage> {
             bottom: 20,
             right: 20,
             child: FloatingActionButton(
-              onPressed: () async {
-                await controller.currentLocation();
-              },
+              onPressed: controller.moveToCurrentLocation,
               child: Icon(Icons.my_location),
             ),
           ),
@@ -71,18 +52,7 @@ class _MapPageState extends State<MapPage> {
             bottom: 80,
             right: 20,
             child: FloatingActionButton(
-              onPressed: () async {
-                await controller.addMarker(
-                  GeoPoint(latitude: 47.4358055, longitude: 8.4737324),
-                  markerIcon: MarkerIcon(
-                    icon: Icon(
-                      Icons.person_pin_circle,
-                      color: Colors.blue,
-                      size: 56,
-                    ),
-                  ),
-                );
-              },
+              onPressed: controller.addMarkerAtLocation,
               child: Icon(Icons.add_location),
             ),
           ),

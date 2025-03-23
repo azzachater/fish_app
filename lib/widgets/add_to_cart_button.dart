@@ -1,38 +1,30 @@
+import 'package:fish_app/controller/add_cart_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:fish_app/providers/cart_provider.dart';
+import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
 
-class AddToCartButton extends StatefulWidget {
+class AddToCartButton extends StatelessWidget {
   final Product product;
-  const AddToCartButton({super.key, required this.product});
+  AddToCartButton({super.key, required this.product});
 
-  @override
-  State<AddToCartButton> createState() => _AddToCartButtonState();
-}
-
-class _AddToCartButtonState extends State<AddToCartButton> {
-  bool isAdded = false;
+  final AddCartController cartController = Get.find<AddCartController>();
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: () {
-        final cartProvider = Provider.of<CartProvider>(context, listen: false);
-        setState(() {
-          isAdded = !isAdded;
-        });
+    return Obx(() {
+      bool isAdded = cartController.isInCart(product);
 
-        if (isAdded) {
-          cartProvider.addProduct(widget.product);
-        } else {
-          cartProvider.removeProduct(widget.product);
-        }
-      },
-      icon: Icon(
-        isAdded ? Icons.shopping_cart : Icons.shopping_cart,
-        color: isAdded ? Colors.blue : Colors.grey,
-      ),
-    );
+      return IconButton(
+        onPressed: () {
+          isAdded
+              ? cartController.removeProduct(product)
+              : cartController.addProduct(product);
+        },
+        icon: Icon(
+          Icons.shopping_cart,
+          color: isAdded ? Colors.blue : Colors.grey,
+        ),
+      );
+    });
   }
 }

@@ -1,48 +1,13 @@
+import 'package:fish_app/controller/add_journal_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
-class AddJournalPage extends StatefulWidget {
-  @override
-  _AddJournalPageState createState() => _AddJournalPageState();
-}
-
-class _AddJournalPageState extends State<AddJournalPage> {
-  int selectedDateIndex = 1; // Par défaut, la deuxième date est sélectionnée
-  TimeOfDay? fromTime;
-  TimeOfDay? toTime;
-  TextEditingController descriptionController = TextEditingController();
-
-  List<Map<String, String>> getDates() {
-    DateTime now = DateTime.now();
-    return List.generate(3, (index) {
-      DateTime date = now.add(Duration(days: index));
-      return {
-        "day": "${date.day}",
-        "weekday":
-            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][date.weekday - 1],
-      };
-    });
-  }
-
-  Future<void> _selectTime(BuildContext context, bool isFrom) async {
-    TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (picked != null) {
-      setState(() {
-        if (isFrom) {
-          fromTime = picked;
-        } else {
-          toTime = picked;
-        }
-      });
-    }
-  }
+class AddJournalPage extends StatelessWidget {
+  final AddJournalController controller = Get.put(AddJournalController());
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, String>> dates = getDates();
+    List<Map<String, String>> dates = controller.getDates();
 
     return Scaffold(
       appBar: AppBar(
@@ -58,9 +23,7 @@ class _AddJournalPageState extends State<AddJournalPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Get.back(),
         ),
       ),
       body: Padding(
@@ -73,49 +36,49 @@ class _AddJournalPageState extends State<AddJournalPage> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(dates.length + 1, (index) {
-                bool isSelected = index == selectedDateIndex;
-
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      selectedDateIndex = index;
-                    });
-                  },
-                  child: Container(
-                    width: 70,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.blue : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          index < dates.length ? dates[index]["day"]! : "Other",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : Colors.black,
+            //obx est un widget reactif qui met a jour l'interface lorsque Rx(variable) change
+            Obx(
+              () => Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(dates.length + 1, (index) {
+                  bool isSelected = index == controller.selectedDateIndex.value;
+                  return GestureDetector(
+                    onTap: () => controller.selectedDateIndex.value = index,
+                    child: Container(
+                      width: 70,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.blue : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            index < dates.length
+                                ? dates[index]["day"]!
+                                : "Other",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : Colors.black,
+                            ),
                           ),
-                        ),
-                        Text(
-                          index < dates.length
-                              ? dates[index]["weekday"]!
-                              : "Date",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isSelected ? Colors.white : Colors.black54,
+                          Text(
+                            index < dates.length
+                                ? dates[index]["weekday"]!
+                                : "Date",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isSelected ? Colors.white : Colors.black54,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -134,9 +97,13 @@ class _AddJournalPageState extends State<AddJournalPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _timeButton(context, fromTime, true),
+                  Obx(
+                    () => _timeButton(context, controller.fromTime.value, true),
+                  ),
                   const Icon(Icons.arrow_forward),
-                  _timeButton(context, toTime, false),
+                  Obx(
+                    () => _timeButton(context, controller.toTime.value, false),
+                  ),
                 ],
               ),
             ),
@@ -150,7 +117,7 @@ class _AddJournalPageState extends State<AddJournalPage> {
             ),
             const SizedBox(height: 10),
             TextField(
-              controller: descriptionController,
+              controller: controller.descriptionController,
               maxLines: 3,
               decoration: InputDecoration(
                 hintText: "Enter details...",
@@ -166,10 +133,7 @@ class _AddJournalPageState extends State<AddJournalPage> {
 
             // Save Button
             GestureDetector(
-              onTap: () {
-                // Ajouter la logique de sauvegarde ici
-                Navigator.pop(context);
-              },
+              onTap: controller.saveJournal,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 15),
@@ -203,7 +167,7 @@ class _AddJournalPageState extends State<AddJournalPage> {
 
   Widget _timeButton(BuildContext context, TimeOfDay? time, bool isFrom) {
     return GestureDetector(
-      onTap: () => _selectTime(context, isFrom),
+      onTap: () => Get.find<AddJournalController>().selectTime(context, isFrom),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
