@@ -1,6 +1,6 @@
+import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:fish_app/providers/favorite_provider.dart';
+import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
 
 class FavoritesPage extends StatelessWidget {
@@ -8,8 +8,8 @@ class FavoritesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final favoriteProvider = Provider.of<FavoriteProvider>(context);
-    final favoriteItems = favoriteProvider.favoriteItems;
+    final FavoriteController favoriteController =
+        Get.find<FavoriteController>();
 
     return Scaffold(
       appBar: AppBar(
@@ -17,31 +17,32 @@ class FavoritesPage extends StatelessWidget {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue, Colors.white], // Dégradé plus visible
+              colors: [Colors.blue, Colors.white],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
           ),
         ),
       ),
-      body:
-          favoriteItems.isEmpty
-              ? _buildEmptyState()
-              : Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: ListView.separated(
-                  itemCount: favoriteItems.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final product = favoriteItems[index];
-                    return _buildFavoriteCard(
-                      context,
-                      product,
-                      favoriteProvider,
-                    );
-                  },
-                ),
+      body: Obx(() {
+        return favoriteController.favoriteItems.isEmpty
+            ? _buildEmptyState()
+            : Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: ListView.separated(
+                itemCount: favoriteController.favoriteItems.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, index) {
+                  final product = favoriteController.favoriteItems[index];
+                  return _buildFavoriteCard(
+                    context,
+                    product,
+                    favoriteController,
+                  );
+                },
               ),
+            );
+      }),
     );
   }
 
@@ -64,7 +65,7 @@ class FavoritesPage extends StatelessWidget {
   Widget _buildFavoriteCard(
     BuildContext context,
     Product product,
-    FavoriteProvider provider,
+    FavoriteController controller,
   ) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -91,7 +92,7 @@ class FavoritesPage extends StatelessWidget {
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.redAccent),
-          onPressed: () => provider.toggleFavorite(product),
+          onPressed: () => controller.toggleFavorite(product),
         ),
       ),
     );

@@ -15,6 +15,7 @@ class Product {
     this.quantity = 1,
   });
 
+  /// Liste de produits de test
   static List<Product> products() {
     return [
       Product(
@@ -32,5 +33,18 @@ class Product {
         imageUrl: "assets/images/produit2.png",
       ),
     ];
+  }
+
+  /// Permet de créer une nouvelle copie de l'objet avec des valeurs mises à jour.
+  Product copyWith({int? quantity}) {
+    return Product(
+      id: id,
+      name: name,
+      price: price,
+      unit: unit,
+      imageUrl: imageUrl,
+      quantity:
+          quantity ?? this.quantity, // Garde l'ancienne valeur si non spécifiée
+    );
   }
 }

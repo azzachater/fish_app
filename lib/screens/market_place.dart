@@ -1,17 +1,17 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:fish_app/screens/marketplace/add_product_page.dart';
 import 'package:fish_app/widgets/floating_add_button.dart';
-import 'package:flutter/material.dart';
-import 'package:fish_app/models/product.dart';
 import 'package:fish_app/widgets/product_card.dart';
 import 'package:fish_app/screens/marketplace/cart_page.dart';
 import 'package:fish_app/screens/marketplace/favorites_page.dart';
-import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/widgets/search_bar.dart';
 
 class Marketplace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    List<Product> products = Product.products();
+    final ProductController productController = Get.put(ProductController());
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: Colors.white,
@@ -25,32 +25,21 @@ class Marketplace extends StatelessWidget {
             fontWeight: FontWeight.bold, // Texte en gras
           ),
         ),
-
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.favorite, color: Colors.red),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => FavoritesPage()),
-              );
-            },
+            onPressed: () => Get.to(() => FavoritesPage()),
           ),
           IconButton(
             icon: const Icon(
               Icons.shopping_cart,
               color: Color.fromARGB(255, 37, 151, 245),
             ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CartPage()),
-              );
-            },
+            onPressed: () => Get.to(() => CartPage()),
           ),
         ],
       ),
@@ -61,30 +50,33 @@ class Marketplace extends StatelessWidget {
           SearchBarWidget(
             hintText: 'search',
             onChanged: (value) {
-              print('Recherche: $value');
+              productController.searchProduct(value);
             },
           ),
           const SizedBox(height: 10),
           Expanded(
-            // Utilisation correcte d'Expanded ici
-            child: ListView.builder(
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                return ProductCard(product: products[index]);
-              },
-            ),
+            child: Obx(() {
+              return ListView.builder(
+                itemCount: productController.filteredProducts.length,
+                itemBuilder: (context, index) {
+                  return ProductCard(
+                    product: productController.filteredProducts[index],
+                  );
+                },
+              );
+            }),
           ),
         ],
       ),
       floatingActionButton: FloatingAddButton(
-        onPressed: () {
-          //ouvrir la formulaire
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddProductPage()),
-          );
-        },
+        onPressed: () => Get.to(() => AddProductPage()),
       ),
     );
   }
+}
+
+class ProductController {
+  get filteredProducts => null;
+
+  void searchProduct(String value) {}
 }

@@ -1,23 +1,14 @@
+import 'package:fish_app/controller/cart_controller.dart';
+import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:fish_app/main_screen.dart';
-import 'package:fish_app/screens/auth/home_page.dart';
-import 'package:fish_app/screens/diary_screen.dart';
-import 'package:fish_app/screens/map_page.dart';
-import 'package:fish_app/widgets/journal_table.dart';
+import 'package:fish_app/widgets/event_journal_table.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:fish_app/providers/cart_provider.dart';
-import 'package:fish_app/providers/favorite_provider.dart';
+import 'package:get/get.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => CartProvider()),
-        ChangeNotifierProvider(create: (context) => FavoriteProvider()),
-      ],
-      child: MyApp(),
-    ),
-  );
+  Get.put(CartController());
+  Get.put(FavoriteController());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
