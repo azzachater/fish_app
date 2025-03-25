@@ -1,13 +1,33 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
-import 'package:fish_app/widgets/favorite_button.dart';
-import 'package:fish_app/widgets/add_to_cart_button.dart';
 
-class ProductCardController extends GetxController {
-  var isHovered = false.obs;
+class ProductController extends GetxController {
+  var products = Product.products().obs;
+  var filteredProducts = <Product>[].obs;
+  var isHovered = false.obs; // Utilisation correcte d'un état réactif
+
+  @override
+  void onInit() {
+    super.onInit();
+    filteredProducts.assignAll(products);
+  }
+
+  void searchProduct(String query) {
+    if (query.isEmpty) {
+      filteredProducts.assignAll(products);
+    } else {
+      filteredProducts.assignAll(
+        products
+            .where(
+              (product) =>
+                  product.name.toLowerCase().contains(query.toLowerCase()),
+            )
+            .toList(),
+      );
+    }
+  }
 
   void setHover(bool value) {
-    isHovered.value = value;
+    isHovered.value = value; // Met à jour l'état de survol
   }
 }

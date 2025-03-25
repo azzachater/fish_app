@@ -7,7 +7,7 @@ class AddToCartButton extends StatelessWidget {
   final Product product;
   AddToCartButton({super.key, required this.product});
 
-  final AddCartController cartController = Get.find<AddCartController>();
+  final CartControllerX cartController = Get.find<CartControllerX>();
 
   @override
   Widget build(BuildContext context) {

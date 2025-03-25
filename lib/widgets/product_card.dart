@@ -9,7 +9,7 @@ class ProductCard extends StatelessWidget {
   final Product product;
   ProductCard({super.key, required this.product});
 
-  final ProductCardController controller = Get.put(ProductCardController());
+  final ProductController controller = Get.put(ProductController());
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,5 @@
-//au lieu de cart provider
-import 'package:fish_app/models/product.dart';
 import 'package:get/get.dart';
+import '../models/product.dart';
 
 class CartController extends GetxController {
   var cartItems = <Product>[].obs;

@@ -1,3 +1,5 @@
+import 'package:fish_app/controller/add_cart_controller.dart';
+import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/screens/marketplace/add_product_page.dart';
@@ -11,6 +13,7 @@ class Marketplace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ProductController productController = Get.put(ProductController());
+    final CartControllerX cartController = Get.put(CartControllerX());
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -20,10 +23,7 @@ class Marketplace extends StatelessWidget {
         backgroundColor: Colors.white,
         title: const Text(
           "🎣 Catch the Best Deals",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold, // Texte en gras
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
           onPressed: () => Get.back(),
@@ -34,12 +34,39 @@ class Marketplace extends StatelessWidget {
             icon: const Icon(Icons.favorite, color: Colors.red),
             onPressed: () => Get.to(() => FavoritesPage()),
           ),
-          IconButton(
-            icon: const Icon(
-              Icons.shopping_cart,
-              color: Color.fromARGB(255, 37, 151, 245),
-            ),
-            onPressed: () => Get.to(() => CartPage()),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.shopping_cart, color: Color(0xFF2597F5)),
+                onPressed: () {
+                  Get.to(() => CartPage()) ??
+                      print("Erreur: Page introuvable !");
+                },
+              ),
+              Positioned(
+                right: 6,
+                top: 6,
+                child: Obx(() {
+                  return cartController.cartItems.isEmpty
+                      ? const SizedBox.shrink()
+                      : Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          cartController.cartItems.length.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                }),
+              ),
+            ],
           ),
         ],
       ),
@@ -48,10 +75,8 @@ class Marketplace extends StatelessWidget {
         children: [
           const SizedBox(height: 10),
           SearchBarWidget(
-            hintText: 'search',
-            onChanged: (value) {
-              productController.searchProduct(value);
-            },
+            hintText: 'Rechercher...',
+            onChanged: productController.searchProduct,
           ),
           const SizedBox(height: 10),
           Expanded(
@@ -73,10 +98,4 @@ class Marketplace extends StatelessWidget {
       ),
     );
   }
-}
-
-class ProductController {
-  get filteredProducts => null;
-
-  void searchProduct(String value) {}
 }
