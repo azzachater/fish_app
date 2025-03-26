@@ -7,14 +7,16 @@ import 'sidebar.dart'; // Importez votre fichier sidebar.dart
 import '../chat/chat_home_page.dart';
 import 'search_profile_page.dart'; // Importer la page de recherche de profil
 import '../../controllers/post_controller.dart'; // Importer le contrôleur des posts
-import '../../models/post_model.dart'; 
+import '../../models/post_model.dart';
 
 class SocialHomePage extends StatelessWidget {
   const SocialHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final PostController postController = Get.put(PostController()); // Obtenez l'instance du contrôleur PostController
+    final PostController postController = Get.put(
+      PostController(),
+    ); // Obtenez l'instance du contrôleur PostController
 
     return Scaffold(
       appBar: AppBar(
@@ -23,7 +25,10 @@ class SocialHomePage extends StatelessWidget {
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
-              icon: const Icon(Icons.menu, color: Colors.black), // Hamburger menu en noir
+              icon: const Icon(
+                Icons.menu,
+                color: Colors.black,
+              ), // Hamburger menu en noir
               onPressed: () {
                 Scaffold.of(context).openDrawer();
               },
@@ -47,14 +52,15 @@ class SocialHomePage extends StatelessWidget {
               // Rediriger vers SearchProfilePage en passant la liste des utilisateurs
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => SearchProfilePage(),
-                ),
+                MaterialPageRoute(builder: (context) => SearchProfilePage()),
               );
             },
           ),
           IconButton(
-            icon: const Icon(FontAwesomeIcons.facebookMessenger, color: Colors.black),
+            icon: const Icon(
+              FontAwesomeIcons.facebookMessenger,
+              color: Colors.black,
+            ),
             onPressed: () {
               // Naviguer vers la page de messagerie
               Navigator.pushReplacement(
@@ -66,24 +72,25 @@ class SocialHomePage extends StatelessWidget {
         ],
       ),
       drawer: const SidebarPage(),
+
       body: SingleChildScrollView(
         child: Column(
           children: [
             const CreatePostWidget(),
-           Obx(() {
-  // Trie les posts directement ici
-  List<Post> sortedPosts = List.from(postController.posts)
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            Obx(() {
+              // Trie les posts directement ici
+              List<Post> sortedPosts = List.from(postController.posts)
+                ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-  return ListView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: sortedPosts.length,
-    itemBuilder: (context, index) {
-      return PostWidget(post: sortedPosts[index]);
-    },
-  );
-}),
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: sortedPosts.length,
+                itemBuilder: (context, index) {
+                  return PostWidget(post: sortedPosts[index]);
+                },
+              );
+            }),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:fish_app/screens/auth/signup_page.dart';
+import 'package:fish_app/screens/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'controllers/auth_controller.dart';
@@ -19,21 +20,18 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'fish net',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       initialRoute: '/',
       getPages: [
         GetPage(name: '/', page: () => HomePage()),
         GetPage(name: '/login', page: () => LoginPage()),
         GetPage(name: '/signup', page: () => SignupPage()),
         GetPage(name: '/socialHome', page: () => SocialHomePage()),
+        GetPage(name: '/map', page: () => MapPage()),
       ],
     );
   }
 }
-
-
 
 /*import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/event_journal_controller.dart';
