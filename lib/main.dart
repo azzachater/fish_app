@@ -1,4 +1,3 @@
-import 'package:fish_app/controller/add_cart_controller.dart';
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:fish_app/main_screen.dart';

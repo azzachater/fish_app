@@ -33,21 +33,21 @@ class CartPage extends StatelessWidget {
         ),
         centerTitle: false,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Obx(() {
-              final cartItems = cartController.cartItems;
-              if (cartItems.isEmpty) {
-                return const Center(
-                  child: Text(
-                    "Votre panier est vide 🛒",
-                    style: TextStyle(fontSize: 18),
-                  ),
-                );
-              }
+      body: Obx(() {
+        final cartItems = cartController.cartItems;
+        if (cartItems.isEmpty) {
+          return const Center(
+            child: Text(
+              "Votre panier est vide 🛒",
+              style: TextStyle(fontSize: 18),
+            ),
+          );
+        }
 
-              return ListView.builder(
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
                 itemCount: cartItems.length,
                 itemBuilder: (context, index) {
                   final product = cartItems[index];
@@ -89,7 +89,7 @@ class CartPage extends StatelessWidget {
                           ),
                         ),
                         subtitle: Text(
-                          "₹ ${product.price.toStringAsFixed(2)}",
+                          "€ ${product.price.toStringAsFixed(2)}",
                           style: const TextStyle(
                             color: Color.fromARGB(255, 6, 15, 190),
                             fontSize: 14,
@@ -105,7 +105,7 @@ class CartPage extends StatelessWidget {
                                 color: Colors.grey,
                               ),
                               onPressed: () {
-                                cartController.removeProduct(product);
+                                cartController.decreaseQuantity(product);
                               },
                             ),
                             Text(
@@ -130,61 +130,63 @@ class CartPage extends StatelessWidget {
                     ),
                   );
                 },
-              );
-            }),
-          ),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Total",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Obx(
-                  () => Text(
-                    "₹ ${cartController.totalPrice.toStringAsFixed(2)}",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 6, 15, 190),
+              ),
+            ),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Total",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Obx(
+                    () => Text(
+                      "€ ${cartController.totalPrice.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 6, 15, 190),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Action de validation de commande
-                },
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (cartController.cartItems.isNotEmpty) {
+                      // TODO: Ajouter une action de checkout
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    padding: const EdgeInsets.all(12),
+                    backgroundColor: Colors.blue,
                   ),
-                  padding: const EdgeInsets.all(12),
-                  backgroundColor: Colors.blue,
-                ),
-                child: const Text(
-                  "Checkout",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  child: const Text(
+                    "Checkout",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 }

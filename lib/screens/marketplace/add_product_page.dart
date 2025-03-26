@@ -7,23 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class AddProductPage extends StatelessWidget {
-  final AddProductController controller = Get.put(
-    AddProductController(),
-  ); // Injection du controller
+  final AddProductController controller = Get.put(AddProductController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        child: Stack(children: [GradientBackground(), _buildFormContainer()]),
+        child: Stack(
+          children: [const GradientBackground(), _buildFormContainer()],
+        ),
       ),
     );
   }
 
   Widget _buildFormContainer() {
     return Container(
-      margin: EdgeInsets.only(top: 120),
-      padding: EdgeInsets.all(20),
+      margin: const EdgeInsets.only(top: 120),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(25),
@@ -31,42 +31,40 @@ class AddProductPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             "Add product",
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           CustomTextField(
             label: "Product Name",
             controller: controller.nameController,
-            hintText: 'name',
+            hintText: 'Enter product name',
             obscureText: false,
           ),
           CustomTextField(
             label: "Price",
             controller: controller.priceController,
             keyboardType: TextInputType.number,
-            hintText: 'price',
+            hintText: 'Enter price',
             obscureText: false,
           ),
           CustomTextField(
             label: "Description",
             controller: controller.descriptionController,
             maxLines: 3,
-            hintText: 'description',
+            hintText: 'Enter description',
             obscureText: false,
           ),
-          SizedBox(height: 15),
-          Obx(
-            () => ImageSelector(
-              imageUrl: controller.imageUrl.value,
-              onImageSelected: (url) {
-                controller.setImage(url);
-              },
-            ),
+          const SizedBox(height: 15),
+          ImageSelector(
+            imageUrl: controller.imageUrl,
+            onImageSelected: controller.setImage,
           ),
-          SizedBox(height: 15),
+
+          const SizedBox(height: 20), // Espace avant le bouton
           SaveButton(onPressed: controller.saveProduct),
+          const SizedBox(height: 10),
         ],
       ),
     );

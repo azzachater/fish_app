@@ -1,28 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class AddJournalController extends GetxController {
-  var selectedDateIndex = 1.obs;
-  var fromTime = Rx<TimeOfDay?>(null);
-  var toTime = Rx<TimeOfDay?>(null);
-  var descriptionController = TextEditingController();
+  // États observables
+  final selectedDateIndex = 0.obs;
+  final showCalendar = false.obs;
+  final fromTime = Rx<TimeOfDay?>(null);
+  final toTime = Rx<TimeOfDay?>(null);
+  final selectedDate = Rx<DateTime?>(DateTime.now());
+  final descriptionController = TextEditingController();
+  final isSaving = false.obs;
 
-  List<Map<String, String>> getDates() {
-    DateTime now = DateTime.now();
+  // Validation du formulaire
+  RxBool get isFormValid =>
+      (fromTime.value != null &&
+              toTime.value != null &&
+              descriptionController.text.isNotEmpty &&
+              selectedDate.value != null)
+          .obs;
+
+  // Liste des dates disponibles
+  List<Map<String, dynamic>> getDates() {
+    final now = DateTime.now();
     return List.generate(3, (index) {
-      DateTime date = now.add(Duration(days: index));
+      final date = now.add(Duration(days: index));
       return {
-        "day": "${date.day}",
-        "weekday":
-            ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][date.weekday - 1],
+        "date": date.toIso8601String(),
+        "day": DateFormat('d').format(date),
+        "weekday": DateFormat('E').format(date),
       };
     });
   }
 
+  // Sélection d'une heure
   Future<void> selectTime(BuildContext context, bool isFrom) async {
-    TimeOfDay? picked = await showTimePicker(
+    final initialTime =
+        isFrom
+            ? fromTime.value ?? TimeOfDay.now()
+            : toTime.value ?? TimeOfDay.now();
+
+    final picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: initialTime,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Colors.blue,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
@@ -34,28 +67,19 @@ class AddJournalController extends GetxController {
     }
   }
 
+  // Sélection d'une date personnalisée
+  void selectCustomDate(DateTime date) {
+    selectedDate.value = date;
+    toggleCalendar(); // Masquer le calendrier
+  }
+
+  // Basculer l'affichage du calendrier
+  void toggleCalendar() {
+    showCalendar.value = !showCalendar.value;
+  }
+
+  // Sauvegarder le journal
   void saveJournal() {
-    if (fromTime.value == null ||
-        toTime.value == null ||
-        descriptionController.text.isEmpty) {
-      Get.snackbar(
-        "Error",
-        "Please fill all fields",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue,
-        colorText: Colors.white,
-      );
-      return;
-    }
-
-    Get.snackbar(
-      "Success",
-      "Journal saved successfully!",
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
-
-    Get.back(); // Retour à la page précédente
+    // Logique pour sauvegarder les informations du journal
   }
 }

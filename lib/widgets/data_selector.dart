@@ -11,18 +11,19 @@ class DateSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 80,
-      child: Obx(
-        () => ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: controller.dates.length,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          itemBuilder: (context, index) {
-            bool isSelected = index == controller.selectedIndex.value;
-            DateTime date = controller.dates[index];
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: controller.dates.length,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        itemBuilder: (context, index) {
+          DateTime date = controller.dates[index];
 
-            return GestureDetector(
-              onTap: () => controller.selectDate(index),
-              child: Container(
+          return GestureDetector(
+            onTap: () => controller.selectDate(index),
+            child: Obx(() {
+              bool isSelected = index == controller.selectedIndex.value;
+
+              return Container(
                 width: 60,
                 margin: const EdgeInsets.symmetric(horizontal: 5),
                 padding: const EdgeInsets.symmetric(vertical: 6),
@@ -60,10 +61,10 @@ class DateSelector extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            );
-          },
-        ),
+              );
+            }),
+          );
+        },
       ),
     );
   }

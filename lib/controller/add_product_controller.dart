@@ -6,13 +6,19 @@ class AddProductController extends GetxController {
   final TextEditingController priceController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
-  var imageUrl = "".obs; // Observable pour l'image
+  var imageUrl = "".obs;
 
-  void setImage(String url) {
-    imageUrl.value = url;
+  get imageFile => null; // Observable pour l'image
+
+  void setImage(String imagePath) {
+    imageUrl.value = imagePath;
   }
 
   void saveProduct() {
+    print("Product Name: ${nameController.text}");
+    print("Price: ${priceController.text}");
+    print("Description: ${descriptionController.text}");
+    print("Image: ${imageUrl.value}");
     if (nameController.text.isEmpty ||
         priceController.text.isEmpty ||
         descriptionController.text.isEmpty) {
@@ -23,7 +29,6 @@ class AddProductController extends GetxController {
         backgroundColor: Colors.blue,
         colorText: Colors.white,
       );
-      return;
     }
 
     Get.snackbar(
