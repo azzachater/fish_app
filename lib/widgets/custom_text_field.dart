@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
+  final String hintText;
   final TextEditingController controller;
   final TextInputType keyboardType;
   final int maxLines;
+  final bool obscureText;
 
   const CustomTextField({
     Key? key,
     required this.label,
     required this.controller,
+    this.hintText = "",
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
-    required String hintText,
-    required bool obscureText,
+    this.obscureText = false,
   }) : super(key: key);
 
   @override
@@ -25,21 +27,20 @@ class CustomTextField extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           TextField(
             controller: controller,
             keyboardType: keyboardType,
-            maxLines: maxLines,
+            maxLines: obscureText ? 1 : maxLines,
+            obscureText: obscureText,
             decoration: InputDecoration(
+              hintText: hintText,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
           ),
         ],

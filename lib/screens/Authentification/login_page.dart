@@ -4,12 +4,14 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../constants/theme.dart';
 import '../../controllers/auth_controller.dart';
-import '../auth/signup_page.dart';
+import 'signup_page.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
-  final AuthController authController = Get.find<AuthController>(); // Utilisation correcte de GetX
+  final AuthController authController = Get.find<AuthController>();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class LoginPage extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          onPressed: () => Get.back(), // Utilisation de GetX pour revenir en arrière
+          onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
         ),
       ),
@@ -35,13 +37,22 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 10),
               const Text("Login to your account", style: AppTheme.subtitleStyle),
               const SizedBox(height: 30),
-               CustomTextField(label: "Email", controller: TextEditingController(), hintText: '', obscureText: false,),
-               CustomTextField(label: "Password", obscureText: true, controller: TextEditingController(), hintText: '',),
+              CustomTextField(
+                label: "Email",
+                hintText: "Enter your email",
+                controller: emailController,
+              ),
+              CustomTextField(
+                label: "Password",
+                hintText: "Enter your password",
+                controller: passwordController,
+                obscureText: true,
+              ),
               const SizedBox(height: 20),
               CustomButton(
                 text: "Login",
                 onPressed: () {
-                  authController.login(); // Appel du contrôleur pour gérer l'authentification
+                  authController.login();
                 },
                 isPrimary: true,
               ),
@@ -51,7 +62,7 @@ class LoginPage extends StatelessWidget {
                 children: [
                   const Text("Don't have an account?"),
                   GestureDetector(
-                    onTap: () => Get.to(() => SignupPage()), // Utilisation de GetX pour la navigation
+                    onTap: () => Get.to(() => SignupPage()),
                     child: const Text(" Sign up", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
                   ),
                 ],
