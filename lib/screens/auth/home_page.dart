@@ -1,4 +1,3 @@
-import 'package:fish_app/widgets/custom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import '../../constants/theme.dart';
 import '../../widgets/custom_button.dart';

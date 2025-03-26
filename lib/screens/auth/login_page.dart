@@ -56,8 +56,6 @@ class LoginPage extends StatelessWidget {
                 onPressed: () {
                   // Logique de connexion
                   // Vous pouvez accéder aux valeurs des champs de texte comme ceci :
-                  final email = emailController.text;
-                  final password = passwordController.text;
 
                   // Faites quelque chose avec ces valeurs, comme les valider ou les envoyer à un serveur
                 },
