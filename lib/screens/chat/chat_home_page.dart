@@ -63,21 +63,21 @@ class ChatHomePage extends StatelessWidget {
         ],
       ),
       floatingActionButton: Obx(() => FloatingActionButton(
-            onPressed: () {
-              if (tabBarController.currentTabIndex.value == 0) {
-                Get.to(SearchUsersPage());
-              } else {
-                Get.to(CreateSearchGroup());
-              }
-            },
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Icon(
-              tabBarController.currentTabIndex.value == 0 ? Icons.message_outlined : Icons.add,
-              color: Colors.white,
-            ),
-          )),
+        onPressed: () {
+          if (tabBarController.currentTabIndex.value == 0) {
+            Get.to(SearchUsersPage());
+          } else {
+            Get.to(CreateSearchGroup());
+          }
+        },
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Icon(
+          tabBarController.currentTabIndex.value == 0 ? Icons.message_outlined : Icons.add,
+          color: Colors.white,
+        ),
+      )),
     );
   }
 }

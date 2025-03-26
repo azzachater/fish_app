@@ -29,14 +29,14 @@ class CreatePostPage extends StatelessWidget {
 
   // Fonction pour choisir une image depuis la galerie
   Future<void> _pickImage() async {
-  final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-  if (pickedFile != null) {
-    final appDir = await getApplicationDocumentsDirectory();
-    final fileName = pickedFile.name;
-    final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
-    _image.value = XFile(savedImage.path); // Mise à jour de l'image avec le nouveau chemin
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = pickedFile.name;
+      final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
+      _image.value = XFile(savedImage.path); // Mise à jour de l'image avec le nouveau chemin
+    }
   }
-}
 
   // Fonction pour publier le post
   void _submitPost() {
@@ -106,16 +106,16 @@ class CreatePostPage extends StatelessWidget {
 
               // Affichage de l'image sélectionnée
               Obx(() => _image.value != null
-    ? ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.file(
-          File(_image.value!.path), // Affichage avec le bon chemin
-          height: 200,
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
-      )
-    : const SizedBox()),
+                  ? ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(_image.value!.path), // Affichage avec le bon chemin
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              )
+                  : const SizedBox()),
 
               const SizedBox(height: 20),
 
@@ -154,10 +154,10 @@ class CreatePostPage extends StatelessWidget {
     );
   }
   Future<void> requestPermissions() async {
-  if (await Permission.storage.request().isGranted) {
-    // La permission a été accordée
-  } else {
-    // La permission n'a pas été accordée
+    if (await Permission.storage.request().isGranted) {
+      // La permission a été accordée
+    } else {
+      // La permission n'a pas été accordée
+    }
   }
-}
 }

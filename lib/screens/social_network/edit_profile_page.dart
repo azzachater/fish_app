@@ -2,12 +2,13 @@ import 'dart:io';
 import 'package:fish_app/data/user_data.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../controllers/edit_profile_controller.dart'; // Importer le contrôleur GetX
 
 class EditProfilePage extends StatelessWidget {
+  const EditProfilePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     // Obtenez le contrôleur avec GetX

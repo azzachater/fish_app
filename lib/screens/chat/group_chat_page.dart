@@ -80,7 +80,7 @@ class GroupChatPage extends StatelessWidget {
                       .toList()
                       .reversed
                       .toList();
-                  
+
                   return GroupConversation(
                     group: group,
                     messages: messages,
@@ -88,12 +88,12 @@ class GroupChatPage extends StatelessWidget {
                 }),
               ),
             ),
-           ChatComposer(
-  onSendMessage: (text) {
-    groupController.sendGroupMessage(text, group.id); // Un seul envoi ici
-  },
-  user: currentUser,
-),
+            ChatComposer(
+              onSendMessage: (text) {
+                groupController.sendGroupMessage(text, group.id); // Un seul envoi ici
+              },
+              user: currentUser,
+            ),
           ],
         ),
       ),

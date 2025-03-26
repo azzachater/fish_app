@@ -1,5 +1,5 @@
 import '../models/post_model.dart';
-import '../data/user_data.dart'; 
+import '../data/user_data.dart';
 import '../data/comment_data.dart';
 
 final List<Post> postsData = [
@@ -9,8 +9,8 @@ final List<Post> postsData = [
     postText: 'I will visit this place again.',
     postImage: 'assets/images/posts/post1.png',
     createdAt: DateTime(2024, 9, 7, 14, 28),
-    comments: commentsForPost1, 
-      ),
+    comments: commentsForPost1,
+  ),
   Post(
     id: '1',
     user: addison,

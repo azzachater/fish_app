@@ -8,7 +8,7 @@ import '../../constants/theme.dart';
 class GroupPage extends StatelessWidget {
   final GroupController controller = Get.put(GroupController());
 
-   GroupPage({super.key});
+  GroupPage({super.key});
 
   @override
   Widget build(BuildContext context) {
