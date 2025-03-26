@@ -4,7 +4,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../constants/theme.dart';
 import '../../controllers/auth_controller.dart';
-import 'signup_page.dart';
+import '../auth/signup_page.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
@@ -35,8 +35,8 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 10),
               const Text("Login to your account", style: AppTheme.subtitleStyle),
               const SizedBox(height: 30),
-              const CustomTextField(label: "Email"),
-              const CustomTextField(label: "Password", obscureText: true),
+               CustomTextField(label: "Email", controller: TextEditingController(), hintText: '', obscureText: false,),
+               CustomTextField(label: "Password", obscureText: true, controller: TextEditingController(), hintText: '',),
               const SizedBox(height: 20),
               CustomButton(
                 text: "Login",

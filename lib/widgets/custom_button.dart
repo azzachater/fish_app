@@ -5,7 +5,12 @@ class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
 
-  const CustomButton({super.key, required this.text, required this.onPressed, required bool isPrimary});
+  const CustomButton({
+    super.key,
+    required this.text,
+    required this.onPressed,
+    required bool isPrimary,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +27,14 @@ class CustomButton extends StatelessWidget {
         color: AppTheme.primaryColor,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-        child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18, color: Colors.white)),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
