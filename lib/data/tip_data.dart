@@ -1,6 +1,6 @@
 import '../models/tip_model.dart';
 
-final List<Tip> tips = [
+final List<Tip> tipsData = [
   Tip(
     title: 'Affirm Your Ability',
     description:
@@ -19,5 +19,5 @@ final List<Tip> tips = [
   ),
 ];
 void deleteTip(int index) {
-  tips.removeAt(index);
+  tipsData.removeAt(index);
 }

@@ -1,3 +1,4 @@
+// lib/widgets/chat/group_conversation.dart
 import 'package:flutter/material.dart';
 import '../../models/group_model.dart';
 import '../../models/message_model.dart';
@@ -22,8 +23,9 @@ class GroupConversation extends StatelessWidget {
       itemBuilder: (context, index) {
         final message = messages[index];
         bool isMe = message.sender.id == currentUser.id;
+        
         return Container(
-          margin: EdgeInsets.only(top: 10),
+          margin: const EdgeInsets.only(top: 10),
           child: Column(
             children: [
               Row(
@@ -35,16 +37,16 @@ class GroupConversation extends StatelessWidget {
                       radius: 15,
                       backgroundImage: AssetImage(message.avatar),
                     ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Container(
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.6),
                     decoration: BoxDecoration(
                       color: isMe ? AppTheme.primaryColor : Colors.grey[200],
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
+                        topLeft: const Radius.circular(16),
+                        topRight: const Radius.circular(16),
                         bottomLeft: Radius.circular(isMe ? 12 : 0),
                         bottomRight: Radius.circular(isMe ? 0 : 12),
                       ),
@@ -63,13 +65,13 @@ class GroupConversation extends StatelessWidget {
                   mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                   children: [
                     if (!isMe)
-                      SizedBox(width: 40),
+                      const SizedBox(width: 40),
                     Icon(
                       Icons.done_all,
                       size: 20,
                       color: AppTheme.bodyTextTime.color,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       message.time,
                       style: AppTheme.bodyTextTime,

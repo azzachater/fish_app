@@ -1,41 +1,32 @@
-import 'package:flutter/material.dart'; 
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controllers/group_controller.dart';
 import '../../widgets/chat/recent_group_chat.dart';
 import '../../widgets/chat/all_groups.dart';
 import '../../constants/theme.dart';
-import '../../data/group_data.dart';
 
-class GroupPage extends StatefulWidget {
-  const GroupPage({super.key});
+class GroupPage extends StatelessWidget {
+  final GroupController controller = Get.put(GroupController());
 
-  @override
-  _GroupPageState createState() => _GroupPageState();
-}
-
-class _GroupPageState extends State<GroupPage> {
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    setState(() {}); // Met à jour l'affichage des groupes quand on revient
-  }
+   GroupPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (allGroups.isEmpty && recentGroups.isEmpty) {
-      return Center(
-        child: Text(
-          'No groups available',
-          style: AppTheme.bodyText1,
+    return Obx(() {
+      if (controller.allGroups.isEmpty && controller.recentGroups.isEmpty) {
+        return Center(
+          child: Text('No groups available', style: AppTheme.bodyText1),
+        );
+      }
+
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            RecentGroups(),
+            AllGroups(),
+          ],
         ),
       );
-    }
-
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          RecentGroups(key: widget.key),
-          AllGroups(key: widget.key),
-        ],
-      ),
-    );
+    });
   }
 }

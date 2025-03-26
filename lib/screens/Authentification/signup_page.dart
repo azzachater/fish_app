@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
-import '../../constants/theme.dart';
 import 'login_page.dart';
 
 class SignupPage extends StatelessWidget {
-  const SignupPage({super.key});
+  SignupPage({super.key});
+
+  final AuthController authController = Get.find<AuthController>(); // Utilisation correcte
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +19,7 @@ class SignupPage extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
           icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
         ),
       ),
@@ -27,10 +30,8 @@ class SignupPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 30),
-              const Text("Sign up", style: AppTheme.titleStyle),
+              const Text("Sign up", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
-              const Text("Create an account, It's free", style: AppTheme.subtitleStyle),
-              const SizedBox(height: 30),
               const CustomTextField(label: "Username"),
               const CustomTextField(label: "Email"),
               const CustomTextField(label: "Password", obscureText: true),
@@ -38,10 +39,8 @@ class SignupPage extends StatelessWidget {
               const SizedBox(height: 20),
               CustomButton(
                 text: "Sign up",
-                onPressed: () {
-                  // Logique d'inscription
-                },
-                isPrimary: true, // Added the missing isPrimary parameter
+                onPressed: authController.signup, // Appel direct du controller
+                isPrimary: true,
               ),
               const SizedBox(height: 20),
               Row(
@@ -49,7 +48,7 @@ class SignupPage extends StatelessWidget {
                 children: [
                   const Text("Already have an account?"),
                   GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginPage())),
+                    onTap: () => Get.to(() => LoginPage()),
                     child: const Text(" Login", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
                   ),
                 ],

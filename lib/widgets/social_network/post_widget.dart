@@ -1,43 +1,21 @@
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import '../../screens/social_network/comment_page.dart';
 import '../../models/post_model.dart';
+import '../../controllers/post_controller.dart';
 
-class PostWidget extends StatefulWidget {
+class PostWidget extends StatelessWidget {
   final Post post;
+  final PostController postController = Get.put(PostController());
 
-  const PostWidget({super.key, required this.post});
-
-  @override
-  PostWidgetState createState() => PostWidgetState();
-}
-
-class PostWidgetState extends State<PostWidget> {
-  late bool isLiked;
-  late int likeCount;
-
-  @override
-  void initState() {
-    super.initState();
-    isLiked = widget.post.isLiked;
-    likeCount = widget.post.likeCount;
-  }
-
-  void toggleLike() {
-    setState(() {
-      isLiked = !isLiked;
-      likeCount += isLiked ? 1 : -1;
-    });
+  PostWidget({super.key, required this.post}) {
+    postController.isLiked.value = post.isLiked;
+    postController.likeCount.value = post.likeCount;
   }
 
   void navigateToComments() {
-    Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => CommentPage(post: widget.post), // Passer l'objet Post complet
-  ),
-);
+    Get.to(() => CommentPage(post: post));
   }
 
   @override
@@ -59,15 +37,15 @@ class PostWidgetState extends State<PostWidget> {
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundImage: AssetImage(widget.post.user.avatar), // Utilisation de l'avatar
+              backgroundImage: AssetImage(post.user.avatar),
               radius: 22,
             ),
             title: Text(
-              widget.post.user.name, // Utilisation du nom de l'utilisateur
+              post.user.name,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
-              widget.post.timestamp,
+              post.createdAt.toString(),
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
             contentPadding: EdgeInsets.all(10),
@@ -77,45 +55,42 @@ class PostWidgetState extends State<PostWidget> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                widget.post.postText,
+                post.postText,
                 style: TextStyle(fontSize: 14, height: 1.5),
                 textAlign: TextAlign.left,
               ),
             ),
           ),
-          if (widget.post.postImage != null)
+          if (post.postImage != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Image.asset(widget.post.postImage!),
+              child: Image.asset(post.postImage!),
             ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
+                Obx(() => Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            FontAwesomeIcons.thumbsUp,
+                            color: postController.isLiked.value ? Colors.blue : Colors.grey,
+                          ),
+                          onPressed: postController.toggleLike,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '${postController.likeCount.value} Likes',
+                          style: TextStyle(color: postController.isLiked.value ? Colors.blue : Colors.grey),
+                        ),
+                      ],
+                    )),
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(
-                        FontAwesomeIcons.thumbsUp,
-                        color: isLiked ? Colors.blue : Colors.grey,
-                      ),
-                      onPressed: toggleLike,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      '$likeCount Likes',
-                      style: TextStyle(color: isLiked ? Colors.blue : Colors.grey),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        FontAwesomeIcons.commentDots,
-                        color: Colors.grey,
-                      ),
+                      icon: Icon(FontAwesomeIcons.commentDots, color: Colors.grey),
                       onPressed: navigateToComments,
                     ),
                     SizedBox(width: 4),
@@ -125,10 +100,7 @@ class PostWidgetState extends State<PostWidget> {
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(
-                        FontAwesomeIcons.share,
-                        color: Colors.grey,
-                      ),
+                      icon: Icon(FontAwesomeIcons.share, color: Colors.grey),
                       onPressed: () {},
                     ),
                     SizedBox(width: 4),

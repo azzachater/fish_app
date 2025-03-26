@@ -2,7 +2,7 @@ import 'package:fish_app/screens/chat/chat_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../data/user_data.dart'; // Assurez-vous que ce fichier contient `currentUser`
-import '../../screens/social_network/profile_page.dart'; // Importer la page ProfilePage
+import '../../screens/social_network/profile_page.dart';
 import '../../screens/tips_and_tricks/tip_page.dart';
 
 class SidebarPage extends StatefulWidget {
@@ -13,124 +13,98 @@ class SidebarPage extends StatefulWidget {
 }
 
 class SidebarPageState extends State<SidebarPage> {
-  int _selectedIndex = 0;
+  int selectedIndex = 0;
 
-  void _onItemTapped(int index, Widget page) {
+  void _onItemTapped(int index, Widget? page) {
     setState(() {
-      _selectedIndex = index;
+      selectedIndex = index;
     });
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+    if (page != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => page),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      elevation: 10, // Ombre pour ajouter de la profondeur
-      child: Container(
-        color: Colors.white, // Fond blanc
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProfileSection(),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  _buildListTile(0, Icons.person, 'Profile', ProfilePage()),
-                  _buildListTile(1, FontAwesomeIcons.facebookMessenger, 'Messages', ChatHomePage()),
-                  _buildListTile(5, Icons.edit, 'Edit Profile', null),
-                  _buildListTile(4, Icons.notifications, 'Notifications', null),
-                  _buildListTile(2, Icons.event, 'Events', null),
-                  _buildListTile(3, Icons.lightbulb, 'Tips', TipsPage()),
-                  _buildListTile(6, Icons.book, 'Journal', null), // Ajout du Journal avec l'icône
-                  _buildListTile(7, FontAwesomeIcons.store, 'Marketplace', null), // Ajout du Marketplace avec l'icône
-                ],
-              ),
+      elevation: 10,
+      child: Column(
+        children: [
+          _buildProfileSection(), // Profil en haut du drawer
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(Icons.list, "Lists", null, selected: true, iconColor: Colors.blue),
+                _buildDrawerItem(Icons.person, "Profile", ProfilePage(), iconColor: Colors.green),
+                _buildDrawerItem(FontAwesomeIcons.facebookMessenger, "Messages", ChatHomePage(), hasNotification: true, iconColor: Colors.blue),
+                _buildDrawerItem(Icons.lightbulb, "Tips & Tricks", TipsPage(), iconColor: Colors.orange),
+                _buildDrawerItem(Icons.event, "Event", null, iconColor: Colors.red),
+                _buildDrawerItem(Icons.book, "Journal", null, iconColor: Colors.indigo),
+                _buildDrawerItem(Icons.location_on, "Spot", null, iconColor: Colors.teal),
+                _buildDrawerItem(Icons.storefront, "Marketplace", null, iconColor: Colors.amber),
+              ],
             ),
-            const Divider(color: Colors.black26),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.black87),
-              title: const Text(
-                'Log Out',
-                style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-              ),
-              onTap: () {},
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
+          ),
+          const Divider(thickness: 1, color: Colors.grey), // Divider before sign out
+          _buildDrawerItem(Icons.exit_to_app, "Log Out", null, iconColor: Colors.black), // Maintenant tout en bas
+        ],
       ),
     );
   }
 
   Widget _buildProfileSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200, // Arrière-plan léger pour la section profil
-        borderRadius: const BorderRadius.only(bottomRight: Radius.circular(30)),
+      padding: const EdgeInsets.only(top: 40, left: 20, right: 20, bottom: 20), // Augmenter l'espace autour du profil
+      decoration: const BoxDecoration(
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black26,
-            offset: Offset(0, 4),
-            blurRadius: 10,
+            color: Colors.black12,
+            blurRadius: 5,
+            offset: Offset(0, 2),
           ),
         ],
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            radius: 30,
+            radius: 40, // Agrandir l'avatar pour plus de visibilité
             backgroundImage: currentUser.avatar.startsWith('http')
                 ? NetworkImage(currentUser.avatar)
                 : AssetImage(currentUser.avatar) as ImageProvider,
           ),
           const SizedBox(width: 15),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                currentUser.name,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87, // Texte sombre pour le nom
-                ),
-              ),
-              Text(
-                currentUser.email,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54, // Texte sombre pour l'email
-                ),
-              ),
-            ],
+          Expanded(
+            child: Text(
+              currentUser.name,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildListTile(int index, IconData icon, String title, Widget? page) {
+  Widget _buildDrawerItem(IconData icon, String title, Widget? page, {bool hasNotification = false, bool selected = false, Color iconColor = Colors.black}) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: _selectedIndex == index ? Colors.blue : Colors.black54, // Couleur bleue pour l'élément sélectionné
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: _selectedIndex == index ? Colors.blue : Colors.black87, // Couleur bleue pour l'élément sélectionné
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      tileColor: _selectedIndex == index ? Colors.blue.withOpacity(0.1) : null, // Fond bleu léger pour l'élément sélectionné
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      onTap: page != null ? () => _onItemTapped(index, page) : null,
+      leading: Icon(icon, color: iconColor), // Icône avec couleur
+      title: Text(title, style: const TextStyle(color: Colors.black87)),
+      trailing: hasNotification ? const Icon(Icons.circle, color: Colors.blue, size: 10) : null,
+      tileColor: selected ? Colors.blue.shade100 : Colors.transparent, // Fond léger si sélectionné
+      onTap: () => _onItemTapped(0, page),
+      contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10), // Réduction de l'espacement pour une conception plus compacte
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), // Coins arrondis pour un look moderne
+      hoverColor: Colors.blue.shade50, // Effet de survol
+      onLongPress: () => _onItemTapped(0, page), // Appui long pour une meilleure interaction
     );
   }
 }

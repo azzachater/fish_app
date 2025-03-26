@@ -1,44 +1,24 @@
 import 'dart:io';
+import 'package:fish_app/data/user_data.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../widgets/custom_button.dart'; // Assurez-vous d'importer votre widget CustomButton
-import '../../widgets/custom_text_field.dart'; // Assurez-vous d'importer votre widget CustomTextField
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../controllers/edit_profile_controller.dart'; // Importer le contrôleur GetX
 
-class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key});
-
-  @override
-  EditProfilePageState createState() => EditProfilePageState();
-}
-
-class EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController bioController = TextEditingController();
-
-  String? imagePath;
-
-  Future<void> pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        imagePath = pickedFile.path;
-      });
-    }
-  }
-
+class EditProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // Obtenez le contrôleur avec GetX
+    final EditProfileController controller = Get.put(EditProfileController());
+
     return Scaffold(
       backgroundColor: Colors.blue,
       body: Stack(
         children: [
-          // Section du formulaire
           Positioned(
-            top: 150, // Ajustez cette valeur pour superposer l'image
+            top: 150,
             left: 0,
             right: 0,
             bottom: 0,
@@ -60,31 +40,30 @@ class EditProfilePageState extends State<EditProfilePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 30), // Espace pour l'image superposée
+                      SizedBox(height: 30),
                       Text('Edit Profile', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                       SizedBox(height: 20),
-                      CustomTextField(label: 'First Name', controller: firstNameController),
-                      CustomTextField(label: 'Last Name', controller: lastNameController),
-                      CustomTextField(label: 'Username', controller: usernameController),
-                      CustomTextField(label: 'Email', controller: emailController),
-                      CustomTextField(label: 'Bio', controller: bioController, maxLines: 3),
+                      CustomTextField(label: 'Username', controller: controller.usernameController),
+                      CustomTextField(label: 'Email', controller: controller.emailController),
+                      CustomTextField(label: 'Password', controller: controller.passwordController, obscureText: true),
+                      CustomTextField(label: 'Password Confirmation', controller: controller.passwordConfirmationController, obscureText: true),
+                      CustomTextField(label: 'Bio', controller: controller.bioController, maxLines: 3),
                       SizedBox(height: 20),
-                      imagePath != null
-                          ? Image.file(File(imagePath!), height: 150, fit: BoxFit.cover)
+                      controller.imagePath != null
+                          ? Image.file(File(controller.imagePath!), height: 150, fit: BoxFit.cover)
                           : SizedBox.shrink(),
                       CustomButton(
                         text: 'Save',
-                        onPressed: () {},
-                        isPrimary: true, // Ajoutez l'argument isPrimary
+                        onPressed: controller.saveProfile,  // Sauvegarder via le contrôleur
+                        isPrimary: true,
                       ),
-                      SizedBox(height: 20), // Optionnel : ajout d'un peu d'espace après le bouton
+                      SizedBox(height: 20),
                     ],
                   ),
                 ),
               ),
             ),
           ),
-          // Section de l'image et du bouton retour
           Positioned(
             top: 40,
             left: 15,
@@ -94,7 +73,7 @@ class EditProfilePageState extends State<EditProfilePage> {
             ),
           ),
           Positioned(
-            top: 80, // Ajustez cette valeur pour positionner l'image
+            top: 80,
             left: 0,
             right: 0,
             child: Center(
@@ -103,15 +82,17 @@ class EditProfilePageState extends State<EditProfilePage> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: imagePath != null
-                        ? FileImage(File(imagePath!)) as ImageProvider
-                        : AssetImage('assets/images/users/Addison.jpg'),
+                    backgroundImage: controller.imagePath != null
+                        ? FileImage(File(controller.imagePath!)) as ImageProvider
+                        : (currentUser.avatar.startsWith('http')
+                            ? NetworkImage(currentUser.avatar)
+                            : AssetImage(currentUser.avatar) as ImageProvider),
                   ),
                   Positioned(
                     bottom: 5,
                     right: 5,
                     child: GestureDetector(
-                      onTap: pickImage,
+                      onTap: controller.pickImage,  // Lancer la fonction de sélection d'image
                       child: CircleAvatar(
                         radius: 15,
                         backgroundColor: Colors.white,

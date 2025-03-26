@@ -1,21 +1,25 @@
-import 'package:fish_app/models/tip_model.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../models/tip_model.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../constants/theme.dart';
-// Assurez-vous d'importer la liste de tips
+import '../../controllers/tip_controller.dart'; // Import TipController
 
 class AddTipScreen extends StatelessWidget {
   AddTipScreen({super.key, required this.onAdd});
 
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  
-  // Fonction callback pour ajouter un tip
+
+  // Callback function to add a new tip
   final Function(Tip) onAdd;
 
   @override
   Widget build(BuildContext context) {
+    // Get instance of TipController
+    final TipController controller = Get.find<TipController>();
+
     return Scaffold(
       backgroundColor: AppTheme.primaryColor,
       appBar: AppBar(
@@ -29,7 +33,7 @@ class AddTipScreen extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 80), // Espace au-dessus du formulaire
+          const SizedBox(height: 80), // Space above the form
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 40),
@@ -69,7 +73,7 @@ class AddTipScreen extends StatelessWidget {
                       child: CustomButton(
                         text: "Save",
                         onPressed: () {
-                          // Récupération des valeurs
+                          // Retrieve values
                           String title = titleController.text.trim();
                           String description = descriptionController.text.trim();
 
@@ -83,13 +87,13 @@ class AddTipScreen extends StatelessWidget {
                             return;
                           }
 
-                          // Création d'un nouveau Tip
+                          // Create a new Tip
                           Tip newTip = Tip(title: title, description: description);
 
-                          // Ajouter le tip dans la liste
-                          onAdd(newTip);
+                          // Add the new tip using GetX controller
+                          controller.addTip(newTip);
 
-                          // Retour à la page des tips
+                          // Go back to the tips page
                           Navigator.pop(context);
                         },
                         isPrimary: true,

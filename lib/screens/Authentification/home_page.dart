@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../constants/theme.dart';
+import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
 import '../../widgets/custom_button.dart';
 import 'login_page.dart';
 import 'signup_page.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  HomePage({super.key});
+
+  final AuthController authController = Get.find<AuthController>(); // Utilisation correcte
 
   @override
   Widget build(BuildContext context) {
@@ -17,44 +20,22 @@ class HomePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Column(
-                children: const <Widget>[
-                  Text("Welcome", style: AppTheme.titleStyle),
+              const Column(
+                children: [
+                  Text("Welcome", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   SizedBox(height: 20),
                   Text(
-                    "BackSlash Flutter provides extraordinary flutter tutorials. Do Subscribe!",
+                    "Bienvenue sur l'application !",
                     textAlign: TextAlign.center,
-                    style: AppTheme.subtitleStyle,
                   ),
                 ],
               ),
-              Container(
-                height: MediaQuery.of(context).size.height / 3,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage("assets/images/Authentification/welcome.png"),
-                  ),
-                ),
-              ),
+              Image.asset("assets/images/Authentification/welcome.png", height: 200),
               Column(
-                children: <Widget>[
-                  CustomButton(
-                    text: "Login",
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    ),
-                    isPrimary: false, // Added the missing isPrimary parameter
-                  ),
+                children: [
+                  CustomButton(text: "Login", onPressed: () => Get.to(() => LoginPage()), isPrimary: false),
                   const SizedBox(height: 20),
-                  CustomButton(
-                    text: "Sign up",
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SignupPage()),
-                    ),
-                    isPrimary: true,
-                  ),
+                  CustomButton(text: "Sign up", onPressed: () => Get.to(() => SignupPage()), isPrimary: true),
                 ],
               ),
             ],

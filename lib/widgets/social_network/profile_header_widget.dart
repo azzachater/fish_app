@@ -1,11 +1,13 @@
+import 'dart:io';
+import '../../screens/social_network/edit_profile_page.dart';
 import 'package:flutter/material.dart';
-import '../../models/user_model.dart';
-import '../../screens/social_network/edit_profile_page.dart'; // Import the EditProfilePage
+import 'package:get/get.dart';
+import '../../controllers/profile_controller.dart';
 
 class ProfileHeaderWidget extends StatelessWidget {
-  final User user;
+  ProfileHeaderWidget({super.key});
 
-  const ProfileHeaderWidget({super.key, required this.user});
+  final ProfileController controller = Get.put(ProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -25,17 +27,18 @@ class ProfileHeaderWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Cover Photo (utilisation de l'avatar aussi pour la couverture)
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(user.avatar), // Utilisation de l'avatar comme couverture
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          // Profile Picture, Name, and Edit Profile Button
+          // Cover Photo
+          Obx(() => Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: controller.user.value.avatar.startsWith('assets/')
+    ? AssetImage(controller.user.value.avatar) as ImageProvider
+    : FileImage(File(controller.user.value.avatar)),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              )),
           Transform.translate(
             offset: Offset(0, -50),
             child: Padding(
@@ -43,15 +46,16 @@ class ProfileHeaderWidget extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Profile Picture with Camera Icon
+                  // Profile Picture
                   Stack(
                     alignment: Alignment.bottomRight,
                     children: [
-                      // Larger Profile Picture, aligned to the left
-                      CircleAvatar(
-                        radius: 55,
-                        backgroundImage: AssetImage(user.avatar), // Profil dynamique
-                      ),
+                      Obx(() => CircleAvatar(
+                            radius: 55,
+                            backgroundImage: controller.user.value.avatar.startsWith('assets/')
+    ? AssetImage(controller.user.value.avatar) as ImageProvider
+    : FileImage(File(controller.user.value.avatar)),
+                          )),
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -59,30 +63,24 @@ class ProfileHeaderWidget extends StatelessWidget {
                         ),
                         child: IconButton(
                           icon: Icon(Icons.camera_alt, color: Colors.black, size: 20),
-                          onPressed: () {
-                            // Ajouter la logique pour changer la photo de profil
-                          },
+                          onPressed: controller.updateProfilePicture,
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: 10),
                   // Name
-                  Text(
-                    user.name, // Nom dynamique
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Obx(() => Text(
+                        controller.user.value.name,
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      )),
                   SizedBox(height: 10),
-                  // Edit Profile Button with Pencil Icon
+                  // Edit Profile Button
                   ElevatedButton.icon(
                     onPressed: () {
-                      // Navigate to EditProfilePage when the button is pressed
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) =>  EditProfilePage()),
+                        MaterialPageRoute(builder: (context) => EditProfilePage()),
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -98,20 +96,20 @@ class ProfileHeaderWidget extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 10),
-                  // Bio avec un style amélioré
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      'I offer services for creating Brand Identity, Websites, and Website/App Design.',
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[700],
-                        fontStyle: FontStyle.italic,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
+                  // Bio
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  child: Obx(() => Text(
+    controller.user.value.bio, // Utilise la bio du modèle User
+    textAlign: TextAlign.left,
+    style: TextStyle(
+      fontSize: 16,
+      color: Colors.grey[700],
+      fontStyle: FontStyle.italic,
+      height: 1.5,
+    ),
+  )),
+),
                 ],
               ),
             ),

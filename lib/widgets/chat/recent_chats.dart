@@ -1,27 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import '../../models/message_model.dart';
-//import '../../screens/chat/chat_page.dart';
+import 'package:get/get.dart';
+import '../../controllers/chat_controller.dart';
 import '../../screens/chat/chat_room.dart';
-import '../../data/message_data.dart';
-
 import '../../constants/theme.dart';
 
-class RecentChats extends StatefulWidget {
-  const RecentChats({super.key});
+class RecentChats extends StatelessWidget {
+final ChatController chatController = Get.put(ChatController());
 
-  @override
-  RecentChatsState createState() => RecentChatsState();
-}
-
-class RecentChatsState extends State<RecentChats> {
-  final List<Message> _recentChats = recentChats;
-
-  void markMessageAsRead(int index) {
-    setState(() {
-      _recentChats[index] = _recentChats[index].copyWith(isRead: true, unreadCount: 0);
-    });
-  }
+   RecentChats({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,78 +25,52 @@ class RecentChatsState extends State<RecentChats> {
             ],
           ),
         ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: ScrollPhysics(),
-          itemCount: _recentChats.length,
-          itemBuilder: (context, int index) {
-            final recentChat = _recentChats[index];
-            return Container(
-              margin: const EdgeInsets.only(top: 20),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundImage: AssetImage(recentChat.avatar),
-                  ),
-                  SizedBox(width: 20),
-                  GestureDetector(
-                    onTap: () {
-                      markMessageAsRead(index); // Marquer le message comme lu
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => ChatRoom(user: recentChat.sender),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Obx(() => ListView.builder(
+              shrinkWrap: true,
+              physics: ScrollPhysics(),
+              itemCount: chatController.recentChats.length,
+              itemBuilder: (context, int index) {
+                final recentChat = chatController.recentChats[index];
+                return GestureDetector(
+                  onTap: () {
+                    chatController.markMessageAsRead(index, true);
+                    Get.to(() => ChatRoom(user: recentChat.sender));
+                  },
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      radius: 28,
+                      backgroundImage: AssetImage(recentChat.avatar),
+                    ),
+                    title: Text(
+                      recentChat.sender.name,
+                      style: AppTheme.heading2.copyWith(fontSize: 16),
+                    ),
+                    subtitle: Text(recentChat.text, style: AppTheme.bodyText1),
+                    trailing: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          recentChat.sender.name,
-                          style: AppTheme.heading2.copyWith(fontSize: 16),
-                        ),
-                        Text(
-                          recentChat.text,
-                          style: AppTheme.bodyText1,
-                        ),
+                        recentChat.unreadCount == 0
+                            ? Icon(Icons.done_all, color: AppTheme.bodyTextTime.color)
+                            : CircleAvatar(
+                                radius: 8,
+                                backgroundColor: AppTheme.unreadChatBG,
+                                child: Text(
+                                  recentChat.unreadCount.toString(),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                        SizedBox(height: 10),
+                        Text(recentChat.time, style: AppTheme.bodyTextTime),
                       ],
                     ),
                   ),
-                  Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      recentChat.unreadCount == 0
-                          ? Icon(
-                              Icons.done_all,
-                              color: AppTheme.bodyTextTime.color,
-                            )
-                          : CircleAvatar(
-                              radius: 8,
-                              backgroundColor: AppTheme.unreadChatBG,
-                              child: Text(
-                                recentChat.unreadCount.toString(),
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                      SizedBox(height: 10),
-                      Text(
-                        recentChat.time,
-                        style: AppTheme.bodyTextTime,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                );
+              },
+            )),
       ],
     );
   }

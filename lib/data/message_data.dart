@@ -2,12 +2,12 @@ import '../models/message_model.dart';
 import 'user_data.dart';
 
 
-final List<Message> recentChats = [
+final List<Message> recentChatsData = [
   Message(
     sender: addison,
     receiver: currentUser, // Ajout du receiver
     avatar: 'assets/images/users/Addison.png',
-    time: '01:25',
+    time: '13:25',
     text: "typing...",
     unreadCount: 1,
     isRead: false,
@@ -34,14 +34,14 @@ final List<Message> recentChats = [
     sender: nathan,
     receiver: currentUser, // Ajout du receiver
     avatar: 'assets/images/users/Nathan.png',
-    time: '12:45',
+    time: '12:40',
     text: "Let me see what I can do.",
     unreadCount: 2,
     isRead: false,
   ),
 ];
 
-final List<Message> allChats = [
+final List<Message> allChatsData = [
   Message(
     sender: virgil,
     receiver: currentUser, // Ajout du receiver
@@ -80,7 +80,7 @@ final List<Message> allChats = [
   ),
 ];
 
-final List<Message> messages = [
+final List<Message> messagesData = [
   Message(
     sender: addison,
     receiver: currentUser, // Ajout du receiver
@@ -210,7 +210,7 @@ final List<Message> messages = [
 ];
 
 
-final List<Message> groupMessages = [
+final List<Message> groupMessagesData = [
   Message(
     sender: addison,
     groupId: '1', // ID du groupe "Fishing Events"
@@ -319,7 +319,7 @@ final List<Message> groupMessages = [
 ];
 
 void markMessageAsRead(int index) {
-  final Message message = recentChats[index];
+  final Message message = recentChatsData[index];
   final Message updatedMessage = message.copyWith(isRead: true, unreadCount: 0);
-  recentChats[index] = updatedMessage;
+  recentChatsData[index] = updatedMessage;
 }

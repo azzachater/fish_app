@@ -14,9 +14,9 @@ class Conversation extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.builder(
         reverse: true,
-        itemCount: messages.length,
+        itemCount: messagesData.length,
         itemBuilder: (context, int index) {
-          final message = messages[index];
+          final message = messagesData[index];
           bool isMe = message.sender.id == currentUser.id;
           return Container(
             margin: EdgeInsets.only(top: 10),
@@ -48,7 +48,7 @@ class Conversation extends StatelessWidget {
                             bottomRight: Radius.circular(isMe ? 0 : 12),
                           )),
                       child: Text(
-                        messages[index].text,
+                        messagesData[index].text,
                         style: AppTheme.bodyTextMessage.copyWith(
                             color: isMe ? Colors.white : Colors.grey[800]),
                       ),

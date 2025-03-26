@@ -1,125 +1,64 @@
 import 'package:flutter/material.dart';
-import '../../models/group_model.dart';
+import 'package:get/get.dart';
+import '../../controllers/group_controller.dart';
 import '../../constants/theme.dart';
-import 'package:flutter/cupertino.dart';
 import '../../screens/chat/group_chat_page.dart';
-import '../../data/group_data.dart';
-import 'dart:io'; // Assurez-vous d'importer 'dart:io' pour FileImage
+import 'dart:io';
 
-class AllGroups extends StatefulWidget {
-  const AllGroups({super.key});
+class AllGroups extends StatelessWidget {
+  final GroupController controller = Get.find();
 
-  @override
-  AllGroupsState createState() => AllGroupsState();
-}
-
-class AllGroupsState extends State<AllGroups> {
-  final List<Group> _allGroups = allGroups;
-
-  void markGroupAsRead(int index) {
-    setState(() {
-      _allGroups[index] = _allGroups[index].copyWith(isRead: true, unreadCount: 0);
-    });
-  }
+   AllGroups({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          padding: EdgeInsets.only(top: 10),
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
           child: Row(
             children: [
-              Text(
-                'All Groups',
-                style: AppTheme.heading2,
-              ),
+              Text('All Groups', style: AppTheme.heading2),
             ],
           ),
         ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: ScrollPhysics(),
-          itemCount: _allGroups.length,
-          itemBuilder: (context, int index) {
-            final allGroup = _allGroups[index];
+        Obx(() => ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: controller.allGroups.length,
+              itemBuilder: (context, index) {
+                final group = controller.allGroups[index];
+                ImageProvider avatarImage = group.avatar.startsWith('/')
+                    ? FileImage(File(group.avatar))
+                    : AssetImage(group.avatar);
 
-            // Utilisation de FileImage pour les fichiers locaux et AssetImage pour les assets
-            ImageProvider avatarImage;
-            if (allGroup.avatar.startsWith('/')) {
-              // Si l'avatar commence par '/', c'est probablement un fichier local
-              avatarImage = FileImage(File(allGroup.avatar));
-            } else {
-              // Sinon, c'est une image dans les assets
-              avatarImage = AssetImage(allGroup.avatar);
-            }
-
-            return Container(
-              margin: const EdgeInsets.only(top: 20),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundImage: avatarImage, // Utilisation de l'ImageProvider
-                  ),
-                  SizedBox(width: 20),
-                  GestureDetector(
-                    onTap: () {
-                      markGroupAsRead(index);
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => GroupChatPage(group: allGroup),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                return GestureDetector(
+                  onTap: () {
+                    controller.markGroupAsRead(group);
+                    Get.to(() => GroupChatPage(group: group));
+                  },
+                  child: ListTile(
+                    leading: CircleAvatar(radius: 28, backgroundImage: avatarImage),
+                    title: Text(group.name, style: AppTheme.heading2.copyWith(fontSize: 16)),
+                    subtitle: Text('${group.members.length} members', style: AppTheme.bodyText1),
+                    trailing: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          allGroup.name,
-                          style: AppTheme.heading2.copyWith(fontSize: 16),
-                        ),
-                        Text(
-                          '${allGroup.members.length} members',
-                          style: AppTheme.bodyText1,
-                        ),
+                        group.unreadCount == 0
+                            ? Icon(Icons.done_all, color: AppTheme.bodyTextTime.color)
+                            : CircleAvatar(
+                                radius: 8,
+                                backgroundColor: AppTheme.unreadChatBG,
+                                child: Text(group.unreadCount.toString(),
+                                    style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                        SizedBox(height: 10),
+                        Text(group.time, style: AppTheme.bodyTextTime),
                       ],
                     ),
                   ),
-                  Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      allGroup.unreadCount == 0
-                          ? Icon(
-                              Icons.done_all,
-                              color: AppTheme.bodyTextTime.color,
-                            )
-                          : CircleAvatar(
-                              radius: 8,
-                              backgroundColor: AppTheme.unreadChatBG,
-                              child: Text(
-                                allGroup.unreadCount.toString(),
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                      SizedBox(height: 10),
-                      Text(
-                        allGroup.time,
-                        style: AppTheme.bodyTextTime,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                );
+              },
+            )),
       ],
     );
   }

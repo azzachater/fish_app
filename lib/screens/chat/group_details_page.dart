@@ -1,53 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';  
+import 'dart:io';
 import '../../models/group_model.dart';
-import '../../models/user_model.dart';
 import '../../constants/theme.dart';
 import '../../data/user_data.dart';
+import '../../controllers/group_detail_controller.dart';
 
-class GroupDetailsPage extends StatefulWidget {
-  final List<User> selectedUsers;
+// ignore: must_be_immutable
+class GroupDetailsPage extends StatelessWidget {
+  GroupDetailsPage({super.key});
 
-  const GroupDetailsPage({super.key, required this.selectedUsers});
-
-  @override
-  GroupDetailsPageState createState() => GroupDetailsPageState();
-}
-
-class GroupDetailsPageState extends State<GroupDetailsPage> {
-  TextEditingController groupNameController = TextEditingController();
-  String? groupImage; 
+  final CreateSearchGroupController controller = Get.find();
+  final TextEditingController groupNameController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
+  RxString groupImage = ''.obs;
 
   Future<void> pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      setState(() {
-        groupImage = pickedFile.path;
-      });
+      groupImage.value = pickedFile.path;
     }
   }
 
   void createGroup() {
-  if (groupNameController.text.isNotEmpty && groupImage != null) {
-    // S'assurer que currentUser n'est ajouté qu'une seule fois
-    final Set<User> uniqueMembers = {currentUser, ...widget.selectedUsers};
+    if (groupNameController.text.isNotEmpty && groupImage.value.isNotEmpty) {
+      final newGroup = Group(
+        name: groupNameController.text,
+        avatar: groupImage.value,
+        admin: currentUser,
+        members: {currentUser, ...controller.selectedUsers}.toList(),
+        unreadCount: 0,
+        isRead: true,
+        time: '12:00 PM',
+        id: '',
+        messages: [],
+      );
 
-    final newGroup = Group(
-      name: groupNameController.text,
-      avatar: groupImage!,
-      admin: currentUser,
-      members: uniqueMembers.toList(), // Convertir en liste unique
-      unreadCount: 0,
-      isRead: true,
-      time: '12:00 PM',
-      id: '',
-    );
-
-    Navigator.pop(context, newGroup);
+      Get.back(result: newGroup);
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -72,35 +64,30 @@ class GroupDetailsPageState extends State<GroupDetailsPage> {
             SizedBox(height: 20),
             GestureDetector(
               onTap: pickImage,
-              child: Container(
+              child: Obx(() => Container(
                 height: 150,
                 width: double.infinity,
                 color: Colors.grey[200],
-                child: groupImage == null
+                child: groupImage.value.isEmpty
                     ? Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
-                    : Image.file(File(groupImage!), fit: BoxFit.cover),
-              ),
+                    : Image.file(File(groupImage.value), fit: BoxFit.cover),
+              )),
             ),
             SizedBox(height: 20),
-            Text(
-              'Selected Users',
-              style: AppTheme.heading2,
-            ),
+            Text('Selected Users', style: AppTheme.heading2),
             SizedBox(height: 10),
             Expanded(
               child: ListView.builder(
-                itemCount: widget.selectedUsers.length,
+                itemCount: controller.selectedUsers.length,
                 itemBuilder: (context, index) {
-                  final user = widget.selectedUsers[index];
+                  final user = controller.selectedUsers[index];
                   return ListTile(
                     leading: CircleAvatar(
                       radius: 25,
                       backgroundImage: AssetImage(user.avatar),
                     ),
-                    title: Text(
-                      user.name,
-                      style: AppTheme.heading2.copyWith(fontSize: 16)),
-                    );
+                    title: Text(user.name, style: AppTheme.heading2.copyWith(fontSize: 16)),
+                  );
                 },
               ),
             ),
@@ -115,10 +102,7 @@ class GroupDetailsPageState extends State<GroupDetailsPage> {
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 ),
-                child: Text(
-                  'Done',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                child: Text('Done', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

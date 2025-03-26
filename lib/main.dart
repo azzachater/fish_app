@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-//import 'screens/chat/home_page.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'constants/theme.dart';
-//import 'screens/social_network/edit_profile_page.dart';
-//import 'screens/tips_and_tricks/tip_page.dart';
+import 'package:get/get.dart';
+import 'controllers/auth_controller.dart';
 import 'screens/Authentification/home_page.dart';
+import 'screens/Authentification/login_page.dart';
+import 'screens/Authentification/signup_page.dart';
+import 'screens/social_network/social_home_page.dart';
+
 void main() {
-  runApp(MyApp());
-  
+  Get.put(AuthController()); // Initialisation correcte du controller
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -15,21 +16,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Chattie UI',
+      title: 'fish net',
       theme: ThemeData(
-        primaryColor:  AppTheme.primaryColor,
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-  secondary: AppTheme.accentColor,
-),
-        textTheme: GoogleFonts.poppinsTextTheme(
-          Theme.of(context).textTheme,
-        ),
         primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: HomePage(),
+      initialRoute: '/',
+      getPages: [
+        GetPage(name: '/', page: () => HomePage()),
+        GetPage(name: '/login', page: () => LoginPage()),
+        GetPage(name: '/signup', page: () => SignupPage()),
+        GetPage(name: '/socialHome', page: () => SocialHomePage()),
+      ],
     );
   }
 }

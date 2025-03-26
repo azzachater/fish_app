@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../constants/theme.dart';
+import '../../controllers/auth_controller.dart';
 import 'signup_page.dart';
-import '../social_network/social_home_page.dart'; // Import HomePage
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  LoginPage({super.key});
+
+  final AuthController authController = Get.find<AuthController>(); // Utilisation correcte de GetX
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +20,7 @@ class LoginPage extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(), // Utilisation de GetX pour revenir en arrière
           icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
         ),
       ),
@@ -38,13 +41,9 @@ class LoginPage extends StatelessWidget {
               CustomButton(
                 text: "Login",
                 onPressed: () {
-                  // After login, navigate to HomePage
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SocialHomePage()),
-                  );
+                  authController.login(); // Appel du contrôleur pour gérer l'authentification
                 },
-                isPrimary: true, // Added the missing isPrimary parameter
+                isPrimary: true,
               ),
               const SizedBox(height: 20),
               Row(
@@ -52,7 +51,7 @@ class LoginPage extends StatelessWidget {
                 children: [
                   const Text("Don't have an account?"),
                   GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignupPage())),
+                    onTap: () => Get.to(() => SignupPage()), // Utilisation de GetX pour la navigation
                     child: const Text(" Sign up", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
                   ),
                 ],

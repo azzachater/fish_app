@@ -1,63 +1,16 @@
 import 'package:flutter/material.dart';
-import '../../models/group_model.dart';
-import '../../models/user_model.dart';
+import 'package:get/get.dart';
 import '../../constants/theme.dart';
+import '../../controllers/group_detail_controller.dart';
 import 'group_details_page.dart';
-import '../../data/user_data.dart';
-import '../../data/group_data.dart';
-import 'dart:io';
 import 'group_chat_page.dart';
+import 'dart:io';
 
-class CreateSearchGroup extends StatefulWidget {
-  const CreateSearchGroup({super.key});
+class CreateSearchGroup extends StatelessWidget {
+  CreateSearchGroup({super.key});
 
-  @override
-  CreateSearchGroupState createState() => CreateSearchGroupState();
-}
-
-class CreateSearchGroupState extends State<CreateSearchGroup> {
-  List<Group> filteredGroups = List.from(allGroups);
-  List<User> selectedUsers = [currentUser]; // currentUser est sélectionné par défaut
-  List<User> filteredUsers = List.from(users);
-  TextEditingController searchController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    //selectedUsers.add(); // currentUser est sélectionné par défaut
-  }
-
-  void filterUsers(String query) {
-    final List<User> results = users.where((user) {
-      final String userName = user.name.toLowerCase();
-      return userName.contains(query.toLowerCase());
-    }).toList();
-
-    setState(() {
-      filteredUsers = results;
-    });
-  }
-
-  void _navigateToGroupDetails() async {
-     if (!selectedUsers.contains(currentUser)) {
-    selectedUsers.add(currentUser);
-  }
-    final newGroup = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => GroupDetailsPage(selectedUsers: selectedUsers),
-      ),
-    );
-
-    if (newGroup != null) {
-      setState(() {
-        allGroups.add(newGroup);
-        filteredGroups = List.from(allGroups); // Met à jour la liste affichée
-        selectedUsers.clear(); // Désélectionne les utilisateurs
-        selectedUsers.add(currentUser); // Réajoute currentUser par défaut
-      });
-    }
-  }
+  final CreateSearchGroupController controller = Get.put(CreateSearchGroupController());
+  final TextEditingController searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +24,7 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
             border: InputBorder.none,
           ),
           style: TextStyle(color: Colors.white),
-          onChanged: filterUsers,
+          onChanged: controller.filterUsers,
         ),
         backgroundColor: AppTheme.primaryColor,
         iconTheme: IconThemeData(color: Colors.white),
@@ -87,18 +40,14 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
                 SizedBox(height: 10),
                 SizedBox(
                   height: 80,
-                  child: ListView.builder(
+                  child: Obx(() => ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: filteredUsers.length,
+                    itemCount: controller.filteredUsers.length,
                     itemBuilder: (context, index) {
-                      final user = filteredUsers[index];
-                      final isSelected = selectedUsers.contains(user);
+                      final user = controller.filteredUsers[index];
+                      final isSelected = controller.selectedUsers.contains(user);
                       return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            isSelected ? selectedUsers.remove(user) : selectedUsers.add(user);
-                          });
-                        },
+                        onTap: () => controller.toggleUserSelection(user),
                         child: Stack(
                           children: [
                             Container(
@@ -118,12 +67,17 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
                         ),
                       );
                     },
-                  ),
+                  )),
                 ),
                 SizedBox(height: 10),
                 Center(
                   child: ElevatedButton(
-                    onPressed: _navigateToGroupDetails,
+                    onPressed: () async {
+                      final newGroup = await Get.to(() => GroupDetailsPage());
+                      if (newGroup != null) {
+                        controller.addGroup(newGroup);
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
@@ -145,10 +99,10 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
             child: Text('All Groups', style: AppTheme.heading2),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredGroups.length,
+            child: Obx(() => ListView.builder(
+              itemCount: controller.filteredGroups.length,
               itemBuilder: (context, index) {
-                final group = filteredGroups[index];
+                final group = controller.filteredGroups[index];
                 return ListTile(
                   leading: CircleAvatar(
                     radius: 25,
@@ -159,16 +113,11 @@ class CreateSearchGroupState extends State<CreateSearchGroup> {
                   title: Text(group.name, style: AppTheme.heading2.copyWith(fontSize: 16)),
                   subtitle: Text('${group.members.length} members'),
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => GroupChatPage(group: group),
-                      ),
-                    );
+                    Get.to(() => GroupChatPage(group: group));
                   },
                 );
               },
-            ),
+            )),
           ),
         ],
       ),

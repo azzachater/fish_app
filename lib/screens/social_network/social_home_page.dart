@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import '../../widgets/social_network/create_post_widget.dart';
 import '../../widgets/social_network/post_widget.dart';
-import '../../data/post_data.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'sidebar.dart'; // Importez votre fichier sidebar.dart
 import '../chat/chat_home_page.dart';
 import 'search_profile_page.dart'; // Importer la page de recherche de profil
-import '../../data/user_data.dart';
+import '../../controllers/post_controller.dart'; // Importer le contrôleur des posts
+import '../../models/post_model.dart'; 
 
 class SocialHomePage extends StatelessWidget {
   const SocialHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final PostController postController = Get.put(PostController()); // Obtenez l'instance du contrôleur PostController
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white, // Fond blanc
@@ -40,23 +43,23 @@ class SocialHomePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black),
-           onPressed: () {
-  // Rediriger vers SearchProfilePage en passant la liste des utilisateurs
-            Navigator.push(
-            context,
+            onPressed: () {
+              // Rediriger vers SearchProfilePage en passant la liste des utilisateurs
+              Navigator.push(
+                context,
                 MaterialPageRoute(
-      builder: (context) => SearchProfilePage(users: users), // Passer la liste des utilisateurs
-    ),
-  );
-},
+                  builder: (context) => SearchProfilePage(),
+                ),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(FontAwesomeIcons.facebookMessenger, color: Colors.black),
             onPressed: () {
-              // Navigate to HomePage when the icon is pressed
+              // Naviguer vers la page de messagerie
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const ChatHomePage()),
+                MaterialPageRoute(builder: (context) => ChatHomePage()),
               );
             },
           ),
@@ -67,14 +70,20 @@ class SocialHomePage extends StatelessWidget {
         child: Column(
           children: [
             const CreatePostWidget(),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: posts.length,
-              itemBuilder: (context, index) {
-                return PostWidget(post: posts[index]);
-              },
-            ),
+           Obx(() {
+  // Trie les posts directement ici
+  List<Post> sortedPosts = List.from(postController.posts)
+    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+  return ListView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    itemCount: sortedPosts.length,
+    itemBuilder: (context, index) {
+      return PostWidget(post: sortedPosts[index]);
+    },
+  );
+}),
           ],
         ),
       ),

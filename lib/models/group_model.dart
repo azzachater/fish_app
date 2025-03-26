@@ -1,4 +1,5 @@
 import 'user_model.dart';
+import 'message_model.dart';
 class Group {
   final String id;
   final String name;
@@ -8,6 +9,8 @@ class Group {
   final int unreadCount;
   final bool isRead;
   final String time;
+   List<Message> messages; // Add this line
+
 
   Group({
     required this.id,
@@ -18,6 +21,8 @@ class Group {
     required this.unreadCount,
     required this.isRead,
     required this.time,
+    required this.messages, // Include this in the constructor
+
   });
   // Méthode copyWith
   Group copyWith({
@@ -29,6 +34,7 @@ class Group {
     int? unreadCount,
     bool? isRead,
     String? time,
+    List<Message>? message,
   }) {
     return Group(
       id: id ?? this.id,
@@ -39,7 +45,7 @@ class Group {
       unreadCount: unreadCount ?? this.unreadCount,
       isRead: isRead ?? this.isRead,
       time: time ?? this.time,
-      
+       messages: [],
     );
   }
 }

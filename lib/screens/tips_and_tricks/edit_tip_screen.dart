@@ -1,42 +1,28 @@
 import 'package:flutter/material.dart';
-import '../../models/tip_model.dart'; // Import Tip model
+import 'package:get/get.dart';
+import '../../models/tip_model.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
-import '../../constants/theme.dart'; // Ensure theme is correctly imported
+import '../../constants/theme.dart';
+import '../../controllers/tip_controller.dart'; // Import TipController
 
-class EditTipScreen extends StatefulWidget {
+class EditTipScreen extends StatelessWidget {
   final Tip? tip;
-  final Function(Tip) onUpdate; // Add the update callback
+  final Function(Tip) onUpdate; // Update callback
 
   const EditTipScreen({super.key, this.tip, required this.onUpdate});
 
   @override
-  EditTipScreenState createState() => EditTipScreenState();
-}
-
-class EditTipScreenState extends State<EditTipScreen> {
-  late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
-
-  @override
-  void initState() {
-    super.initState();
-    // Pre-fill the fields if the tip exists
-    _titleController = TextEditingController(text: widget.tip?.title ?? '');
-    _descriptionController = TextEditingController(text: widget.tip?.description ?? '');
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Get instance of TipController
+    final TipController controller = Get.find<TipController>();
+
+    // Pre-fill the text fields
+    final TextEditingController titleController = TextEditingController(text: tip?.title ?? '');
+    final TextEditingController descriptionController = TextEditingController(text: tip?.description ?? '');
+
     return Scaffold(
-      backgroundColor: AppTheme.primaryColor, // Use the primary color from theme
+      backgroundColor: AppTheme.primaryColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -74,13 +60,13 @@ class EditTipScreenState extends State<EditTipScreen> {
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: "Title",
-                      controller: _titleController,
+                      controller: titleController,
                     ),
                     const SizedBox(height: 15),
                     CustomTextField(
                       label: "Description",
                       maxLines: 5,
-                      controller: _descriptionController,
+                      controller: descriptionController,
                     ),
                     const SizedBox(height: 50),
                     SizedBox(
@@ -88,8 +74,8 @@ class EditTipScreenState extends State<EditTipScreen> {
                       child: CustomButton(
                         text: "Save Changes",
                         onPressed: () {
-                          String title = _titleController.text.trim();
-                          String description = _descriptionController.text.trim();
+                          String title = titleController.text.trim();
+                          String description = descriptionController.text.trim();
 
                           if (title.isEmpty || description.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -102,17 +88,14 @@ class EditTipScreenState extends State<EditTipScreen> {
                           }
 
                           // Create a new Tip with updated values
-                          Tip updatedTip = Tip(
-                            title: title,
-                            description: description,
-                          );
+                          Tip updatedTip = Tip(title: title, description: description);
 
-                          // Call onUpdate with the updated tip
-                          widget.onUpdate(updatedTip);
+                          // Update the tip using GetX controller
+                          controller.updateTip(controller.tips.indexOf(tip!), updatedTip);
 
-                          Navigator.pop(context); // Go back to the previous page
+                          // Close the screen and go back
+                          Navigator.pop(context);
 
-                          // Show success message
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text("Tip updated successfully!"),

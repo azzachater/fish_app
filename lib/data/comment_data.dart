@@ -191,3 +191,15 @@ final List<Comment> commentsForPost10 = [
     postId: '9', // ID du post associé
   ),
 ];
+final List<Comment> allComments = [
+  ...commentsForPost1,
+  ...commentsForPost2,
+  ...commentsForPost3,
+  ...commentsForPost4,
+  ...commentsForPost5,
+  ...commentsForPost6,
+  ...commentsForPost7,
+  ...commentsForPost8,
+  ...commentsForPost9,
+  ...commentsForPost10,
+];

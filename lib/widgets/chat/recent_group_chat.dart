@@ -1,126 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../controllers/group_controller.dart';
 import '../../constants/theme.dart';
-import 'package:flutter/cupertino.dart';
 import '../../screens/chat/group_chat_page.dart';
-import '../../data/group_data.dart';
-import '../../models/group_model.dart';
-import 'dart:io'; // Import to use FileImage
+import 'dart:io';
 
-class RecentGroups extends StatefulWidget {
-  const RecentGroups({super.key});
+class RecentGroups extends StatelessWidget {
+  final GroupController controller = Get.find();
 
-  @override
-  RecentGroupsState createState() => RecentGroupsState();
-}
-
-class RecentGroupsState extends State<RecentGroups> {
-  final List<Group> _recentGroups = recentGroups;
-
-  void markGroupAsRead(int index) {
-    setState(() {
-      _recentGroups[index] = _recentGroups[index].copyWith(isRead: true, unreadCount: 0);
-    });
-  }
+   RecentGroups({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          padding: EdgeInsets.only(top: 30),
+        Padding(
+          padding: const EdgeInsets.only(top: 30),
           child: Row(
             children: [
-              Text(
-                'Recent Groups',
-                style: AppTheme.heading2,
-              ),
+              Text('Recent Groups', style: AppTheme.heading2),
               Spacer(),
             ],
           ),
         ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: ScrollPhysics(),
-          itemCount: _recentGroups.length,
-          itemBuilder: (context, int index) {
-            final recentGroup = _recentGroups[index];
+        Obx(() => ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: controller.recentGroups.length,
+              itemBuilder: (context, index) {
+                final group = controller.recentGroups[index];
+                ImageProvider avatarImage = group.avatar.startsWith('/')
+                    ? FileImage(File(group.avatar))
+                    : AssetImage(group.avatar);
 
-            // Check if the avatar is a file or asset path
-            ImageProvider avatarImage;
-            if (recentGroup.avatar.startsWith('/')) {
-              // If the avatar starts with '/', it's a local file
-              avatarImage = FileImage(File(recentGroup.avatar));
-            } else {
-              // Otherwise, it's an asset image
-              avatarImage = AssetImage(recentGroup.avatar);
-            }
-
-            return Container(
-              margin: const EdgeInsets.only(top: 20),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 28,
-                    backgroundImage: avatarImage, // Use appropriate ImageProvider
-                  ),
-                  SizedBox(width: 20),
-                  GestureDetector(
-                    onTap: () {
-                      markGroupAsRead(index);
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => GroupChatPage(group: recentGroup),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                return GestureDetector(
+                  onTap: () {
+                    controller.markGroupAsRead(group);
+                    Get.to(() => GroupChatPage(group: group));
+                  },
+                  child: ListTile(
+                    leading: CircleAvatar(radius: 28, backgroundImage: avatarImage),
+                    title: Text(group.name, style: AppTheme.heading2.copyWith(fontSize: 16)),
+                    subtitle: Text('${group.members.length} members', style: AppTheme.bodyText1),
+                    trailing: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          recentGroup.name,
-                          style: AppTheme.heading2.copyWith(fontSize: 16),
-                        ),
-                        Text(
-                          '${recentGroup.members.length} members',
-                          style: AppTheme.bodyText1,
-                        ),
+                        group.unreadCount == 0
+                            ? Icon(Icons.done_all, color: AppTheme.bodyTextTime.color)
+                            : CircleAvatar(
+                                radius: 8,
+                                backgroundColor: AppTheme.unreadChatBG,
+                                child: Text(group.unreadCount.toString(),
+                                    style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
+                        SizedBox(height: 10),
+                        Text(group.time, style: AppTheme.bodyTextTime),
                       ],
                     ),
                   ),
-                  Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      recentGroup.unreadCount == 0
-                          ? Icon(
-                              Icons.done_all,
-                              color: AppTheme.bodyTextTime.color,
-                            )
-                          : CircleAvatar(
-                              radius: 8,
-                              backgroundColor: AppTheme.unreadChatBG,
-                              child: Text(
-                                recentGroup.unreadCount.toString(),
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                      SizedBox(height: 10),
-                      Text(
-                        recentGroup.time,
-                        style: AppTheme.bodyTextTime,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                );
+              },
+            )),
       ],
     );
   }
