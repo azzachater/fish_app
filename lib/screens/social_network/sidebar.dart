@@ -1,4 +1,7 @@
 import 'package:fish_app/screens/chat/chat_home_page.dart';
+import 'package:fish_app/screens/diary_screen.dart';
+import 'package:fish_app/screens/map_page.dart';
+import 'package:fish_app/screens/market_place.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../data/user_data.dart'; // Assurez-vous que ce fichier contient `currentUser`
@@ -43,9 +46,9 @@ class SidebarPageState extends State<SidebarPage> {
                 _buildDrawerItem(FontAwesomeIcons.facebookMessenger, "Messages", ChatHomePage(), hasNotification: true, iconColor: Colors.blue),
                 _buildDrawerItem(Icons.lightbulb, "Tips & Tricks", TipsPage(), iconColor: Colors.orange),
                 _buildDrawerItem(Icons.event, "Event", null, iconColor: Colors.red),
-                _buildDrawerItem(Icons.book, "Journal", null, iconColor: Colors.indigo),
-                _buildDrawerItem(Icons.location_on, "Spot", null, iconColor: Colors.teal),
-                _buildDrawerItem(Icons.storefront, "Marketplace", null, iconColor: Colors.amber),
+                _buildDrawerItem(Icons.book, "Journal", DiaryScreen(), iconColor: Colors.indigo),
+                _buildDrawerItem(Icons.location_on, "Spot", MapPage(), iconColor: Colors.teal),
+                _buildDrawerItem(Icons.storefront, "Marketplace", Marketplace(), iconColor: Colors.amber),
               ],
             ),
           ),

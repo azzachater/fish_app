@@ -59,13 +59,13 @@ class AddTipScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: "Title",
-                      controller: titleController, hintText: '', obscureText: false,
+                      controller: titleController, hintText: '', obscureText: false
                     ),
                     const SizedBox(height: 15),
                     CustomTextField(
                       label: "Description",
                       maxLines: 5,
-                      controller: descriptionController, hintText: '', obscureText: false,
+                      controller: descriptionController, hintText: '', obscureText: false
                     ),
                     const SizedBox(height: 50),
                     SizedBox(

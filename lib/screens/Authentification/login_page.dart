@@ -13,6 +13,34 @@ class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  final RxString emailError = ''.obs;
+  final RxString passwordError = ''.obs;
+
+  void validateAndLogin() {
+    // Reset previous errors
+    emailError.value = '';
+    passwordError.value = '';
+
+    bool isValid = true;
+
+    // Validate Email
+    if (emailController.text.isEmpty || !GetUtils.isEmail(emailController.text)) {
+      emailError.value = 'Please enter a valid email';
+      isValid = false;
+    }
+
+    // Validate Password
+    if (passwordController.text.isEmpty) {
+      passwordError.value = 'Password cannot be empty';
+      isValid = false;
+    }
+
+    // If valid, proceed with login
+    if (isValid) {
+      authController.login(emailController.text, passwordController.text);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,18 +70,24 @@ class LoginPage extends StatelessWidget {
                 hintText: "Enter your email",
                 controller: emailController,
               ),
+              // Affichage de l'erreur sous le champ email
+              Obx(() => emailError.value.isNotEmpty
+                  ? Text(emailError.value, style: TextStyle(color: Colors.red))
+                  : Container()),
               CustomTextField(
                 label: "Password",
                 hintText: "Enter your password",
                 controller: passwordController,
                 obscureText: true,
               ),
+              // Affichage de l'erreur sous le champ password
+              Obx(() => passwordError.value.isNotEmpty
+                  ? Text(passwordError.value, style: TextStyle(color: Colors.red))
+                  : Container()),
               const SizedBox(height: 20),
               CustomButton(
                 text: "Login",
-                onPressed: () {
-                  authController.login();
-                },
+                onPressed: validateAndLogin,
                 isPrimary: true,
               ),
               const SizedBox(height: 20),

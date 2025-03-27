@@ -15,7 +15,7 @@ class CustomTextField extends StatelessWidget {
     this.hintText = "",
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
-    this.obscureText = false,
+    this.obscureText = false, 
   }) : super(key: key);
 
   @override

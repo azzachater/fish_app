@@ -1,38 +1,41 @@
-import 'package:fish_app/widgets/custom_nav_bar.dart';
+import 'package:fish_app/controller/cart_controller.dart';
+import 'package:fish_app/controller/event_journal_controller.dart';
+import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'package:get/get.dart';
+import 'package:fish_app/widgets/custom_nav_bar.dart';
 import 'screens/market_place.dart';
 import 'screens/diary_screen.dart';
-import 'screens/profile_screen.dart';
+import 'screens/social_network/social_home_page.dart';
+import 'screens/social_network/profile_page.dart';
 
-class MainScreen extends StatefulWidget {
-  @override
-  _MainScreenState createState() => _MainScreenState();
+class MainController extends GetxController {
+  var selectedIndex = 0.obs;
+
+  List<Widget> get pages => [
+        SocialHomePage(),
+        Marketplace(),
+        DiaryScreen(),
+        ProfilePage(),
+      ];
+
+  void changeTab(int index) {
+    selectedIndex.value = index;
+  }
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _pages = [
-    HomeScreen(),
-    Marketplace(),
-    DiaryScreen(),
-    ProfileScreen(),
-  ];
-
-  void _onTabChange(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
+class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final MainController controller = Get.put(MainController());
+
     return Scaffold(
-      body: _pages[_selectedIndex], // Affiche la page active
-      bottomNavigationBar: CustomNavBar(
-        currentIndex: _selectedIndex,
-        onTabChange: _onTabChange,
+      body: Obx(() => controller.pages[controller.selectedIndex.value]),
+      bottomNavigationBar: Obx(
+        () => CustomNavBar(
+          currentIndex: controller.selectedIndex.value,
+          onTabChange: controller.changeTab,
+        ),
       ),
     );
   }

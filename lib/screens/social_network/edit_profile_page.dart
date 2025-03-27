@@ -44,7 +44,7 @@ class EditProfilePage extends StatelessWidget {
                       SizedBox(height: 30),
                       Text('Edit Profile', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                       SizedBox(height: 20),
-                      CustomTextField(label: 'Username', controller: controller.usernameController, hintText: '', obscureText: false,),
+                      CustomTextField(label: 'Username', controller: controller.usernameController, hintText: '', obscureText: false, ),
                       CustomTextField(label: 'Email', controller: controller.emailController, hintText: '', obscureText: false,),
                       CustomTextField(label: 'Password', controller: controller.passwordController, obscureText: true, hintText: '',),
                       CustomTextField(label: 'Password Confirmation', controller: controller.passwordConfirmationController, obscureText: true, hintText: '',),
