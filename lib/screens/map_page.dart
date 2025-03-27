@@ -1,7 +1,7 @@
-import 'package:fish_app/controller/map_controller_X.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:get/get.dart';
+import 'package:fish_app/controller/map_controller_X.dart';
 
 class MapPage extends StatelessWidget {
   final MapControllerX controller = Get.put(MapControllerX());
@@ -46,14 +46,6 @@ class MapPage extends StatelessWidget {
             child: FloatingActionButton(
               onPressed: controller.moveToCurrentLocation,
               child: Icon(Icons.my_location),
-            ),
-          ),
-          Positioned(
-            bottom: 80,
-            right: 20,
-            child: FloatingActionButton(
-              onPressed: controller.addMarkerAtLocation,
-              child: Icon(Icons.add_location),
             ),
           ),
         ],

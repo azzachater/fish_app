@@ -72,13 +72,13 @@ flutter:
   assets:
     - assets/images/
     - assets/images/Authentification/
-     # - assets/images/Authentification/background.png
+      # - assets/images/Authentification/background.png
       # - assets/images/Authentification/welcome.png
     - assets/images/users/
     - assets/images/groups/
     - assets/images/posts/
     - assets/images/tips/
-
+    - assets/images/participants/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

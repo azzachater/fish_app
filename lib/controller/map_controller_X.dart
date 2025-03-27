@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 
 class MapControllerX extends GetxController {
   late MapController mapController;
+  var fishingSpots =
+      <GeoPoint, String>{}.obs; // Stocke les spots et leurs descriptions
 
   @override
   void onInit() {
@@ -17,18 +19,65 @@ class MapControllerX extends GetxController {
         west: 5.9559113,
       ),
     );
+
+    // Écouter les clics sur la carte
+    mapController.listenerMapSingleTapping.addListener(() async {
+      GeoPoint? point = mapController.listenerMapSingleTapping.value;
+      if (point != null) {
+        addMarkerAtLocation(point);
+      }
+    });
   }
 
   void moveToCurrentLocation() async {
     await mapController.currentLocation();
   }
 
-  void addMarkerAtLocation() async {
-    await mapController.addMarker(
-      GeoPoint(latitude: 47.4358055, longitude: 8.4737324),
-      markerIcon: MarkerIcon(
-        icon: Icon(Icons.person_pin_circle, color: Colors.blue, size: 56),
+  void addMarkerAtLocation(GeoPoint point) async {
+    String? description = await Get.dialog<String>(_buildCommentDialog());
+
+    if (description != null && description.isNotEmpty) {
+      fishingSpots[point] = description;
+
+      await mapController.addMarker(
+        point,
+        markerIcon: MarkerIcon(
+          icon: Icon(Icons.location_pin, color: Colors.red, size: 56),
+        ),
+      );
+    }
+  }
+
+  void showMarkerInfo(GeoPoint point) {
+    String description = fishingSpots[point] ?? "Pas de description";
+    Get.defaultDialog(
+      title: "Infos du Spot",
+      middleText: description,
+      confirm: ElevatedButton(
+        onPressed: () => Get.back(),
+        child: Text("Fermer"),
       ),
+    );
+  }
+
+  Widget _buildCommentDialog() {
+    TextEditingController controller = TextEditingController();
+    return AlertDialog(
+      title: Text("Ajouter un commentaire"),
+      content: TextField(
+        controller: controller,
+        decoration: InputDecoration(hintText: "Décrivez ce spot..."),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(result: null),
+          child: Text("Annuler"),
+        ),
+        ElevatedButton(
+          onPressed: () => Get.back(result: controller.text),
+          child: Text("Valider"),
+        ),
+      ],
     );
   }
 

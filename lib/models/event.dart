@@ -1,15 +1,15 @@
 class Event {
-  final String title;
-  final DateTime startDate;
-  final DateTime endDate;
-  final String? location;
-  final DateTime date;
+  String title;
+  String location;
+  String description;
+  String date;
+  List<String> participants;
 
   Event({
     required this.title,
-    required this.startDate,
-    required this.endDate,
-    this.location,
-    DateTime? date,
-  }) : date = date ?? startDate;
+    required this.location,
+    required this.description,
+    required this.date,
+    required this.participants,
+  });
 }
