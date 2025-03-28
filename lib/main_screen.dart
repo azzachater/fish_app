@@ -1,6 +1,3 @@
-import 'package:fish_app/controller/cart_controller.dart';
-import 'package:fish_app/controller/event_journal_controller.dart';
-import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/widgets/custom_nav_bar.dart';
@@ -25,6 +22,8 @@ class MainController extends GetxController {
 }
 
 class MainScreen extends StatelessWidget {
+  const MainScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final MainController controller = Get.put(MainController());

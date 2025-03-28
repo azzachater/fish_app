@@ -8,10 +8,10 @@ class ImageSelector extends StatelessWidget {
   final Function(String) onImageSelected;
 
   const ImageSelector({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.onImageSelected,
-  }) : super(key: key);
+  });
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -54,8 +54,8 @@ class ImageSelector extends StatelessWidget {
         const SizedBox(height: 10),
         FloatingActionButton(
           onPressed: _pickImage,
-          child: const Icon(Icons.add_a_photo),
           backgroundColor: Colors.blue,
+          child: const Icon(Icons.add_a_photo),
         ),
       ],
     );

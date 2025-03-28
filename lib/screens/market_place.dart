@@ -10,6 +10,8 @@ import 'package:fish_app/screens/marketplace/favorites_page.dart';
 import 'package:fish_app/widgets/search_bar.dart';
 
 class Marketplace extends StatelessWidget {
+  const Marketplace({super.key});
+
   @override
   Widget build(BuildContext context) {
     final ProductController productController = Get.put(ProductController());

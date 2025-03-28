@@ -3,19 +3,33 @@ class User {
   String name;
   String avatar;
   String email;
-  String password;  // Ajoutez le mot de passe
-  String passwordConfirmation;  // Ajoutez la confirmation du mot de passe
-  String bio;  // Ajoutez la bio
+  String password;
+  String passwordConfirmation;
+  String bio;
+  String? token;
 
   User({
     required this.id,
     required this.name,
     required this.avatar,
     required this.email,
-    required this.password,  // Ajoutez le mot de passe dans le constructeur
-    required this.passwordConfirmation,  // Ajoutez la confirmation du mot de passe
-    required this.bio,  // Ajoutez la bio
+    required this.password,
+    required this.passwordConfirmation,
+    required this.bio,
+    this.token,
   });
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'],
+      name: json['name'],
+      avatar: json['avatar'] ?? '',
+      email: json['email'],
+      password: json['password'] ?? '',
+      passwordConfirmation: json['password_confirmation'] ?? '',
+      bio: json['bio'] ?? '',
+    );
+  }
 
   User copyWith({
     String? avatar,
@@ -24,6 +38,7 @@ class User {
     String? email,
     String? password,
     String? passwordConfirmation,
+    String? token,
   }) {
     return User(
       id: id,
@@ -33,6 +48,7 @@ class User {
       password: password ?? this.password,
       passwordConfirmation: passwordConfirmation ?? this.passwordConfirmation,
       bio: bio ?? this.bio,
+      token: token ?? this.token,
     );
   }
 }

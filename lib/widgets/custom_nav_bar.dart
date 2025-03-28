@@ -5,7 +5,7 @@ class CustomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTabChange;
 
-  CustomNavBar({required this.currentIndex, required this.onTabChange});
+  const CustomNavBar({super.key, required this.currentIndex, required this.onTabChange});
 
   @override
   Widget build(BuildContext context) {

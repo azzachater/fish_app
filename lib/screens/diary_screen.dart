@@ -6,6 +6,8 @@ import 'package:fish_app/widgets/task_list.dart';
 import 'package:flutter/material.dart';
 
 class DiaryScreen extends StatelessWidget {
+  const DiaryScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

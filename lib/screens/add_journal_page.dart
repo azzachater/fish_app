@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 class AddJournalPage extends StatelessWidget {
   final AddJournalController controller = Get.put(AddJournalController());
 
+   AddJournalPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> dates = controller.getDates();

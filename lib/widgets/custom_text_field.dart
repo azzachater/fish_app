@@ -9,14 +9,14 @@ class CustomTextField extends StatelessWidget {
   final bool obscureText;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.label,
     required this.controller,
     this.hintText = "",
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
     this.obscureText = false, 
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

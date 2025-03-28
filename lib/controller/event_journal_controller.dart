@@ -42,7 +42,7 @@ class JournalController extends GetxController {
 
   void onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     this.selectedDay.value = selectedDay;
-    this.today.value = focusedDay;
+    today.value = focusedDay;
   }
 
   void selectStartDate(BuildContext context) {
