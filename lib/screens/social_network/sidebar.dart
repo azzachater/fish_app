@@ -1,10 +1,12 @@
-import 'package:fish_app/screens/chat/chat_home_page.dart';
-import 'package:fish_app/screens/diary_screen.dart';
-import 'package:fish_app/screens/map_page.dart';
-import 'package:fish_app/screens/market_place.dart';
+import 'package:fish_app/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import '../../data/user_data.dart'; // Assurez-vous que ce fichier contient `currentUser`
+import '../../screens/chat/chat_home_page.dart';
+import '../../screens/diary_screen.dart';
+import '../../screens/map_page.dart';
+import '../../screens/market_place.dart';
 import '../../screens/social_network/profile_page.dart';
 import '../../screens/tips_and_tricks/tip_page.dart';
 
@@ -17,6 +19,9 @@ class SidebarPage extends StatefulWidget {
 
 class SidebarPageState extends State<SidebarPage> {
   int selectedIndex = 0;
+
+  // Instance du AuthController
+  final AuthController _authController = Get.find<AuthController>(); 
 
   void _onItemTapped(int index, Widget? page) {
     setState(() {
@@ -53,7 +58,7 @@ class SidebarPageState extends State<SidebarPage> {
             ),
           ),
           const Divider(thickness: 1, color: Colors.grey), // Divider before sign out
-          _buildDrawerItem(Icons.exit_to_app, "Log Out", null, iconColor: Colors.black), // Maintenant tout en bas
+          _buildDrawerItem(Icons.exit_to_app, "Log Out", null, iconColor: Colors.black, onTap: _logout), // Lier le logout
         ],
       ),
     );
@@ -97,17 +102,22 @@ class SidebarPageState extends State<SidebarPage> {
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title, Widget? page, {bool hasNotification = false, bool selected = false, Color iconColor = Colors.black}) {
+  Widget _buildDrawerItem(IconData icon, String title, Widget? page, {bool hasNotification = false, bool selected = false, Color iconColor = Colors.black, Function()? onTap}) {
     return ListTile(
       leading: Icon(icon, color: iconColor), // Icône avec couleur
       title: Text(title, style: const TextStyle(color: Colors.black87)),
       trailing: hasNotification ? const Icon(Icons.circle, color: Colors.blue, size: 10) : null,
       tileColor: selected ? Colors.blue.shade100 : Colors.transparent, // Fond léger si sélectionné
-      onTap: () => _onItemTapped(0, page),
+      onTap: onTap ?? () => _onItemTapped(0, page), // Utiliser onTap pour logout
       contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10), // Réduction de l'espacement pour une conception plus compacte
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), // Coins arrondis pour un look moderne
       hoverColor: Colors.blue.shade50, // Effet de survol
       onLongPress: () => _onItemTapped(0, page), // Appui long pour une meilleure interaction
     );
+  }
+
+  // Méthode de déconnexion
+  void _logout() {
+    _authController.logout(); // Appeler la méthode de déconnexion du contrôleur
   }
 }

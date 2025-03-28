@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'dart:io';  // Pour gérer les fichiers image
 import '../../screens/social_network/comment_page.dart';
+import '../../screens/social_network/update_post_page.dart';
 import '../../models/post_model.dart';
 import '../../controllers/post_controller.dart';
 
@@ -17,6 +19,37 @@ class PostWidget extends StatelessWidget {
   void navigateToComments() {
     Get.to(() => CommentPage(post: post));
   }
+
+  void openUpdatePostPage() {
+    Get.to(() => UpdatePostPage(post: post));
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context) {
+  Get.defaultDialog(
+    title: "Delete Post",
+    titleStyle: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      color: Colors.black,
+    ),
+    middleText: "Are you sure you want to delete this post? This action can't be undone.",
+    middleTextStyle: TextStyle(fontSize: 14, color: Colors.black54),
+    textCancel: "Cancel",
+    cancelTextColor: Colors.blueGrey,
+    textConfirm: "Delete",
+    confirmTextColor: Colors.white,
+    buttonColor: Colors.redAccent,  // Utilisation d'un rouge plus moderne
+    backgroundColor: Colors.white,
+    radius: 8,  // Coins légèrement arrondis
+    contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),  // Espacement agréable
+    onConfirm: () {
+      postController.deletePost(post);
+      Get.back(); // Fermer la boîte de dialogue après suppression
+    },
+    onCancel: () => Get.back(),
+    barrierDismissible: false,  // Empêcher la fermeture en cliquant à l'extérieur
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +82,37 @@ class PostWidget extends StatelessWidget {
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
             contentPadding: EdgeInsets.all(10),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'update') {
+                  openUpdatePostPage();
+                } else if (value == 'delete') {
+                  _showDeleteConfirmationDialog(context);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem<String>(
+                  value: 'update',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Text("Update"),
+                    ],
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text("Delete"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -64,7 +128,9 @@ class PostWidget extends StatelessWidget {
           if (post.postImage != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Image.asset(post.postImage!),
+              child: post.postImage!.startsWith('assets/')  // Si c'est une image d'asset
+                  ? Image.asset(post.postImage!)  // Charger depuis assets
+                  : Image.file(File(post.postImage!)),  // Charger depuis la galerie
             ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),

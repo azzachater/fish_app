@@ -5,8 +5,8 @@ class Post {
   final String id;
   final User user;  // Utilisation de l'objet User
   final DateTime createdAt;
-  final String postText;
-  final String? postImage;
+  String postText;
+  String? postImage;
   int likeCount;
   bool isLiked;
   List<Comment> comments;
