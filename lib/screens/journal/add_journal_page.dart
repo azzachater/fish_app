@@ -50,7 +50,18 @@ class AddJournalPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: controller.saveJournal,
+              onPressed: () {
+                controller.saveJournal();
+                // Utiliser Get.back() pour retourner les données
+                Get.back(
+                  result: {
+                    "title": "New Task",
+                    "description": controller.descriptionController.text,
+                    "status": "Enregistré",
+                    "icon": "📝",
+                  },
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 shape: RoundedRectangleBorder(
@@ -64,35 +75,6 @@ class AddJournalPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              "Saved Journals:",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: Obx(
-                () => ListView.builder(
-                  itemCount: controller.journals.length,
-                  itemBuilder: (context, index) {
-                    String date = controller.journals.keys.elementAt(index);
-                    List<String> descriptions = controller.journals[date] ?? [];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 5),
-                      child: ListTile(
-                        title: Text("Date: $date"),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children:
-                              descriptions
-                                  .map((desc) => Text("- $desc"))
-                                  .toList(),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
           ],
         ),
       ),

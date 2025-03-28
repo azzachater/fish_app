@@ -36,8 +36,8 @@ class MyApp extends StatelessWidget {
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/event_controller.dart';
 import 'package:fish_app/controller/favorite_controller.dart';
+import 'package:fish_app/controller/task_controller.dart';
 import 'package:fish_app/main_screen.dart';
-import 'package:fish_app/screens/event/event_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -46,6 +46,7 @@ void main() {
   Get.put(CartController());
   Get.put(FavoriteController());
   Get.put(EventController());
+  Get.put(TaskController());
 
   runApp(MyApp());
 }

@@ -1,3 +1,4 @@
+import 'package:fish_app/controller/task_controller.dart';
 import 'package:fish_app/screens/journal/add_journal_page.dart';
 import 'package:fish_app/widgets/floating_add_button.dart';
 import 'package:fish_app/widgets/journal/data_selector.dart';
@@ -7,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class DiaryScreen extends StatelessWidget {
-  final RxList<Map<String, String>> tasks = <Map<String, String>>[].obs;
+  // Initialiser le contrôleur
+  final TaskController taskController = Get.find<TaskController>();
 
   @override
   Widget build(BuildContext context) {
@@ -16,17 +18,15 @@ class DiaryScreen extends StatelessWidget {
       body: Column(
         children: [
           SizedBox(height: 80, child: DateSelector()),
-          Obx(() => TaskList()), // Liste des tâches
+          Obx(() => TaskList(tasks: taskController.tasks)),
         ],
       ),
       floatingActionButton: FloatingAddButton(
         onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddJournalPage()),
-          );
+          // Navigation avec GetX
+          final result = await Get.to(() => AddJournalPage());
           if (result != null) {
-            tasks.add(result);
+            taskController.addTask(result);
           }
         },
       ),
