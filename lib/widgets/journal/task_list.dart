@@ -1,16 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:fish_app/controller/data_selector_controller.dart';
 
 class TaskList extends StatelessWidget {
-  final DateSelectorController controller = Get.find();
+  final RxList<Map<String, String>> tasks =
+      <Map<String, String>>[
+        {
+          "title": "Brochet",
+          "description":
+              "Lac - Eau calme, vent léger. Observation : Active le matin.",
+          "status": "Enregistré",
+          "icon": "🐟",
+        },
+        {
+          "title": "Dorade",
+          "description":
+              "Mer - Vagues modérées, appât : crevettes. Observation : Bonne prise.",
+          "status": "Enregistré",
+          "icon": "⚓",
+        },
+        {
+          "title": "Carpe",
+          "description":
+              "Étang - Eau trouble, appât : maïs. Observation : Difficile à attraper.",
+          "status": "Enregistré",
+          "icon": "🎣",
+        },
+      ].obs;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Obx(() {
-        final tasks = controller.getJournalForSelectedDate();
-        return ListView.builder(
+      child: Obx(
+        () => ListView.builder(
           padding: const EdgeInsets.all(10),
           itemCount: tasks.length,
           itemBuilder: (context, index) {
@@ -48,8 +69,8 @@ class TaskList extends StatelessWidget {
               ),
             );
           },
-        );
-      }),
+        ),
+      ),
     );
   }
 }
