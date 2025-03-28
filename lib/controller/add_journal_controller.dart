@@ -12,6 +12,9 @@ class AddJournalController extends GetxController {
   final descriptionController = TextEditingController();
   final isSaving = false.obs;
 
+  // Dictionnaire pour stocker les entrées de journal par date
+  final journalEntries = <DateTime, List<Map<String, dynamic>>>{}.obs;
+
   // Validation du formulaire
   RxBool get isFormValid =>
       (fromTime.value != null &&
@@ -31,6 +34,26 @@ class AddJournalController extends GetxController {
         "weekday": DateFormat('E').format(date),
       };
     });
+  }
+
+  // Ajouter un journal pour la date sélectionnée
+  void addJournal(DateTime date, String description) {
+    // Si la date existe déjà, ajouter le journal, sinon créer une nouvelle entrée
+    if (journalEntries.containsKey(date)) {
+      journalEntries[date]?.add({
+        'from': fromTime.value?.format(Get.context!),
+        'to': toTime.value?.format(Get.context!),
+        'description': description,
+      });
+    } else {
+      journalEntries[date] = [
+        {
+          'from': fromTime.value?.format(Get.context!),
+          'to': toTime.value?.format(Get.context!),
+          'description': description,
+        },
+      ];
+    }
   }
 
   // Sélection d'une heure
@@ -79,7 +102,9 @@ class AddJournalController extends GetxController {
   }
 
   // Sauvegarder le journal
-  void saveJournal() {
-    // Logique pour sauvegarder les informations du journal
+  void saveJournal(String description) {
+    if (selectedDate.value != null) {
+      addJournal(selectedDate.value!, description);
+    }
   }
 }

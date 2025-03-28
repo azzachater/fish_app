@@ -27,7 +27,6 @@ class AddJournalPage extends StatelessWidget {
         ),
       ),
       body: SingleChildScrollView(
-        // Envelopper le contenu dans un SingleChildScrollView pour le rendre défilable
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Column(
@@ -38,7 +37,6 @@ class AddJournalPage extends StatelessWidget {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              //obx est un widget réactif qui met à jour l'interface lorsque Rx(variable) change
               Obx(
                 () => Column(
                   children: [
@@ -50,9 +48,7 @@ class AddJournalPage extends StatelessWidget {
                         return GestureDetector(
                           onTap: () {
                             if (index == dates.length) {
-                              _showDatePicker(
-                                context,
-                              ); // Afficher le calendrier si "Other" est sélectionné
+                              _showDatePicker(context);
                             } else {
                               controller.selectedDateIndex.value = index;
                               controller.selectedDate.value = DateTime.parse(
@@ -116,7 +112,6 @@ class AddJournalPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Time Selection
               const Text(
                 "Select time",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -149,7 +144,6 @@ class AddJournalPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Description Input
               const Text(
                 "Description",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -170,9 +164,14 @@ class AddJournalPage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Save Button
+              // Ajoute la méthode `saveJournal` sans argument
               GestureDetector(
-                onTap: controller.saveJournal,
+                onTap: () {
+                  // Récupérer la description depuis le contrôleur
+                  String description = controller.descriptionController.text;
+                  // Appel de la méthode saveJournal
+                  controller.saveJournal(description);
+                },
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 15),
@@ -196,8 +195,6 @@ class AddJournalPage extends StatelessWidget {
                   ),
                 ),
               ),
-
-              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -223,13 +220,10 @@ class AddJournalPage extends StatelessWidget {
     );
   }
 
-  // Affichage du calendrier
   void _showDatePicker(BuildContext context) {
-    controller
-        .toggleCalendar(); // Bascule pour afficher ou masquer le calendrier
+    controller.toggleCalendar();
   }
 
-  // Widget pour le sélecteur de date
   Widget _buildDatePicker(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top: 16),
@@ -251,7 +245,7 @@ class AddJournalPage extends StatelessWidget {
         firstDate: DateTime.now().subtract(const Duration(days: 365)),
         lastDate: DateTime.now().add(const Duration(days: 365)),
         onDateChanged: (date) {
-          controller.selectCustomDate(date); // Met à jour la date sélectionnée
+          controller.selectCustomDate(date);
         },
       ),
     );

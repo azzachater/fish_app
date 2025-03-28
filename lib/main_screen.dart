@@ -1,8 +1,8 @@
 import 'package:fish_app/widgets/custom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
-import 'screens/market_place.dart';
-import 'screens/diary_screen.dart';
+import 'screens/marketplace/market_place.dart';
+import 'screens/journal/diary_screen.dart';
 import 'screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
