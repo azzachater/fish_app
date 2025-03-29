@@ -88,7 +88,7 @@ class AddTipScreen extends StatelessWidget {
                           }
 
                           // Create a new Tip
-                          Tip newTip = Tip(title: title, description: description);
+                          Tip newTip = Tip(title: title, description: description, userId: '');
 
                           // Add the new tip using GetX controller
                           controller.addTip(newTip);

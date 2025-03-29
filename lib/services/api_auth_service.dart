@@ -15,7 +15,7 @@ class ApiAuthService {
         'Content-Type': 'application/json',
       };
 
-  Future<Map<String, String>> _getAuthHeaders() async {
+  Future<Map<String, String>> getAuthHeaders() async {
     final headers = Map<String, String>.from(_headers);
     final token = await _storage.read(key: 'token');
     if (token != null) {
@@ -28,7 +28,7 @@ class ApiAuthService {
     return headers;
   }
 
-  Future<String?> _getCsrfToken() async {
+  Future<String?> getCsrfToken() async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/sanctum/csrf-cookie'),
@@ -78,11 +78,27 @@ class ApiAuthService {
   dynamic _handleErrorDynamic(dynamic error) {
     throw error;
   }
+  Future<String?> getUserId() async {
+    final token = await getToken();
+    if (token != null) {
+      final decodedToken = _decodeToken(token);
+      return decodedToken['user_id'];  // Récupérez l'ID de l'utilisateur à partir du token
+    }
+    return null;
+  }
+
+  // Exemple de méthode pour décoder le token JWT
+  Map<String, dynamic> _decodeToken(String token) {
+    final parts = token.split('.');
+    final payload = parts[1];
+    final decodedPayload = base64Url.decode(base64Url.normalize(payload));
+    return jsonDecode(utf8.decode(decodedPayload));
+  }
 
   Future<User> register(String name, String email, String password, String passwordConfirmation) async {
   try {
-    final headers = await _getAuthHeaders();
-    final csrfToken = await _getCsrfToken();
+    final headers = await getAuthHeaders();
+    final csrfToken = await getCsrfToken();
     if (csrfToken != null) {
       headers['X-XSRF-TOKEN'] = csrfToken;
     }
@@ -119,10 +135,14 @@ class ApiAuthService {
     throw _handleErrorDynamic(e);
   }
 }
+Future<String> getToken() async {
+  return await _storage.read(key: 'token') ?? '';
+}
+
 
   Future<User> login(String email, String password) async {
   try {
-    final headers = await _getAuthHeaders();
+    final headers = await getAuthHeaders();
 
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
@@ -161,5 +181,44 @@ class ApiAuthService {
     throw _handleErrorDynamic(e);
   }
 }
+// Logout Method
+  Future<void> logout() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/logout'),
+        headers: await getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        await _storage.delete(key: 'token');  // Delete the token after logout
+        print('Logged out successfully.');
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      print('Error during logout: $e');
+      throw _handleErrorDynamic(e);
+    }
+  }
+
+  // Clear token (used by other services if needed)
+  Future<void> clearToken() async {
+    await _storage.delete(key: 'token');
+  }
+
+  String handleError(dynamic error) {
+    if (error is http.Response) {
+      print('Error Response Status: ${error.statusCode}');
+      print('Error Response Headers: ${error.headers}');
+      print('Error Response Body: ${error.body}');
+      try {
+        final data = jsonDecode(error.body);
+        return data['message'] ?? 'Something went wrong';
+      } catch (_) {
+        return 'Something went wrong';
+      }
+    }
+    return error.toString();
+  }
 
 }

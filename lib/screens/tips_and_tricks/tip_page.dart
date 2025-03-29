@@ -1,3 +1,4 @@
+import 'package:fish_app/models/tip_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/tips/tip_card.dart';
@@ -37,7 +38,7 @@ class TipsPage extends StatelessWidget {
                     builder: (context) => EditTipScreen(
                       tip: controller.tips[index],
                       onUpdate: (updatedTip) {
-                        controller.updateTip(index, updatedTip);
+                        controller.updateTip(updatedTip);
                       },
                     ),
                   ),
@@ -45,7 +46,7 @@ class TipsPage extends StatelessWidget {
               },
               onDelete: () {
                 // Show delete confirmation
-                _showDeleteConfirmation(context, index, controller);
+                _showDeleteConfirmation(context, controller.tips[index], controller);
               },
             );
           },
@@ -67,28 +68,31 @@ class TipsPage extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, int index, TipController controller) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Delete Tip"),
-          content: const Text("Do you really want to delete this tip?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close the dialog
-                controller.deleteTip(index); // Call delete method
-              },
-              child: const Text("Delete", style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  void _showDeleteConfirmation(BuildContext context, Tip tip, TipController controller) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Supprimer le conseil"),
+        content: const Text("Voulez-vous vraiment supprimer ce conseil ?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Annuler"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (tip.id != null) {
+                controller.deleteTip(tip.id!); // ✅ Suppression correcte
+              }
+            },
+            child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 }

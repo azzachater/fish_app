@@ -87,11 +87,16 @@ class EditTipScreen extends StatelessWidget {
                             return;
                           }
 
-                          // Create a new Tip with updated values
-                          Tip updatedTip = Tip(title: title, description: description);
+                          // Use the existing tip ID for the update
+                          Tip updatedTip = Tip(
+                            id: tip?.id ?? '',  // Ensure the ID is passed
+                            title: title, 
+                            description: description, 
+                            userId: tip?.userId ?? '',
+                          );
 
                           // Update the tip using GetX controller
-                          controller.updateTip(controller.tips.indexOf(tip!), updatedTip);
+                          controller.updateTip(updatedTip);
 
                           // Close the screen and go back
                           Navigator.pop(context);

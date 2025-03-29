@@ -28,7 +28,22 @@ class User {
       password: json['password'] ?? '',
       passwordConfirmation: json['password_confirmation'] ?? '',
       bio: json['bio'] ?? '',
+      token: json['token'], // Ajout de token si disponible
     );
+  }
+
+  // 🔥 **Ajout de la méthode toJson**
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'avatar': avatar,
+      'email': email,
+      'password': password, // Attention : éviter d'inclure le mot de passe en clair
+      'password_confirmation': passwordConfirmation,
+      'bio': bio,
+      'token': token,
+    };
   }
 
   User copyWith({

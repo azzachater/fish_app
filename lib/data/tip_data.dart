@@ -1,4 +1,4 @@
-import '../models/tip_model.dart';
+/*import '../models/tip_model.dart';
 
 final List<Tip> tipsData = [
   Tip(
@@ -21,3 +21,4 @@ final List<Tip> tipsData = [
 void deleteTip(int index) {
   tipsData.removeAt(index);
 }
+*/

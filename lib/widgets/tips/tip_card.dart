@@ -50,7 +50,7 @@ class TipCardWidget extends StatelessWidget {
                       if (value == 'edit') {
                         onEdit();
                       } else if (value == 'delete') {
-                        _showDeleteConfirmation(context);
+                        onDelete();
                       }
                     },
                     itemBuilder: (BuildContext context) {
@@ -84,7 +84,7 @@ class TipCardWidget extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
+  void showDeleteConfirmation(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
