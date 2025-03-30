@@ -19,6 +19,6 @@ class FavoriteController extends GetxController {
 
     // Mettre à jour l'état du produit dans le ProductController
     final productController = Get.find<ProductController>();
-    productController.toggleFavorite(product);
+    productController.toggleFavorite(product as String);
   }
 }
