@@ -11,17 +11,16 @@ class Tip {
     required this.description,
   });
 
-  // Convertir JSON en objet Tip
   factory Tip.fromJson(Map<String, dynamic> json) {
+    print("🟢 JSON reçu dans Tip.fromJson: $json"); 
     return Tip(
       id: json['id']?.toString(),
       userId: json['userId']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
+      description: json['description']?.replaceAll(RegExp(r',+$'), '').trim() ?? '',  
     );
   }
 
-  // Convertir objet Tip en JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,

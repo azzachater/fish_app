@@ -82,12 +82,11 @@ class ApiAuthService {
     final token = await getToken();
     if (token != null) {
       final decodedToken = _decodeToken(token);
-      return decodedToken['user_id'];  // Récupérez l'ID de l'utilisateur à partir du token
+      return decodedToken['user_id']; 
     }
     return null;
   }
 
-  // Exemple de méthode pour décoder le token JWT
   Map<String, dynamic> _decodeToken(String token) {
     final parts = token.split('.');
     final payload = parts[1];
@@ -114,11 +113,11 @@ class ApiAuthService {
     );
 
     print("API Response Status: ${response.statusCode}");
-    print("API Response Body: ${response.body}"); // Log the full response body
+    print("API Response Body: ${response.body}"); 
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final data = jsonDecode(response.body);
-      print("Decoded Data: $data");  // Log the decoded response
+      print("Decoded Data: $data");  
       if (data != null && data.containsKey('User')) {
         final user = User.fromJson(data['User']);
         user.token = data['token'];
@@ -156,11 +155,11 @@ Future<String> getToken() async {
     print("Login Response Status: ${response.statusCode}");
     print("Login Response Body: ${response.body}");
 
-    if (response.statusCode == 200 || response.statusCode == 201) { // Accepter 201
+    if (response.statusCode == 200 || response.statusCode == 201) { 
       final data = jsonDecode(response.body);
       print("Login Response Data: $data");
 
-      if (data != null && data.containsKey('User') && data.containsKey('Token')) { // Vérifie bien les clés
+      if (data != null && data.containsKey('User') && data.containsKey('Token')) { 
         final user = User.fromJson(data['User']);
         final token = data['Token'].toString();
 
@@ -181,7 +180,6 @@ Future<String> getToken() async {
     throw _handleErrorDynamic(e);
   }
 }
-// Logout Method
   Future<void> logout() async {
     try {
       final response = await http.post(
@@ -190,7 +188,7 @@ Future<String> getToken() async {
       );
 
       if (response.statusCode == 200) {
-        await _storage.delete(key: 'token');  // Delete the token after logout
+        await _storage.delete(key: 'token');  
         print('Logged out successfully.');
       } else {
         throw _handleError(response);
@@ -201,7 +199,6 @@ Future<String> getToken() async {
     }
   }
 
-  // Clear token (used by other services if needed)
   Future<void> clearToken() async {
     await _storage.delete(key: 'token');
   }
