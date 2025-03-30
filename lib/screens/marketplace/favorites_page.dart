@@ -1,4 +1,5 @@
 import 'package:fish_app/controller/favorite_controller.dart';
+import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
@@ -10,11 +11,12 @@ class FavoritesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final FavoriteController favoriteController =
         Get.find<FavoriteController>();
+    final ProductController productController = Get.find<ProductController>();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Favourite",
+          "Mes Favoris",
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -29,6 +31,11 @@ class FavoritesPage extends StatelessWidget {
         ),
       ),
       body: Obx(() {
+        // Synchroniser avec les produits favoris actuels
+        favoriteController.favoriteItems.assignAll(
+          productController.products.where((p) => p.isFavorite).toList(),
+        );
+
         return favoriteController.favoriteItems.isEmpty
             ? _buildEmptyState()
             : GridView.builder(
@@ -42,7 +49,7 @@ class FavoritesPage extends StatelessWidget {
               itemCount: favoriteController.favoriteItems.length,
               itemBuilder: (context, index) {
                 final product = favoriteController.favoriteItems[index];
-                return _buildFavoriteItem(product, favoriteController);
+                return _buildFavoriteItem(product);
               },
             );
       }),
@@ -60,93 +67,88 @@ class FavoritesPage extends StatelessWidget {
             "Aucun favori pour le moment",
             style: TextStyle(fontSize: 18, color: Colors.grey),
           ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () => Get.back(),
+            child: const Text("Parcourir les produits"),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildFavoriteItem(Product product, FavoriteController controller) {
+  Widget _buildFavoriteItem(Product product) {
+    final favoriteController = Get.find<FavoriteController>();
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image du produit
-              Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  color: Colors.grey.shade200,
-                  image: DecorationImage(
-                    image: AssetImage(product.image),
-                    fit: BoxFit.cover,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => Get.toNamed('/product', arguments: product),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image du produit
+                Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12),
+                    ),
+                    image: DecorationImage(
+                      image: AssetImage(product.image),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-              ),
-              // Détails du produit
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (product.isPopular)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+                // Détails du produit
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          "BEST SELLER",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "${product.price} ${product.unit}",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    const SizedBox(height: 8),
-                    Text(
-                      product.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "\$${product.price.toStringAsFixed(2)}",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          // Bouton de suppression
-          Positioned(
-            top: 8,
-            right: 8,
-            child: IconButton(
-              icon: const Icon(Icons.favorite, color: Colors.red),
-              onPressed: () => controller.toggleFavorite(product),
+              ],
             ),
-          ),
-        ],
+            // Bouton de suppression
+            Positioned(
+              top: 8,
+              right: 8,
+              child: CircleAvatar(
+                backgroundColor: Colors.white.withOpacity(0.9),
+                radius: 16,
+                child: IconButton(
+                  icon: const Icon(Icons.favorite, size: 18, color: Colors.red),
+                  onPressed: () => favoriteController.toggleFavorite(product),
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

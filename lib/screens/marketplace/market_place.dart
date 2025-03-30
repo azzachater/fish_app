@@ -1,161 +1,51 @@
-import 'package:fish_app/controller/add_cart_controller.dart';
-import 'package:fish_app/controller/product_card_controller.dart';
-import 'package:fish_app/screens/marketplace/category_chip.dart';
-import 'package:fish_app/screens/marketplace/popular_product_card.dart';
-import 'package:fish_app/screens/marketplace/product_detail_page.dart';
+import 'package:fish_app/screens/marketplace/cart_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:fish_app/controller/category_controller.dart';
+import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:fish_app/screens/marketplace/add_product_page.dart';
-import 'package:fish_app/widgets/floating_add_button.dart';
-import 'package:fish_app/widgets/product_card.dart';
-import 'package:fish_app/screens/marketplace/cart_page.dart';
+import 'package:fish_app/screens/marketplace/category_chip.dart';
 import 'package:fish_app/screens/marketplace/favorites_page.dart';
+import 'package:fish_app/screens/marketplace/product_card.dart';
+import 'package:fish_app/widgets/floating_add_button.dart';
 import 'package:fish_app/widgets/search_bar.dart';
 
-/*class Marketplace extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final ProductController productController = Get.put(ProductController());
-    final CartControllerX cartController = Get.put(CartControllerX());
-
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
-          "🎣 Catch the Best Deals",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        leading: IconButton(
-          onPressed: () => Get.back(),
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite, color: Colors.red),
-            onPressed: () => Get.to(() => FavoritesPage()),
-          ),
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart, color: Color(0xFF2597F5)),
-                onPressed: () {
-                  Get.to(() => CartPage()) ??
-                      print("Erreur: Page introuvable !");
-                },
-              ),
-              Positioned(
-                right: 6,
-                top: 6,
-                child: Obx(() {
-                  return cartController.cartItems.isEmpty
-                      ? const SizedBox.shrink()
-                      : Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          cartController.cartItems.length.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                }),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 10),
-          SearchBarWidget(
-            hintText: 'Rechercher...',
-            onChanged: productController.searchProduct,
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: Obx(() {
-              return ListView.builder(
-                itemCount: productController.filteredProducts.length,
-                itemBuilder: (context, index) {
-                  return ProductCard(
-                    product: productController.filteredProducts[index],
-                  );
-                },
-              );
-            }),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingAddButton(
-        onPressed: () => Get.to(() => AddProductPage()),
-      ),
-    );
-  }
-}*/
 class Marketplace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ProductController productController = Get.put(ProductController());
-    final CartControllerX cartController = Get.put(CartControllerX());
+    final CategoryController categoryController = Get.put(CategoryController());
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
-        title: const Text(
-          "🎣 Pêche Passion",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        title: Text(
+          "🎣 Catch the best deal ",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue[800],
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.favorite, color: Colors.red),
+            icon: Badge(
+              child: const Icon(Icons.favorite, color: Colors.red),
+              isLabelVisible: productController.favoriteCount > 0,
+              label: Text(productController.favoriteCount.toString()),
+            ),
             onPressed: () => Get.to(() => FavoritesPage()),
           ),
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart, color: Color(0xFF2597F5)),
-                onPressed: () {
-                  Get.to(() => CartPage()) ??
-                      print("Erreur: Page introuvable !");
-                },
-              ),
-              Positioned(
-                right: 6,
-                top: 6,
-                child: Obx(() {
-                  return cartController.cartItems.isEmpty
-                      ? const SizedBox.shrink()
-                      : Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          cartController.cartItems.length.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                }),
-              ),
-            ],
+          IconButton(
+            icon: Badge(
+              child: const Icon(Icons.shopping_cart, color: Colors.blue),
+              isLabelVisible: productController.cartCount > 0,
+              label: Text(productController.cartCount.toString()),
+            ),
+            onPressed: () => Get.to(() => CartPage()),
           ),
         ],
       ),
@@ -165,129 +55,78 @@ class Marketplace extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Barre de recherche
+              // Barre de recherche améliorée
               SearchBarWidget(
                 hintText: 'Rechercher du matériel...',
                 onChanged: productController.searchProduct,
               ),
               const SizedBox(height: 20),
 
-              // Catégories
-              const Text(
+              // Titre Catégories avec style moderne
+              Text(
                 "Catégories",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: const [
-                    CategoryChip(label: "Tous", isSelected: true),
-                    SizedBox(width: 8),
-                    CategoryChip(label: "Cannes"),
-                    SizedBox(width: 8),
-                    CategoryChip(label: "Moulinets"),
-                    SizedBox(width: 8),
-                    CategoryChip(label: "Leurres"),
-                    SizedBox(width: 8),
-                    CategoryChip(label: "Accessoires"),
-                  ],
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[800],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
-              // Produits populaires
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Produits populaires",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // Catégories horizontales avec effet de sélection
+              Obx(
+                () => SizedBox(
+                  height: 50,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: categoryController.categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categoryController.categories[index];
+                      return CategoryChip(
+                        label: category.name,
+                        isSelected: category.isSelected,
+                        onTap: () => categoryController.selectCategory(index),
+                      );
+                    },
                   ),
-                  TextButton(onPressed: () {}, child: const Text("Voir tout")),
-                ],
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 280,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: const [
-                    PopularProductCard(
-                      name: "Canne Shimano",
-                      price: 189.00,
-                      isBestSeller: true,
-                    ),
-                    SizedBox(width: 16),
-                    PopularProductCard(
-                      name: "Moulinet Daiwa",
-                      price: 249.00,
-                      isBestSeller: true,
-                    ),
-                  ],
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Nouveautés
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Nouveautés",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  TextButton(onPressed: () {}, child: const Text("Voir tout")),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // Promotion
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.shade100),
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Promotion Spéciale",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      "15% DE RÉDUCTION",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "sur tout le matériel de pêche en eau douce",
-                      style: TextStyle(fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Tous les produits
-              const Text(
-                "Tous les produits",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
+              // Affichage des produits avec grille moderne
               Obx(() {
+                final selectedCategory =
+                    categoryController.categories
+                        .firstWhere((c) => c.isSelected)
+                        .name;
+                final products =
+                    selectedCategory == "Tous"
+                        ? productController.filteredProducts
+                        : productController.filteredProducts
+                            .where(
+                              (product) => product.category == selectedCategory,
+                            )
+                            .toList();
+
+                if (products.isEmpty) {
+                  return Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 60,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          "Aucun produit trouvé",
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -297,17 +136,10 @@ class Marketplace extends StatelessWidget {
                     mainAxisSpacing: 16,
                     childAspectRatio: 0.75,
                   ),
-                  itemCount: productController.filteredProducts.length,
+                  itemCount: products.length,
                   itemBuilder: (context, index) {
-                    final product = productController.filteredProducts[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Get.to(() => ProductDetailPage(product: product));
-                      },
-                      child: ProductCard(
-                        product: productController.filteredProducts[index],
-                      ),
-                    );
+                    final product = products[index];
+                    return ProductCard(product: product);
                   },
                 );
               }),

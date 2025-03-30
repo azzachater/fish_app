@@ -22,6 +22,7 @@ class CartController extends GetxController {
           stock: product.stock,
           image: product.image,
           quantity: 1,
+          category: product.category,
           // Copiez les autres propriétés nécessaires
         ),
       );

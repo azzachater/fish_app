@@ -38,6 +38,7 @@ class MyApp extends StatelessWidget {
   }
 }*/
 
+import 'package:fish_app/controller/add_cart_controller.dart';
 import 'package:fish_app/controller/add_journal_controller.dart';
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/event_controller.dart';
@@ -54,7 +55,7 @@ void main() {
   Get.put(EventController());
   Get.put(TaskController());
   Get.put(AddJournalController());
-
+  Get.put(CartControllerX());
   runApp(MyApp());
 }
 
