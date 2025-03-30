@@ -4,7 +4,7 @@ import 'package:fish_app/models/product.dart';
 class ProductController extends GetxController {
   var products = Product.products().obs;
   var filteredProducts = <Product>[].obs;
-  var isHovered = false.obs; // Utilisation correcte d'un état réactif
+  var isHovered = false.obs;
 
   @override
   void onInit() {
@@ -28,6 +28,6 @@ class ProductController extends GetxController {
   }
 
   void setHover(bool value) {
-    isHovered.value = value; // Met à jour l'état de survol
+    isHovered.value = value;
   }
 }

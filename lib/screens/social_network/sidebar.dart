@@ -1,8 +1,9 @@
-import 'package:fish_app/screens/chat/chat_home_page.dart'; // Assurez-vous d'importer la page MapPage
+import 'package:fish_app/screens/chat/chat_home_page.dart';
+import 'package:fish_app/screens/event/event_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import '../../data/user_data.dart'; // Assurez-vous que ce fichier contient `currentUser`
+import '../../data/user_data.dart';
 import '../../screens/social_network/profile_page.dart';
 import '../../screens/tips_and_tricks/tip_page.dart';
 
@@ -21,7 +22,7 @@ class SidebarPageState extends State<SidebarPage> {
       selectedIndex = index;
     });
     if (page != null) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+      Get.to(() => page); // Utilisation de Get.to() pour la navigation
     }
   }
 
@@ -31,7 +32,7 @@ class SidebarPageState extends State<SidebarPage> {
       elevation: 10,
       child: Column(
         children: [
-          _buildProfileSection(), // Profil en haut du drawer
+          _buildProfileSection(),
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -65,7 +66,7 @@ class SidebarPageState extends State<SidebarPage> {
                 _buildDrawerItem(
                   Icons.event,
                   "Event",
-                  null,
+                  EventPage(), // Lier la page EventPage ici
                   iconColor: Colors.red,
                 ),
                 _buildDrawerItem(
@@ -80,7 +81,7 @@ class SidebarPageState extends State<SidebarPage> {
                   null,
                   iconColor: Colors.teal,
                   onTap: () {
-                    Get.toNamed('/map'); // Navigation vers MapPage
+                    Get.toNamed('/map');
                   },
                 ),
                 _buildDrawerItem(
@@ -92,16 +93,13 @@ class SidebarPageState extends State<SidebarPage> {
               ],
             ),
           ),
-          const Divider(
-            thickness: 1,
-            color: Colors.grey,
-          ), // Divider before sign out
+          const Divider(thickness: 1, color: Colors.grey),
           _buildDrawerItem(
             Icons.exit_to_app,
             "Log Out",
             null,
             iconColor: Colors.black,
-          ), // Maintenant tout en bas
+          ),
         ],
       ),
     );

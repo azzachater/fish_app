@@ -1,18 +1,24 @@
 class Product {
   final String id;
   final String name;
+  final String description;
   final double price;
   final String unit;
-  final String imageUrl;
+  final String stock;
+  final String image;
+  final bool isPopular;
   int quantity;
 
   Product({
     required this.id,
     required this.name,
+    required this.description,
     required this.price,
     required this.unit,
-    required this.imageUrl,
+    required this.stock,
+    required this.image,
     this.quantity = 1,
+    this.isPopular = false,
   });
 
   /// Liste de produits de test
@@ -21,16 +27,20 @@ class Product {
       Product(
         id: '1',
         name: 'Canne à pêche',
+        description: 'tres bonne etat',
         price: 1.10,
         unit: '€ / pièce',
-        imageUrl: 'assets/images/produit1.png',
+        stock: "1",
+        image: 'assets/images/produit1.png',
       ),
       Product(
         id: '2',
         name: "Sac de pêche",
+        description: 'etat  neuf',
         price: 1.85,
         unit: "€ / kg",
-        imageUrl: "assets/images/produit2.png",
+        stock: "2",
+        image: "assets/images/produit2.png",
       ),
     ];
   }
@@ -40,11 +50,25 @@ class Product {
     return Product(
       id: id,
       name: name,
+      description: description,
       price: price,
       unit: unit,
-      imageUrl: imageUrl,
+      stock: stock,
+      image: image,
       quantity:
           quantity ?? this.quantity, // Garde l'ancienne valeur si non spécifiée
+    );
+  }
+
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
+      id: json['id'],
+      name: json['name'],
+      description: json['description'],
+      price: json['price'],
+      unit: json['unit'],
+      stock: json['stock'],
+      image: json['image'],
     );
   }
 }

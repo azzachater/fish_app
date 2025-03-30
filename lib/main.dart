@@ -1,4 +1,7 @@
-/*import 'package:fish_app/screens/auth/signup_page.dart';
+/*import 'package:fish_app/controller/auth_controller.dart';
+import 'package:fish_app/controller/event_controller.dart';
+import 'package:fish_app/screens/Authentification/signup_page.dart';
+import 'package:fish_app/screens/event/event_page.dart';
 import 'package:fish_app/screens/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,7 +11,8 @@ import 'screens/Authentification/login_page.dart';
 import 'screens/social_network/social_home_page.dart';
 
 void main() {
-  Get.put(AuthController()); // Initialisation correcte du controller
+  Get.put(AuthController());
+  Get.put(EventController()); // Initialisation correcte du controller
   runApp(const MyApp());
 }
 
@@ -28,6 +32,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/signup', page: () => SignupPage()),
         GetPage(name: '/socialHome', page: () => SocialHomePage()),
         GetPage(name: '/map', page: () => MapPage()),
+        GetPage(name: '/event', page: () => EventPage()),
       ],
     );
   }

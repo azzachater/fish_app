@@ -38,17 +38,29 @@ class EventController extends GetxController {
     ]);
   }
 
+  // Méthode pour rejoindre un événement
   void joinEvent(int index, String user) {
-    events[index].participants.add(user);
-    events.refresh(); // Mise à jour UI
+    if (!events[index].participants.contains(user)) {
+      events[index].participants.add(user);
+      events.refresh(); // Mise à jour de l'UI
+    }
   }
 
+  // Méthode pour ajouter un événement
   void addEvent(
     String title,
     String location,
     String description,
     String date,
   ) {
+    if (title.isEmpty ||
+        location.isEmpty ||
+        description.isEmpty ||
+        date.isEmpty) {
+      Get.snackbar('Erreur', 'Tous les champs doivent être remplis !');
+      return;
+    }
+
     Event newEvent = Event(
       title: title,
       location: location,
@@ -57,5 +69,13 @@ class EventController extends GetxController {
       participants: [],
     );
     events.add(newEvent);
+    Get.snackbar('Événement ajouté', 'L\'événement a été ajouté avec succès!');
+  }
+
+  // Méthode pour supprimer un événement
+  void deleteEvent(int index) {
+    events.removeAt(index);
+    events.refresh();
+    Get.snackbar('Événement supprimé', 'L\'événement a été supprimé.');
   }
 }

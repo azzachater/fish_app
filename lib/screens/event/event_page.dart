@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:fish_app/screens/event/create_event_page.dart';
 import 'package:fish_app/controller/event_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class EventPage extends StatelessWidget {
   final EventController eventController = Get.find();
@@ -16,9 +16,7 @@ class EventPage extends StatelessWidget {
       body: Obx(
         () =>
             eventController.events.isEmpty
-                ? Center(
-                  child: CircularProgressIndicator(),
-                ) // Chargement si la liste est vide
+                ? Center(child: CircularProgressIndicator())
                 : ListView.builder(
                   itemCount: eventController.events.length,
                   itemBuilder: (context, index) {
@@ -35,7 +33,7 @@ class EventPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              event.title, // Accéder aux propriétés directement
+                              event.title,
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
@@ -44,17 +42,14 @@ class EventPage extends StatelessWidget {
                             ),
                             SizedBox(height: 5),
                             Text(
-                              '${event.date} - ${event.location}', // Accéder aux propriétés directement
+                              '${event.date} - ${event.location}',
                               style: TextStyle(color: Colors.blue[600]),
                             ),
                             SizedBox(height: 10),
-                            Text(
-                              event.description,
-                            ), // Accéder aux propriétés directement
+                            Text(event.description),
                             SizedBox(height: 10),
                             Row(
                               children: [
-                                // ignore: unused_local_variable
                                 for (var participant in event.participants)
                                   CircleAvatar(
                                     radius: 20,
@@ -64,7 +59,7 @@ class EventPage extends StatelessWidget {
                                   ),
                                 SizedBox(width: 10),
                                 Text(
-                                  'Participants: ${event.participants.length}', // Accéder aux propriétés directement
+                                  'Participants: ${event.participants.length}',
                                   style: TextStyle(color: Colors.blue[600]),
                                 ),
                               ],
@@ -72,10 +67,7 @@ class EventPage extends StatelessWidget {
                             SizedBox(height: 10),
                             ElevatedButton(
                               onPressed: () {
-                                eventController.joinEvent(
-                                  index,
-                                  'Utilisateur',
-                                ); // Exemple d'ajout de participant
+                                eventController.joinEvent(index, 'Utilisateur');
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue[700],
