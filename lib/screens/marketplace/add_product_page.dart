@@ -1,12 +1,10 @@
-import 'package:fish_app/controller/add_product_controller.dart';
-import 'package:fish_app/controller/product_card_controller.dart';
+import 'dart:io';
 import 'package:fish_app/models/product.dart';
-import 'package:fish_app/widgets/custom_text_field.dart';
-import 'package:fish_app/widgets/gradient_background.dart';
-import 'package:fish_app/widgets/image_selector.dart';
-import 'package:fish_app/widgets/save_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:fish_app/controller/add_product_controller.dart';
+import 'package:fish_app/controller/product_card_controller.dart';
+import 'package:fish_app/widgets/custom_text_field.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddProductPage extends StatelessWidget {
@@ -17,114 +15,234 @@ class AddProductPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ajouter un produit'),
+        title: Text(
+          'Ajouter un produit',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 44, 141, 238),
         elevation: 0,
-        backgroundColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Get.back(),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
         ),
       ),
       body: SingleChildScrollView(
-        child: Stack(
-          children: [const GradientBackground(), _buildFormContainer()],
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Section Image avec style moderne
+            Obx(
+              () => GestureDetector(
+                onTap: () => controller.pickImage(ImageSource.gallery),
+                child: Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child:
+                      controller.imageUrl.value.isEmpty
+                          ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_photo_alternate_outlined,
+                                size: 40,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Ajouter une image',
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          )
+                          : ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              File(controller.imageUrl.value),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Nom du produit avec icône
+            _buildFieldWithIcon(
+              icon: Icons.shopping_bag_outlined,
+              child: CustomTextField(
+                controller: controller.nameController,
+                label: 'Nom du produit*',
+                hintText: 'Ex: Canne à pêche',
+                obscureText: false,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Prix et Unité en ligne
+            Row(
+              children: [
+                // Prix avec icône
+                Expanded(
+                  child: _buildFieldWithIcon(
+                    icon: Icons.attach_money_outlined,
+                    child: CustomTextField(
+                      controller: controller.priceController,
+                      label: 'Prix*',
+                      hintText: '0.00',
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      obscureText: false,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Unité avec icône
+                Expanded(
+                  child: _buildFieldWithIcon(
+                    icon: Icons.scale_outlined,
+                    child: CustomTextField(
+                      controller: controller.unitController,
+                      label: 'Unité*',
+                      hintText: 'Ex: pièce',
+                      obscureText: false,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Description avec icône
+            _buildFieldWithIcon(
+              icon: Icons.description_outlined,
+              child: CustomTextField(
+                controller: controller.descriptionController,
+                label: 'Description*',
+                hintText: 'Décrivez votre produit...',
+                maxLines: 3,
+                obscureText: false,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Catégorie avec icône
+            _buildFieldWithIcon(
+              icon: Icons.category_outlined,
+              child: Obx(
+                () => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButton<String>(
+                    value: controller.selectedCategory.value,
+                    items:
+                        controller.categories
+                            .map(
+                              (String value) => DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              ),
+                            )
+                            .toList(),
+                    onChanged:
+                        (value) => controller.selectedCategory.value = value!,
+                    isExpanded: true,
+                    underline: const SizedBox(),
+                    icon: Icon(Icons.arrow_drop_down_rounded),
+                    style: TextStyle(color: Colors.grey.shade800, fontSize: 16),
+                    borderRadius: BorderRadius.circular(12),
+                    dropdownColor: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Bouton Enregistrer moderne
+            Obx(
+              () =>
+                  controller.isLoading.value
+                      ? Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                        onPressed: () async {
+                          if (controller.validateForm()) {
+                            final newProduct = Product(
+                              id:
+                                  DateTime.now().millisecondsSinceEpoch
+                                      .toString(),
+                              name: controller.nameController.text,
+                              description:
+                                  controller.descriptionController.text,
+                              price: double.parse(
+                                controller.priceController.text,
+                              ),
+                              unit: controller.unitController.text,
+                              stock: 1,
+                              image: controller.imageUrl.value,
+                              category: controller.selectedCategory.value,
+                            );
+                            await productController.addProduct(newProduct);
+                            Get.back();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: Text(
+                          'PUBLIER LE PRODUIT',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFormContainer() {
-    return Container(
-      margin: const EdgeInsets.only(top: 100, left: 20, right: 20, bottom: 20),
-      padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Nouveau produit",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
-          ),
-          const SizedBox(height: 20),
-          CustomTextField(
-            label: "Nom du produit",
-            controller: controller.nameController,
-            hintText: 'Ex: Canne à pêche',
-            obscureText: false,
-          ),
-          const SizedBox(height: 15),
-          CustomTextField(
-            label: "Prix",
-            controller: controller.priceController,
-            keyboardType: TextInputType.number,
-            hintText: 'Ex: 19.99',
-            obscureText: false,
-          ),
-          const SizedBox(height: 15),
-          CustomTextField(
-            label: "Description",
-            controller: controller.descriptionController,
-            maxLines: 3,
-            hintText: 'Décrivez votre produit...',
-            obscureText: false,
-          ),
-          const SizedBox(height: 15),
-          CustomTextField(
-            label: "Unité",
-            controller: controller.unitController,
-            hintText: 'Ex: pièce, kg, etc.',
-            obscureText: false,
-          ),
-          const SizedBox(height: 20),
-          Obx(
-            () => ImageSelector(
-              imageUrl: controller.imageUrl.value,
-              onImageSelected: () => controller.pickImage(ImageSource.gallery),
-            ),
-          ),
-          const SizedBox(height: 30),
-          SaveButton(
-            onPressed: () {
-              if (controller.validateForm()) {
-                final newProduct = Product(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  name: controller.nameController.text,
-                  description: controller.descriptionController.text,
-                  price: double.parse(controller.priceController.text),
-                  unit: controller.unitController.text,
-                  image: controller.imageUrl.value,
-                  category: controller.selectedCategory.value,
-                  stock: '1',
-                );
-                productController.products.add(newProduct);
-                productController.filteredProducts.refresh();
-                Get.back();
-                Get.snackbar(
-                  "Succès",
-                  "Produit ajouté avec succès!",
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.green,
-                  colorText: Colors.white,
-                );
-              }
-            },
-          ),
-        ],
-      ),
+  Widget _buildFieldWithIcon({required IconData icon, required Widget child}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 40, right: 12),
+          child: Icon(icon, size: 24, color: Colors.grey.shade600),
+        ),
+        Expanded(child: child),
+      ],
     );
   }
 }

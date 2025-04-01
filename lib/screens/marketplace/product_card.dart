@@ -31,7 +31,10 @@ class ProductCard extends StatelessWidget {
                         top: Radius.circular(12),
                       ),
                       image: DecorationImage(
-                        image: AssetImage(product.image),
+                        image:
+                            product.image.startsWith('http')
+                                ? NetworkImage(product.image)
+                                : AssetImage(product.image) as ImageProvider,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -59,35 +62,24 @@ class ProductCard extends StatelessWidget {
               ],
             ),
             // Nouveau Bouton Favori plus visible
+            // Dans le Positioned pour l'icône favori
             Positioned(
               top: 12,
               left: 12,
               child: Obx(() {
-                bool isFavorite =
-                    productController.products
-                        .firstWhere((p) => p.id == product.id)
-                        .isFavorite;
+                final isFav = productController.isFavorite(product.id);
                 return GestureDetector(
-                  onTap: () {
-                    productController.toggleFavorite(product);
-                  },
+                  onTap: () => productController.toggleFavorite(product.id),
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.8),
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                          offset: Offset(2, 2),
-                        ),
-                      ],
                     ),
                     child: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite ? Colors.red : Colors.grey,
-                      size: 28, // Taille augmentée
+                      isFav ? Icons.favorite : Icons.favorite_border,
+                      color: isFav ? Colors.red : Colors.grey,
+                      size: 24,
                     ),
                   ),
                 );

@@ -4,7 +4,7 @@ class Product {
   final String description;
   final double price;
   final String unit;
-  final String stock;
+  final int stock;
   final String image;
   final String category;
   final bool isPopular;
@@ -30,28 +30,28 @@ class Product {
     return [
       Product(
         id: '1',
-        name: 'Canne à pêche',
-        description: 'Très bon état',
-        price: 1.10,
-        unit: '€ / pièce',
-        stock: "1",
+        name: 'Canne à pêche professionnelle',
+        description: 'Très bon état - 2.10m',
+        price: 45.99,
+        unit: '€',
+        stock: 3,
         image: 'assets/images/produit1.png',
         category: 'Cannes',
       ),
       Product(
         id: '2',
-        name: "Sac de pêche",
-        description: 'État neuf',
-        price: 1.85,
-        unit: "€ / kg",
-        stock: "2",
-        image: "assets/images/produit2.png",
-        category: 'Accessoires',
+        name: 'Moulinet Shimano',
+        description: 'Neuf - Ratio 5.2:1',
+        price: 89.99,
+        unit: '€',
+        stock: 5,
+        image: 'assets/images/produit2.png',
+        category: 'Moulinets',
       ),
     ];
   }
 
-  /// Permet de créer une nouvelle copie de l'objet avec des valeurs mises à jour
+  /// Créer une copie avec des valeurs mises à jour
   Product copyWith({
     int? quantity,
     bool? isFavorite,
@@ -60,7 +60,7 @@ class Product {
     String? description,
     double? price,
     String? unit,
-    String? stock,
+    int? stock,
     String? image,
     String? category,
     bool? isPopular,
@@ -80,20 +80,21 @@ class Product {
     );
   }
 
+  /// Convertir depuis JSON
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'].toString(),
-      name: json['name'],
-      description: json['description'],
-      price: double.parse(json['price'].toString()),
-      unit: json['unit'] ?? '€ / pièce',
-      stock: json['stock']?.toString() ?? '0',
+      name: json['name'] ?? 'Produit sans nom',
+      description: json['description'] ?? 'Aucune description',
+      price: (json['price'] as num).toDouble(),
+      unit: json['unit'] ?? '€',
+      stock: json['stock'] ?? 0,
       image: json['image'] ?? 'assets/images/default.png',
       category: json['category'] ?? 'Autre',
-      isPopular: json['is_popular'] ?? false,
     );
   }
 
+  /// Convertir en JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -105,6 +106,8 @@ class Product {
       'image': image,
       'category': category,
       'is_popular': isPopular,
+      'is_favorite': isFavorite,
+      'quantity': quantity,
     };
   }
 }

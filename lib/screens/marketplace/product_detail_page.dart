@@ -11,6 +11,7 @@ class ProductDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final CartControllerX cartController = Get.find<CartControllerX>();
+    final isFavorite = false.obs; // Gérer l'état favori
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -22,9 +23,14 @@ class ProductDetailPage extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite_border, color: Colors.black),
-            onPressed: () {},
+          Obx(
+            () => IconButton(
+              icon: Icon(
+                isFavorite.value ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite.value ? Colors.red : Colors.black,
+              ),
+              onPressed: () => isFavorite.toggle(),
+            ),
           ),
         ],
       ),
@@ -32,16 +38,18 @@ class ProductDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image du produit
+            // Image du produit avec gestion des URLs réseau et assets
             Container(
               height: 300,
               width: double.infinity,
               color: Colors.grey.shade100,
-              child: Image.asset(product.image, fit: BoxFit.contain),
+              child:
+                  product.image.startsWith('http')
+                      ? Image.network(product.image, fit: BoxFit.contain)
+                      : Image.asset(product.image, fit: BoxFit.contain),
             ),
             const SizedBox(height: 20),
 
-            // Contenu détaillé
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
@@ -56,35 +64,13 @@ class ProductDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
 
+                  // Utilisez la description du produit plutôt qu'un texte fixe
                   Text(
-                    "Canne à pêche haut de gamme pour une expérience de pêche inégalée. "
-                    "Conçue avec des matériaux légers et résistants pour une performance optimale.",
+                    product.description,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey.shade600,
                       height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-
-                  const Text(
-                    "Le design ergonomique et léger vous permet de pêcher toute la journée "
-                    "sans fatigue. La sensibilité accrue vous aide à détecter les touches "
-                    "les plus subtiles.",
-                    style: TextStyle(fontSize: 16, height: 1.5),
-                  ),
-                  const SizedBox(height: 10),
-
-                  GestureDetector(
-                    onTap: () {
-                      // Action "Lire plus"
-                    },
-                    child: const Text(
-                      "Lire plus...",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                      ),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -108,6 +94,8 @@ class ProductDetailPage extends StatelessWidget {
                             "Ajouté au panier",
                             "${product.name} a été ajouté à votre panier",
                             snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.green,
+                            colorText: Colors.white,
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -125,6 +113,7 @@ class ProductDetailPage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),

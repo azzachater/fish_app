@@ -95,10 +95,15 @@ class Marketplace extends StatelessWidget {
 
               // Affichage des produits avec grille moderne
               Obx(() {
+                if (productController.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
                 final selectedCategory =
                     categoryController.categories
                         .firstWhere((c) => c.isSelected)
                         .name;
+
                 final products =
                     selectedCategory == "Tous"
                         ? productController.filteredProducts
@@ -111,6 +116,7 @@ class Marketplace extends StatelessWidget {
                 if (products.isEmpty) {
                   return Center(
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.search_off,

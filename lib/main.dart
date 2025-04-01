@@ -45,6 +45,7 @@ import 'package:fish_app/controller/event_controller.dart';
 import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:fish_app/controller/task_controller.dart';
 import 'package:fish_app/main_screen.dart';
+import 'package:fish_app/screens/marketplace/product_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -68,6 +69,13 @@ class MyApp extends StatelessWidget {
       // Remplace MaterialApp par GetMaterialApp
       debugShowCheckedModeBanner: false,
       home: MainScreen(),
+      getPages: [
+        GetPage(
+          name: '/product',
+          page: () => ProductDetailPage(product: Get.arguments),
+        ),
+        // Vos autres routes...
+      ],
     );
   }
 }
