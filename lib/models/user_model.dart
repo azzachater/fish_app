@@ -20,17 +20,18 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'],
-      name: json['name'],
-      avatar: json['avatar'] ?? '',
-      email: json['email'],
-      password: json['password'] ?? '',
-      passwordConfirmation: json['password_confirmation'] ?? '',
-      bio: json['bio'] ?? '',
-      token: json['token'], // Ajout de token si disponible
-    );
-  }
+  return User(
+    id: int.tryParse(json['id'].toString()) ?? 0, // Convertir id en int
+    name: json['name'] ?? '',
+    avatar: json['avatar'] ?? '',
+    email: json['email'] ?? '',
+    password: json['password'] ?? '',
+    passwordConfirmation: json['password_confirmation'] ?? '',
+    bio: json['bio'] ?? '',
+    token: json['token'],
+  );
+}
+
 
   // 🔥 **Ajout de la méthode toJson**
   Map<String, dynamic> toJson() {

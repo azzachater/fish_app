@@ -1,4 +1,4 @@
-import '../models/post_model.dart';
+/*import '../models/post_model.dart';
 import '../data/user_data.dart';
 import '../data/comment_data.dart';
 
@@ -23,6 +23,7 @@ final List<Post> postsData = [
     id: '2',
     user: jason,
     postText: 'Nature is amazing!',
+    postImage:'',
     createdAt: DateTime(2024, 9, 7, 14, 28),
     comments: commentsForPost3, // Aucun commentaire pour ce post
   ),
@@ -46,6 +47,7 @@ final List<Post> postsData = [
     id: '6',
     user: virgil,
     postText: 'Nature is amazing!',
+    postImage:'',
     createdAt: DateTime(2024, 9, 7, 14, 28),
     comments: commentsForPost6, // Aucun commentaire pour ce post
   ),
@@ -69,7 +71,9 @@ final List<Post> postsData = [
     id: '9',
     user: stanley,
     postText: 'Nature is amazing!',
+    postImage:'',
     createdAt: DateTime(2024, 9, 7, 14, 28),
     comments: commentsForPost9, // Aucun commentaire pour ce post
   ),
 ];
+*/

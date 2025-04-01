@@ -81,6 +81,7 @@ flutter:
     - assets/images/groups/
     - assets/images/posts/
     - assets/images/tips/
+    - assets/images/default_avatar.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

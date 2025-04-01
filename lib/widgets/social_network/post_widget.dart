@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'dart:io';  // Pour gérer les fichiers image
+import 'dart:io';
 import '../../screens/social_network/comment_page.dart';
 import '../../screens/social_network/update_post_page.dart';
 import '../../models/post_model.dart';
@@ -9,7 +9,7 @@ import '../../controllers/post_controller.dart';
 
 class PostWidget extends StatelessWidget {
   final Post post;
-  final PostController postController = Get.put(PostController());
+  final PostController postController = Get.find();
 
   PostWidget({super.key, required this.post}) {
     postController.isLiked.value = post.isLiked;
@@ -25,40 +25,40 @@ class PostWidget extends StatelessWidget {
   }
 
   void _showDeleteConfirmationDialog(BuildContext context) {
-  Get.defaultDialog(
-    title: "Delete Post",
-    titleStyle: TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      color: Colors.black,
-    ),
-    middleText: "Are you sure you want to delete this post? This action can't be undone.",
-    middleTextStyle: TextStyle(fontSize: 14, color: Colors.black54),
-    textCancel: "Cancel",
-    cancelTextColor: Colors.blueGrey,
-    textConfirm: "Delete",
-    confirmTextColor: Colors.white,
-    buttonColor: Colors.redAccent,  // Utilisation d'un rouge plus moderne
-    backgroundColor: Colors.white,
-    radius: 8,  // Coins légèrement arrondis
-    contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),  // Espacement agréable
-    onConfirm: () {
-      postController.deletePost(post);
-      Get.back(); // Fermer la boîte de dialogue après suppression
-    },
-    onCancel: () => Get.back(),
-    barrierDismissible: false,  // Empêcher la fermeture en cliquant à l'extérieur
-  );
-}
+    Get.defaultDialog(
+      title: "Delete Post",
+      titleStyle: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: Colors.black,
+      ),
+      middleText: "Are you sure you want to delete this post? This action can't be undone.",
+      middleTextStyle: const TextStyle(fontSize: 14, color: Colors.black54),
+      textCancel: "Cancel",
+      cancelTextColor: Colors.blueGrey,
+      textConfirm: "Delete",
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.redAccent,
+      backgroundColor: Colors.white,
+      radius: 8,
+      contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+      onConfirm: () {
+        postController.deletePost(post.id!); // Pass the post ID as String
+        Get.back();
+      },
+      onCancel: () => Get.back(),
+      barrierDismissible: false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(8),
+      margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 4,
@@ -70,19 +70,25 @@ class PostWidget extends StatelessWidget {
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundImage: AssetImage(post.user.avatar),
+              backgroundImage: post.user.avatar.isNotEmpty
+                  ? (post.user.avatar.startsWith('http') 
+                      ? NetworkImage(post.user.avatar) 
+                      : (post.user.avatar.startsWith('assets/') 
+                          ? AssetImage(post.user.avatar) 
+                          : FileImage(File(post.user.avatar)))) 
+                  : AssetImage('assets/images/default_avatar.png'), // Image par défaut si aucune image
               radius: 22,
             ),
             title: Text(
-              post.user.name,
-              style: TextStyle(fontWeight: FontWeight.bold),
+              post.user.name, // Affichage du nom de l'utilisateur
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
               post.createdAt.toString(),
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
-            contentPadding: EdgeInsets.all(10),
-            trailing: PopupMenuButton<String>(
+            contentPadding: const EdgeInsets.all(10),
+            trailing: PopupMenuButton<String>( // Menu pour supprimer ou modifier le post
               onSelected: (value) {
                 if (value == 'update') {
                   openUpdatePostPage();
@@ -91,7 +97,7 @@ class PostWidget extends StatelessWidget {
                 }
               },
               itemBuilder: (context) => [
-                PopupMenuItem<String>(
+                const PopupMenuItem<String>(
                   value: 'update',
                   child: Row(
                     children: [
@@ -101,7 +107,7 @@ class PostWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                PopupMenuItem<String>(
+                const PopupMenuItem<String>(
                   value: 'delete',
                   child: Row(
                     children: [
@@ -114,23 +120,31 @@ class PostWidget extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                post.postText,
-                style: TextStyle(fontSize: 14, height: 1.5),
-                textAlign: TextAlign.left,
+          if (post.postText != null && post.postText!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  post.postText!,
+                  style: const TextStyle(fontSize: 14, height: 1.5),
+                  textAlign: TextAlign.left,
+                ),
               ),
             ),
-          ),
-          if (post.postImage != null)
+          if (post.postImage != null && post.postImage!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: post.postImage!.startsWith('assets/')  // Si c'est une image d'asset
-                  ? Image.asset(post.postImage!)  // Charger depuis assets
-                  : Image.file(File(post.postImage!)),  // Charger depuis la galerie
+              child: post.postImage!.startsWith('http')
+                  ? Image.network(
+                      post.postImage!,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.broken_image, color: Colors.red, size: 50);
+                      },
+                    )
+                  : (post.postImage!.startsWith('assets/')
+                      ? Image.asset(post.postImage!)
+                      : Image.file(File(post.postImage!))),
             ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -146,7 +160,7 @@ class PostWidget extends StatelessWidget {
                           ),
                           onPressed: postController.toggleLike,
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
                           '${postController.likeCount.value} Likes',
                           style: TextStyle(color: postController.isLiked.value ? Colors.blue : Colors.grey),
@@ -156,21 +170,21 @@ class PostWidget extends StatelessWidget {
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(FontAwesomeIcons.commentDots, color: Colors.grey),
+                      icon: const Icon(FontAwesomeIcons.commentDots, color: Colors.grey),
                       onPressed: navigateToComments,
                     ),
-                    SizedBox(width: 4),
-                    Text('Comment', style: TextStyle(color: Colors.grey)),
+                    const SizedBox(width: 4),
+                    const Text('Comment', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(FontAwesomeIcons.share, color: Colors.grey),
+                      icon: const Icon(FontAwesomeIcons.share, color: Colors.grey),
                       onPressed: () {},
                     ),
-                    SizedBox(width: 4),
-                    Text('Share', style: TextStyle(color: Colors.grey)),
+                    const SizedBox(width: 4),
+                    const Text('Share', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
               ],

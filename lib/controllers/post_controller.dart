@@ -1,56 +1,96 @@
 import 'package:get/get.dart';
 import '../../models/post_model.dart';
-import '../../data/post_data.dart'; // Assurez-vous que postsData est bien importé
+import '../../services/api_post_service.dart'; // Import the ApiPostService
 
 class PostController extends GetxController {
-  var posts = <Post>[].obs;  // Liste réactive des posts
+  final RxList<Post> posts = <Post>[].obs;
+  final ApiPostService _apiPostService = ApiPostService();
+  final RxString error = ''.obs;
+  final RxBool isLoading = false.obs;
   var isLiked = false.obs;
   var likeCount = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
-    loadPosts();  // Charger les posts au démarrage
+    fetchPosts();  // Load posts when the controller is initialized
   }
 
-  // Méthode pour charger les posts depuis le fichier de données
-  void loadPosts() {
-    posts.assignAll(postsData);  // Remplir la liste avec les posts
+  Future<void> fetchPosts() async {
+    try {
+      isLoading.value = true;
+      error.value = "";
+      final fetchedPosts = await _apiPostService.getPosts();
+      posts.value = fetchedPosts;
+    } catch (e) {
+      print("error fetching posts: $e");
+      error.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  // Méthode pour ajouter un post
-  void addPost(Post post) {
-    posts.add(post);
-    posts.refresh(); // Forcer la mise à jour des posts dans l'interface
+  Future<void> createPost(String postText, String postImage) async {
+  try {
+    isLoading.value = true;
+    error.value = "";
+    final newPost = await _apiPostService.createPost(postText, postImage);
+
+    if (newPost.id.isNotEmpty) {
+      posts.insert(0, newPost);
+      posts.refresh();
+      await fetchPosts(); // Récupérer la liste des posts mise à jour
+    } else {
+      throw Exception("Post créé mais ID vide.");
+    }
+  } catch (e) {
+    print("error creating post: $e");
+    error.value = e.toString();
+  }
+}
+
+
+  Future<void> updatePost(Post post) async {
+    try {
+      isLoading.value = true;
+      error.value = "";
+      if (post.id == null || post.id!.isEmpty) {
+        throw Exception("Post ID is null or empty!");
+      }
+      final updatedPost = await _apiPostService.updatePost(post);
+      final index = posts.indexWhere((t) => t.id == updatedPost.id);
+      if (index != -1) {
+        posts[index] = updatedPost;
+        posts.refresh();
+        await fetchPosts(); // Récupérer la liste des posts mise à jour
+      }
+    } catch (e) {
+      print("error updating post: $e");
+      error.value = e.toString();
+    } 
   }
 
-  // Méthode pour obtenir les posts d'un utilisateur donné
-  List<Post> getUserPosts(int userId) {
-    return posts.where((post) => post.user.id == userId).toList();
+  Future<void> deletePost(String id) async {
+    try {
+      isLoading.value = true;
+      error.value = "";
+      await _apiPostService.deletePost(id);
+      posts.removeWhere((post) => post.id == id);
+    } catch (e) {
+      print("error deleting post: $e");
+      error.value = e.toString();
+    }
   }
 
-  // Méthode pour activer/désactiver le like
   void toggleLike() {
     isLiked.value = !isLiked.value;
     likeCount.value = isLiked.value ? likeCount.value + 1 : likeCount.value - 1;
   }
 
-  // Méthode pour supprimer un post
-  void deletePost(Post post) {
-    posts.remove(post);
-    posts.refresh();
-  }
 
-  // Méthode pour mettre à jour un post
-  void updatePost(Post post, String newText, String updatedImagePath) {
-  int index = posts.indexWhere((p) => p.id == post.id); // Vérifier l'ID au lieu d'utiliser directement l'objet
-  if (index != -1) {
-    posts[index].postText = newText;
-    if (updatedImagePath.isNotEmpty) {
-      posts[index].postImage = updatedImagePath; // Mettre à jour l'image si un nouveau chemin est fourni
-    }
-    posts.refresh(); // Rafraîchir la liste des posts pour refléter les changements
+/// Method to get posts for a specific user
+  List<Post> getUserPosts(int userId) {
+    return posts.where((post) => post.user.id == userId).toList();
   }
-}
-
+  
 }

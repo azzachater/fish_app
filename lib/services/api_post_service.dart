@@ -1,120 +1,146 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/post_model.dart';
-import 'api_auth_service.dart'; // Pour récupérer le token d'authentification
+import 'api_auth_service.dart';
 
 class ApiPostService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api/posts';
+  final ApiAuthService _authService = ApiAuthService();
+  final String baseUrl = 'http://10.0.2.2:8000/api';
 
-  // Méthode pour récupérer les posts
-  static Future<List<Post>> fetchPosts() async {
-    try {
-      final response = await http.get(
-        Uri.parse(baseUrl),
-        headers: await _getHeaders(),
-      );
-      if (response.statusCode == 200) {
-        List jsonResponse = json.decode(response.body);
-        return jsonResponse.map((post) => Post.fromJson(post)).toList();
-      } else {
-        throw Exception('Erreur lors du chargement des posts: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Erreur réseau: $e');
-    }
-  }
-
-  // Méthode pour créer un post (avec ou sans image)
-  static Future<Post> createPost(String postText, String? postImage) async {
-    try {
-      var request = http.MultipartRequest(
-        'POST', Uri.parse(baseUrl),
-      );
-      request.headers.addAll(await _getHeaders());
-
-      if (postImage != null) {
-        request.files.add(await http.MultipartFile.fromPath('post_image', postImage));
-      }
-
-      request.fields['post_text'] = postText;
-
-      final response = await request.send();
-      final responseBody = await http.Response.fromStream(response);
-      
-      if (response.statusCode == 201) {
-        return Post.fromJson(json.decode(responseBody.body));
-      } else {
-        throw Exception('Erreur lors de la création du post');
-      }
-    } catch (e) {
-      throw Exception('Erreur réseau: $e');
-    }
-  }
-
-  // Méthode pour supprimer un post
-  static Future<void> deletePost(String postId) async {
-    try {
-      final response = await http.delete(
-        Uri.parse('$baseUrl/$postId'),
-        headers: await _getHeaders(),
-      );
-      if (response.statusCode != 200) {
-        throw Exception('Erreur lors de la suppression du post');
-      }
-    } catch (e) {
-      throw Exception('Erreur réseau: $e');
-    }
-  }
-
-  // Méthode pour mettre à jour un post
-  static Future<Post> updatePost(String postId, String postText, String? postImage) async {
-    try {
-      final response = await http.put(
-        Uri.parse('$baseUrl/$postId'),
-        headers: await _getHeaders(),
-        body: jsonEncode({
-          'post_text': postText,
-          'post_image': postImage,
-        }),
-      );
-      if (response.statusCode == 200) {
-        return Post.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Erreur lors de la mise à jour du post');
-      }
-    } catch (e) {
-      throw Exception('Erreur réseau: $e');
-    }
-  }
-
-  // Méthode pour liker/unliker un post
-  static Future<void> toggleLike(String postId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/$postId/like'),
-        headers: await _getHeaders(),
-      );
-      if (response.statusCode == 200) {
-        var data = json.decode(response.body);
-        print(data['message']); // Affiche le message de retour du backend
-      } else {
-        throw Exception('Erreur lors du like/unlike du post');
-      }
-    } catch (e) {
-      throw Exception('Erreur réseau: $e');
-    }
-  }
-
-  // Méthode pour récupérer les en-têtes avec le token d'authentification
-  static Future<Map<String, String>> _getHeaders() async {
-    try {
-      String token = await ApiAuthService().getToken();
-      return {
+  // Headers for requests
+  Map<String, String> get headers => {
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+        'X-Requested-With': 'XMLHttpRequest',
       };
+
+  // Fetch authentication headers
+  Future<Map<String, String>> _getAuthHeaders() async {
+    final headers = await _authService.getAuthHeaders();
+    print("🔵 Auth Headers: $headers");
+    return headers;
+  }
+
+  Future<List<Post>> getPosts() async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await http.get(Uri.parse('$baseUrl/posts'), headers: headers);
+
+      print("🚀 API Response Status: ${response.statusCode}");
+      print("📩 API Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        if (response.body.isEmpty) return [];
+        
+        final List<dynamic> jsonResponse = jsonDecode(response.body);
+        return jsonResponse.map((postJson) {
+          try {
+            return Post.fromJson(postJson as Map<String, dynamic>);
+          } catch (e) {
+            print("⚠️ Error parsing post: $e");
+            print("🛑 Problematic post data: $postJson");
+            throw Exception("Invalid post format");
+          }
+        }).toList();
+      } else {
+        throw Exception("API Error: ${response.statusCode}");
+      }
     } catch (e) {
-      throw Exception('Erreur lors de la récupération du token');
+      print('❌ Error in getPosts: $e');
+      rethrow;
+    }
+  }
+
+  Future<Post> createPost(String postText, String postImage) async {
+  try {
+    final headers = await _getAuthHeaders();
+    final body = jsonEncode({
+      'post_text': postText,
+      'post_image': postImage,
+    });
+
+    final response = await http.post(Uri.parse('$baseUrl/posts'), headers: headers, body: body);
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      
+      // Vérification que la réponse contient un ID
+      if (!responseData.containsKey('id')) {
+        throw Exception("Réponse invalide : l'ID du post est manquant.");
+      }
+
+      return Post.fromJson(responseData);
+    } else {
+      throw Exception(_handleError(response));
+    }
+  } catch (e) {
+    print('❌ Error creating post: $e');
+    throw Exception(e.toString());
+  }
+}
+
+
+  Future<Post> updatePost(Post post) async {
+  if (post.id == null) {
+    throw Exception('L\'ID du post ne peut pas être nul.');
+  }
+
+  try {
+    final headers = await _getAuthHeaders();
+    final response = await http.put(
+      Uri.parse('$baseUrl/posts/${post.id}'),
+      headers: headers,
+      body: jsonEncode(post.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      final decodedBody = jsonDecode(response.body);
+      print('Post mis à jour avec succès: $decodedBody');
+      return Post.fromJson(decodedBody);
+    } else {
+      final errorMessage = _handleError(response);
+      print('Erreur lors de la mise à jour du post: $errorMessage');
+      throw Exception(errorMessage);
+    }
+  } catch (e) {
+    print('Erreur inattendue lors de la mise à jour du post: $e');
+    throw Exception('Erreur lors de la mise à jour du post: ${e.toString()}');
+  }
+}
+
+
+  Future<void> deletePost(String id) async {
+    if (id.isEmpty) {
+      throw Exception("Invalid post ID");
+    }
+
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await http.delete(Uri.parse('$baseUrl/posts/$id'), headers: headers);
+
+      if (response.statusCode != 204 && response.statusCode != 200) {
+        throw Exception(_handleError(response));
+      }
+    } catch (e) {
+      print('Delete post error: $e');
+      throw Exception(e.toString());
+    }
+  }
+
+  Future<void> clearToken() async {
+    await _authService.clearToken();
+  }
+
+  String _handleError(http.Response response) {
+    print('Error Response Status: ${response.statusCode}');
+    print('Error Response Headers: ${response.headers}');
+    print('Error Response Body: ${response.body}');
+    
+    try {
+      final data = jsonDecode(response.body);
+      return data['message'] ?? 'Something went wrong';
+    } catch (_) {
+      return 'Something went wrong';
     }
   }
 }

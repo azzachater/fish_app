@@ -50,7 +50,7 @@ class CreatePostPage extends StatelessWidget {
         createdAt: DateTime.now(),
         comments: [],
       );
-      postController.addPost(post);
+      postController.createPost(postText, _image.value?.path ?? "");
       logger.d("Post publié: $postText");
       if (_image.value != null) logger.d("Image ajoutée : ${_image.value!.path}");
 
