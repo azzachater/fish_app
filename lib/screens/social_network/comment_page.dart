@@ -12,11 +12,13 @@ class CommentPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialiser le CommentController
-    final CommentController commentController = Get.put(CommentController());
+  final CommentController commentController = Get.put(CommentController()); // Instanciation ici
+    final TextEditingController commentControllerText = TextEditingController(); // Correct initialisation
 
-    // Charger les commentaires du post au démarrage
-    commentController.loadComments(post.id);
+    // Charger les commentaires au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      commentController.loadComments(post.id);
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -29,17 +31,19 @@ class CommentPage extends StatelessWidget {
             // Liste des commentaires
             Expanded(
               child: Obx(() {
-                // Utilisation de GetX pour observer la liste des commentaires
+                if (commentController.comments.isEmpty) {
+                  return const Center(child: Text("Aucun commentaire pour l'instant."));
+                }
                 return ListView.builder(
                   itemCount: commentController.comments.length,
                   itemBuilder: (context, index) {
                     final comment = commentController.comments[index];
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: AssetImage(comment.user.avatar),
+                        backgroundImage: AssetImage(comment.user.avatar), // Correction de l'affichage
                       ),
                       title: Text(comment.user.name),
-                      subtitle: Text(comment.text),
+                      subtitle: Text(comment.content),
                       trailing: Text(comment.timestamp),
                     );
                   },
@@ -49,31 +53,30 @@ class CommentPage extends StatelessWidget {
             // Champ de texte pour ajouter un nouveau commentaire
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: TextEditingController(),
-                decoration: InputDecoration(
-                  hintText: 'Écrire un commentaire...',
-                  border: OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.send),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: commentControllerText,
+                      decoration: const InputDecoration(
+                        hintText: 'Écrire un commentaire...',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.send, color: Colors.blue),
                     onPressed: () {
-                      final text = TextEditingController().text.trim();
+                      final text = commentControllerText.text.trim();
                       if (text.isNotEmpty) {
-                        // Créer un nouveau commentaire
-                        final newComment = Comment(
-                          id: 'new_comment_${commentController.comments.length}',
-                          user: currentUser,
-                          text: text,
-                          timestamp: DateTime.now().toString(),
-                          postId: post.id, // Utiliser l'ID du post
-                        );
-                        // Ajouter le commentaire avec GetX
-                        commentController.addComment(newComment);
-                        print('Nouveau commentaire : $text');
+                        commentController.addComment(post.id, text);
+                        commentControllerText.clear(); // Effacer le champ après envoi
+                      } else {
+                        Get.snackbar("Erreur", "Le commentaire ne peut pas être vide.");
                       }
                     },
                   ),
-                ),
+                ],
               ),
             ),
           ],

@@ -70,7 +70,7 @@ class AuthController extends GetxController {
       User newUser = await _apiAuthService.register(username, email, password, confirmPassword);
       user.value = newUser;
       isLoggedIn.value = true;
-      Get.offAllNamed('/MainScreen');
+      Get.offAllNamed('/login');
     } catch (e) {
       generalError.value = e.toString();
     } finally {
