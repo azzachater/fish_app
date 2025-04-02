@@ -39,6 +39,12 @@ class MapPage extends StatelessWidget {
               ),
               roadConfiguration: RoadOption(roadColor: Colors.yellowAccent),
             ),
+            onMapIsReady: (isReady) async {
+              if (isReady) {
+                controller
+                    .fetchFishingSpots(); // Charger les spots au démarrage
+              }
+            },
           ),
           Positioned(
             bottom: 20,
