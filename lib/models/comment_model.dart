@@ -17,11 +17,15 @@ class Comment {
 
   // Convertir un JSON en Comment
  factory Comment.fromJson(Map<String, dynamic> json) {
+  print("🟢 Parsing Comment JSON: $json");
+
   return Comment(
     id: json['id'].toString(),
-    user: User.fromJson(json['user']),
-    content: json['content'] ?? '',  // Use empty string if content is null
-    timestamp: json['created_at'] ?? '',  // Ensure it's not null
+    user: json.containsKey('user') && json['user'] != null
+        ? User.fromJson(json['user'])
+        : User(id: 0, name: "Unknown", avatar: '', email: '', password: '', bio: '', passwordConfirmation: ''), // ✅ Empêche l'erreur si `user` est null
+    content: json['content'] ?? '',
+    timestamp: json['created_at'] ?? '',
     postId: json['post_id'].toString(),
   );
 }

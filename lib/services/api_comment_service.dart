@@ -66,18 +66,24 @@ class ApiCommentService {
     print("🔴 Response Body: ${response.body}");
 
     if (response.statusCode == 201) {
-      final responseData = json.decode(response.body);
+      final Map<String, dynamic> responseData = json.decode(response.body);
 
-      // Vérifier si 'comment' est nul avant de tenter de l'utiliser
-      if (responseData != null && responseData['comment'] != null) {
-        return Comment.fromJson(responseData['comment']);
-      } else {
-        throw Exception("Aucune donnée de commentaire dans la réponse: ${response.body}");
-      }
+print("📌 Response Data: $responseData");
+print("📌 Comment Key Exists: ${responseData.containsKey('comment')}");
+print("📌 Comment Value: ${responseData['comment']}");
+
+if (responseData.containsKey('comment') && responseData['comment'] != null) {
+  return Comment.fromJson(responseData['comment'] as Map<String, dynamic>);
+} else {
+  throw Exception("Réponse invalide : ${response.body}");
+}
+
+
     } else {
       throw Exception("Échec de l'ajout du commentaire: ${response.body}");
     }
   } catch (e) {
+    print("❌ Erreur ajout commentaire : $e");
     throw Exception('Erreur lors de l\'ajout du commentaire: $e');
   }
 }

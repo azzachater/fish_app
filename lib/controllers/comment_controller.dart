@@ -18,8 +18,7 @@ class CommentController extends GetxController {
   }
 
   // Ajouter un commentaire
-  // Ajouter un commentaire
-Future<void> addComment(String postId, String content) async {
+ Future<void> addComment(String postId, String content) async {
   if (content.trim().isEmpty) {
     Get.snackbar("Erreur", "Le commentaire ne peut pas être vide");
     return;
@@ -28,9 +27,11 @@ Future<void> addComment(String postId, String content) async {
   try {
     final newComment = await _apiService.addComment(postId, content);
     if (newComment != null) {
-      comments.add(newComment);
-      comments.refresh();
-      await loadComments(postId); // Charger les commentaires après ajout
+      comments.insert(0, newComment); // Ajouter en haut de la liste
+      comments.refresh(); // Rafraîchir la liste
+      print("✅ Commentaires après ajout : $comments"); // Debugging
+
+      await loadComments(postId); // Recharger tous les commentaires
       Get.snackbar("Succès", "Commentaire ajouté !");
     } else {
       Get.snackbar("Erreur", "Échec de l'ajout du commentaire");
@@ -40,6 +41,8 @@ Future<void> addComment(String postId, String content) async {
     print("❌ Erreur ajout commentaire : $e");
   }
 }
+
+
 
 
   // Supprimer un commentaire
