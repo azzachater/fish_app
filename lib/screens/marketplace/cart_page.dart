@@ -1,4 +1,5 @@
 import 'package:fish_app/controller/cart_controller.dart';
+import 'package:fish_app/screens/marketplace/checkout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
@@ -113,7 +114,7 @@ class CartPage extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         if (cartController.cartItems.isNotEmpty) {
-                          // Action de checkout
+                          Get.to(() => CheckoutScreen());
                         }
                       },
                       style: ElevatedButton.styleFrom(
