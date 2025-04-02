@@ -1,3 +1,4 @@
+import 'package:fish_app/controller/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/custom_text_field.dart';
@@ -24,7 +25,8 @@ class LoginPage extends StatelessWidget {
     bool isValid = true;
 
     // Validate Email
-    if (emailController.text.isEmpty || !GetUtils.isEmail(emailController.text)) {
+    if (emailController.text.isEmpty ||
+        !GetUtils.isEmail(emailController.text)) {
       emailError.value = 'Please enter a valid email';
       isValid = false;
     }
@@ -63,17 +65,27 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 30),
               const Text("Login", style: AppTheme.titleStyle),
               const SizedBox(height: 10),
-              const Text("Login to your account", style: AppTheme.subtitleStyle),
+              const Text(
+                "Login to your account",
+                style: AppTheme.subtitleStyle,
+              ),
               const SizedBox(height: 30),
               CustomTextField(
                 label: "Email",
                 hintText: "Enter your email",
                 controller: emailController,
+                obscureText: false,
               ),
               // Affichage de l'erreur sous le champ email
-              Obx(() => emailError.value.isNotEmpty
-                  ? Text(emailError.value, style: TextStyle(color: Colors.red))
-                  : Container()),
+              Obx(
+                () =>
+                    emailError.value.isNotEmpty
+                        ? Text(
+                          emailError.value,
+                          style: TextStyle(color: Colors.red),
+                        )
+                        : Container(),
+              ),
               CustomTextField(
                 label: "Password",
                 hintText: "Enter your password",
@@ -81,9 +93,15 @@ class LoginPage extends StatelessWidget {
                 obscureText: true,
               ),
               // Affichage de l'erreur sous le champ password
-              Obx(() => passwordError.value.isNotEmpty
-                  ? Text(passwordError.value, style: TextStyle(color: Colors.red))
-                  : Container()),
+              Obx(
+                () =>
+                    passwordError.value.isNotEmpty
+                        ? Text(
+                          passwordError.value,
+                          style: TextStyle(color: Colors.red),
+                        )
+                        : Container(),
+              ),
               const SizedBox(height: 20),
               CustomButton(
                 text: "Login",
@@ -97,14 +115,23 @@ class LoginPage extends StatelessWidget {
                   const Text("Don't have an account?"),
                   GestureDetector(
                     onTap: () => Get.to(() => SignupPage()),
-                    child: const Text(" Sign up", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
+                    child: const Text(
+                      " Sign up",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 50),
               SizedBox(
                 height: 200,
-                child: Image.asset("assets/images/Authentification/background.png", fit: BoxFit.cover),
+                child: Image.asset(
+                  "assets/images/Authentification/background.png",
+                  fit: BoxFit.cover,
+                ),
               ),
             ],
           ),
