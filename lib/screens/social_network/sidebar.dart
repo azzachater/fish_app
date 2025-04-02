@@ -1,4 +1,3 @@
-import 'package:fish_app/controller/auth_controller.dart';
 import 'package:fish_app/controllers/auth_controller.dart';
 import 'package:fish_app/screens/event/event_page.dart';
 import 'package:fish_app/screens/journal/diary_screen.dart';

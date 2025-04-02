@@ -12,8 +12,7 @@ class ProductController extends GetxController {
   var error = RxString('');
   final RxList<String> favoriteIds = <String>[].obs;
 
-  final String baseUrl =
-      'http://10.0.2.2:8000/api/products'; // Remplacez par votre URL
+  final String baseUrl = 'http://10.0.2.2:8000/api/products';
 
   @override
   void onInit() {
@@ -21,14 +20,13 @@ class ProductController extends GetxController {
     fetchProducts();
   }
 
-  // Dans product_controller.dart
-  // Correction de la méthode fetchProducts()
+  // Méthode pour récupérer les produits
   Future<void> fetchProducts() async {
     try {
       isLoading(true);
       error('');
       final response = await http.get(
-        Uri.parse('$baseUrl'), // Utilisez directement votre endpoint API
+        Uri.parse(baseUrl),
         headers: await ApiService.getHeaders(),
       );
 
@@ -43,7 +41,9 @@ class ProductController extends GetxController {
           filteredProducts.assignAll(products);
         }
       } else {
-        throw Exception('Failed to load products: ${response.statusCode}');
+        final responseBody = jsonDecode(response.body);
+        String errorMessage = responseBody['message'] ?? 'Erreur inconnue';
+        throw Exception('Échec du chargement des produits: $errorMessage');
       }
     } catch (e) {
       error(e.toString());
@@ -52,48 +52,21 @@ class ProductController extends GetxController {
         'Impossible de charger les produits: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
       );
-      // Fallback aux produits de démo
       products.assignAll(Product.sampleProducts());
       filteredProducts.assignAll(products);
     } finally {
       isLoading(false);
     }
   }
-  // Méthode temporaire sans auth
-  /*Future<void> fetchProductsPublic() async {
-    try {
-      isLoading(true);
-      final response = await http.get(
-        Uri.parse('$baseUrl/products/public'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        products.assignAll((data['data'] as List)
-            .map((json) => Product.fromJson(json))
-            .toList());
-      } else {
-        throw Exception('Erreur ${response.statusCode}');
-      }
-    } catch (e) {
-      Get.snackbar('Erreur', e.toString());
-      // Fallback avec données de démo
-    } finally {
-      isLoading(false);
-    }
-  }*/
-
+  // Méthode pour ajouter un produit
   Future<void> addProduct(Product product) async {
     try {
       isLoading(true);
       error('');
       final response = await http.post(
-        Uri.parse('$baseUrl/products'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(baseUrl), // URL corrigée
+        headers: await ApiService.getHeaders(), // Correction des en-têtes
         body: json.encode(product.toJson()),
       );
 
@@ -109,7 +82,9 @@ class ProductController extends GetxController {
           duration: Duration(seconds: 2),
         );
       } else {
-        throw Exception('Failed to add product: ${response.statusCode}');
+        final responseBody = jsonDecode(response.body);
+        String errorMessage = responseBody['message'] ?? 'Erreur inconnue';
+        throw Exception('Échec de l\'ajout du produit: $errorMessage');
       }
     } catch (e) {
       error(e.toString());
@@ -124,6 +99,7 @@ class ProductController extends GetxController {
     }
   }
 
+  // Méthode pour rechercher un produit
   void searchProduct(String query) {
     if (query.isEmpty) {
       filteredProducts.assignAll(products);
@@ -138,30 +114,13 @@ class ProductController extends GetxController {
     }
   }
 
-  // Ajoutez cette méthode
-  /*Future<void> toggleFavorite(String productId) async {
+  // Méthode pour ajouter/retirer un favori
+  Future<void> toggleFavorite(String productId) async {
     try {
-      // Mise à jour optimiste de l'UI
       if (favoriteIds.contains(productId)) {
         favoriteIds.remove(productId);
       } else {
         favoriteIds.add(productId);
-      }
-
-      // Appel API
-      final response = await http.post(
-        Uri.parse('$baseUrl/products/$productId/toggle-favorite'),
-        headers: await ApiService.getHeaders(),
-      );
-
-      if (response.statusCode != 200) {
-        // Annuler en cas d'erreur
-        if (favoriteIds.contains(productId)) {
-          favoriteIds.remove(productId);
-        } else {
-          favoriteIds.add(productId);
-        }
-        throw Exception('Failed to update favorite');
       }
     } catch (e) {
       Get.snackbar(
@@ -170,27 +129,21 @@ class ProductController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
     }
-  }*/
-  Future<void> toggleFavorite(String productId) async {
-    // Solution temporaire sans appel API
-    if (favoriteIds.contains(productId)) {
-      favoriteIds.remove(productId);
-    } else {
-      favoriteIds.add(productId);
-    }
   }
 
-  // Modifiez le getter favoriteCount
+  // Récupérer le nombre de favoris
   int get favoriteCount => favoriteIds.length;
 
-  // Ajoutez cette méthode pour vérifier si un produit est favori
+  // Vérifier si un produit est favori
   bool isFavorite(String productId) => favoriteIds.contains(productId);
 
+  // Récupérer le nombre d'articles dans le panier
   int get cartCount {
     final cartController = Get.find<CartController>();
     return cartController.cartItems.fold(0, (sum, item) => sum + item.quantity);
   }
 
+  // Filtrer les produits par catégorie
   List<Product> getProductsByCategory(String category) {
     return products.where((p) => p.category == category).toList();
   }

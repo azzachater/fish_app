@@ -1,9 +1,9 @@
-import 'package:fish_app/controller/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
 import '../../widgets/custom_button.dart';
 import 'login_page.dart';
+import 'signup_page.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
@@ -46,7 +46,11 @@ class HomePage extends StatelessWidget {
                     isPrimary: false,
                   ),
                   const SizedBox(height: 20),
-                  // CustomButton(text: "Sign up", onPressed: () => Get.to(() => SignupPage()), isPrimary: true),
+                  CustomButton(
+                    text: "Sign up",
+                    onPressed: () => Get.to(() => SignupPage()),
+                    isPrimary: true,
+                  ),
                 ],
               ),
             ],

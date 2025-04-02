@@ -1,4 +1,3 @@
-import 'package:fish_app/controller/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/custom_text_field.dart';

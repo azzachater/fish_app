@@ -1,6 +1,6 @@
 import 'package:fish_app/screens/journal/data_selector.dart';
 import 'package:fish_app/screens/journal/fish_journal_card.dart';
-import 'package:fish_app/widgets/journal/journal_app_bar.dart';
+import 'package:fish_app/screens/journal/journal_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/controller/journal_controller.dart';

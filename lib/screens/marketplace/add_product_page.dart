@@ -38,7 +38,7 @@ class AddProductPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Section Image avec style moderne
+            // Section Image
             Obx(
               () => GestureDetector(
                 onTap: () => controller.pickImage(ImageSource.gallery),
@@ -87,7 +87,7 @@ class AddProductPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Nom du produit avec icône
+            // Nom du produit
             _buildFieldWithIcon(
               icon: Icons.shopping_bag_outlined,
               child: CustomTextField(
@@ -99,10 +99,10 @@ class AddProductPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Prix et Unité en ligne
+            // Prix et Stock en ligne
             Row(
               children: [
-                // Prix avec icône
+                // Prix
                 Expanded(
                   child: _buildFieldWithIcon(
                     icon: Icons.attach_money_outlined,
@@ -118,14 +118,15 @@ class AddProductPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                // Unité avec icône
+                // Stock
                 Expanded(
                   child: _buildFieldWithIcon(
-                    icon: Icons.scale_outlined,
+                    icon: Icons.inventory_outlined,
                     child: CustomTextField(
-                      controller: controller.unitController,
-                      label: 'Unité*',
-                      hintText: 'Ex: pièce',
+                      controller: controller.stockController,
+                      label: 'Stock*',
+                      hintText: 'Quantité',
+                      keyboardType: TextInputType.number,
                       obscureText: false,
                     ),
                   ),
@@ -134,7 +135,19 @@ class AddProductPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Description avec icône
+            // Unité
+            _buildFieldWithIcon(
+              icon: Icons.scale_outlined,
+              child: CustomTextField(
+                controller: controller.unitController,
+                label: 'Unité*',
+                hintText: 'Ex: pièce',
+                obscureText: false,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Description
             _buildFieldWithIcon(
               icon: Icons.description_outlined,
               child: CustomTextField(
@@ -147,7 +160,7 @@ class AddProductPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Catégorie avec icône
+            // Catégorie
             _buildFieldWithIcon(
               icon: Icons.category_outlined,
               child: Obx(
@@ -182,7 +195,7 @@ class AddProductPage extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Bouton Enregistrer moderne
+            // Bouton Enregistrer
             Obx(
               () =>
                   controller.isLoading.value
@@ -200,8 +213,8 @@ class AddProductPage extends StatelessWidget {
                               price: double.parse(
                                 controller.priceController.text,
                               ),
+                              stock: int.parse(controller.stockController.text),
                               unit: controller.unitController.text,
-                              stock: 1,
                               image: controller.imageUrl.value,
                               category: controller.selectedCategory.value,
                             );

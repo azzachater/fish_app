@@ -1,6 +1,6 @@
 import 'package:fish_app/controller/add_cart_controller.dart';
 import 'package:fish_app/controller/add_journal_controller.dart';
-import 'package:fish_app/controller/auth_controller.dart';
+import 'package:fish_app/controllers/auth_controller.dart';
 import 'package:fish_app/controller/event_controller.dart';
 import 'package:fish_app/controller/journal_controller.dart';
 import 'package:fish_app/controller/task_controller.dart';
@@ -8,7 +8,6 @@ import 'package:fish_app/screens/Authentification/signup_page.dart';
 import 'package:fish_app/screens/marketplace/product_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'controllers/auth_controller.dart';
 import 'screens/Authentification/home_page.dart';
 import 'screens/Authentification/login_page.dart';
 import 'package:fish_app/main_screen.dart';

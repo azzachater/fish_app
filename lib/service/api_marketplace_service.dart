@@ -16,30 +16,38 @@ class ApiService {
   }
 
   static Future<dynamic> get(String endpoint) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/$endpoint'),
-      headers: await getHeaders(),
-    );
-    return _handleResponse(response);
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/$endpoint'),
+        headers: await getHeaders(),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
   }
 
   static Future<dynamic> post(String endpoint, dynamic data) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/$endpoint'),
-      headers: await getHeaders(),
-      body: json.encode(data),
-    );
-    return _handleResponse(response);
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/$endpoint'),
+        headers: await getHeaders(),
+        body: json.encode(data),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
   }
 
   static dynamic _handleResponse(http.Response response) {
+    final responseBody = json.decode(response.body);
     switch (response.statusCode) {
       case 200:
-        return json.decode(response.body);
       case 201:
-        return json.decode(response.body);
+        return responseBody;
       case 400:
-        throw Exception('Bad Request');
+        throw Exception(responseBody['message'] ?? 'Bad Request');
       case 401:
         throw Exception('Unauthorized');
       case 404:
@@ -47,7 +55,7 @@ class ApiService {
       case 500:
         throw Exception('Server Error');
       default:
-        throw Exception('Unknown Error');
+        throw Exception('Unknown Error: ${response.statusCode}');
     }
   }
 }
