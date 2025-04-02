@@ -1,7 +1,8 @@
-/*import 'package:fish_app/controller/add_cart_controller.dart';
+import 'package:fish_app/controller/add_cart_controller.dart';
 import 'package:fish_app/controller/add_journal_controller.dart';
 import 'package:fish_app/controller/auth_controller.dart';
 import 'package:fish_app/controller/event_controller.dart';
+import 'package:fish_app/controller/journal_controller.dart';
 import 'package:fish_app/controller/task_controller.dart';
 import 'package:fish_app/screens/Authentification/signup_page.dart';
 import 'package:fish_app/screens/marketplace/product_detail_page.dart';
@@ -22,6 +23,7 @@ void main() {
   Get.put(TaskController());
   Get.put(AddJournalController());
   Get.put(CartControllerX());
+  Get.put(JournalController());
   runApp(const MyApp());
 }
 
@@ -48,13 +50,13 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-*/
-import 'package:fish_app/controller/add_cart_controller.dart';
-import 'package:fish_app/controller/add_journal_controller.dart';
+
+/*import 'package:fish_app/controller/add_cart_controller.dart';
 import 'package:fish_app/controller/auth_controller.dart';
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/event_controller.dart';
 import 'package:fish_app/controller/favorite_controller.dart';
+import 'package:fish_app/controller/journal_controller.dart';
 import 'package:fish_app/controller/task_controller.dart';
 import 'package:fish_app/main_screen.dart';
 import 'package:fish_app/screens/marketplace/product_detail_page.dart';
@@ -68,8 +70,8 @@ void main() {
   Get.put(FavoriteController());
   Get.put(EventController());
   Get.put(TaskController());
-  Get.put(AddJournalController());
   Get.put(CartControllerX());
+  Get.put(JournalController());
   runApp(MyApp());
 }
 
@@ -92,3 +94,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+*/

@@ -11,7 +11,7 @@ class EventPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Événements de Pêche'),
-        backgroundColor: const Color.fromARGB(255, 64, 133, 212), // Bleu thème
+        backgroundColor: const Color.fromARGB(255, 74, 139, 229), // Bleu thème
       ),
       body: Obx(
         () =>
@@ -37,7 +37,7 @@ class EventPage extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: const Color.fromARGB(255, 64, 133, 212),
+                                color: const Color.fromARGB(255, 74, 139, 229),
                               ),
                             ),
                             SizedBox(height: 5),
@@ -70,7 +70,7 @@ class EventPage extends StatelessWidget {
                                 eventController.joinEvent(index, 'Utilisateur');
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue[700],
+                                backgroundColor: Colors.blue[600],
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
