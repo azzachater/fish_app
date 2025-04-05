@@ -31,13 +31,14 @@ class ProductCard extends StatelessWidget {
                         top: Radius.circular(12),
                       ),
                       image: DecorationImage(
-                        image:
-                            product.image.startsWith('http')
-                                ? NetworkImage(product.image)
-                                : AssetImage(product.image) as ImageProvider,
+                        image: _getImageProvider(product.image),
                         fit: BoxFit.cover,
                       ),
                     ),
+                    child:
+                        product.image.isEmpty
+                            ? Icon(Icons.photo, size: 50, color: Colors.grey)
+                            : null,
                   ),
                 ),
                 Padding(
@@ -106,5 +107,16 @@ class ProductCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+ImageProvider _getImageProvider(String imagePath) {
+  if (imagePath.startsWith('http')) {
+    return NetworkImage(imagePath);
+  } else if (imagePath.startsWith('assets/')) {
+    return AssetImage(imagePath);
+  } else {
+    // Pour les chemins relatifs du backend
+    return NetworkImage('http://192.168.1.36:8000/storage/$imagePath');
   }
 }

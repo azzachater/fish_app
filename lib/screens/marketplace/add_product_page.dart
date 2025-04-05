@@ -218,7 +218,12 @@ class AddProductPage extends StatelessWidget {
                               image: controller.imageUrl.value,
                               category: controller.selectedCategory.value,
                             );
-                            await productController.addProduct(newProduct);
+                            await productController.createProduct(
+                              newProduct,
+                              imageFile: File(
+                                controller.imageUrl.value,
+                              ), // Ajout du paramètre imageFile obligatoire
+                            );
                             Get.back();
                           }
                         },

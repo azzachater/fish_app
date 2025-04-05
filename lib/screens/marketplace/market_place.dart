@@ -1,3 +1,4 @@
+import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:fish_app/screens/marketplace/cart_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,6 +16,11 @@ class Marketplace extends StatelessWidget {
   Widget build(BuildContext context) {
     final ProductController productController = Get.put(ProductController());
     final CategoryController categoryController = Get.put(CategoryController());
+
+    // Rafraîchir les produits au chargement
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      productController.fetchProducts();
+    });
 
     return Scaffold(
       resizeToAvoidBottomInset: true,

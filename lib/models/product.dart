@@ -83,14 +83,17 @@ class Product {
   /// Convertir depuis JSON
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'].toString(),
-      name: json['name'] ?? 'Produit sans nom',
-      description: json['description'] ?? 'Aucune description',
-      price: (json['price'] as num).toDouble(),
-      unit: json['unit'] ?? '€',
-      stock: json['stock'] ?? 0,
-      image: json['image'] ?? 'assets/images/default.png',
-      category: json['category'] ?? 'Autre',
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? 'Produit sans nom',
+      description: json['description']?.toString() ?? 'Aucune description',
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0,
+      unit: json['unit']?.toString() ?? '€',
+      stock: int.tryParse(json['stock']?.toString() ?? '0') ?? 0,
+      image:
+          json['image']!.toString().contains('http')
+              ? json['image'].toString()
+              : 'http://192.168.1.36:8000/storage/${json['image']}',
+      category: json['category']?.toString() ?? 'Autre',
     );
   }
 

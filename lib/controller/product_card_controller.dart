@@ -1,9 +1,9 @@
+import 'dart:io';
+
 import 'package:fish_app/service/api_marketplace_service.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
 import 'package:fish_app/controller/cart_controller.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class ProductController extends GetxController {
   var products = <Product>[].obs;
@@ -12,7 +12,7 @@ class ProductController extends GetxController {
   var error = RxString('');
   final RxList<String> favoriteIds = <String>[].obs;
 
-  final String baseUrl = 'http://10.0.2.2:8000/api/products';
+  final ApiProductService apiService = ApiProductService();
 
   @override
   void onInit() {
@@ -25,26 +25,17 @@ class ProductController extends GetxController {
     try {
       isLoading(true);
       error('');
-      final response = await http.get(
-        Uri.parse(baseUrl),
-        headers: await ApiService.getHeaders(),
-      );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['data'] != null) {
-          products.assignAll(
-            (data['data'] as List)
-                .map((json) => Product.fromJson(json))
-                .toList(),
-          );
-          filteredProducts.assignAll(products);
-        }
-      } else {
-        final responseBody = jsonDecode(response.body);
-        String errorMessage = responseBody['message'] ?? 'Erreur inconnue';
-        throw Exception('Échec du chargement des produits: $errorMessage');
+      final List<Product> fetchedProducts = await apiService.getProduct();
+
+      if (fetchedProducts.isEmpty) {
+        Get.snackbar('Info', 'Aucun produit trouvé');
       }
+
+      products.assignAll(fetchedProducts);
+      filteredProducts.assignAll(products);
+
+      print('✅ ${products.length} produits chargés');
     } catch (e) {
       error(e.toString());
       Get.snackbar(
@@ -52,48 +43,38 @@ class ProductController extends GetxController {
         'Impossible de charger les produits: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
       );
-      products.assignAll(Product.sampleProducts());
-      filteredProducts.assignAll(products);
     } finally {
       isLoading(false);
     }
   }
+  /*Future<List<Product>> fetchProducts() async {
+    try {
+      final response = await apiService.getProduct();
+      return response;
+    } catch (e) {
+      print('Error fetching products: $e');
+      Get.snackbar('Erreur', 'Impossible de charger les produits');
+      return [];
+    }
+  }*/
 
   // Méthode pour ajouter un produit
-  Future<void> addProduct(Product product) async {
+  Future<void> createProduct(Product product, {required File imageFile}) async {
     try {
       isLoading(true);
-      error('');
-      final response = await http.post(
-        Uri.parse(baseUrl), // URL corrigée
-        headers: await ApiService.getHeaders(), // Correction des en-têtes
-        body: json.encode(product.toJson()),
+      final newProduct = await apiService.createProduct(
+        product,
+        imageFile: imageFile,
       );
 
-      if (response.statusCode == 201) {
-        final newProduct = Product.fromJson(json.decode(response.body));
-        products.add(newProduct);
-        filteredProducts.refresh();
-        Get.back();
-        Get.snackbar(
-          'Succès',
-          'Produit ajouté avec succès',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: Duration(seconds: 2),
-        );
-      } else {
-        final responseBody = jsonDecode(response.body);
-        String errorMessage = responseBody['message'] ?? 'Erreur inconnue';
-        throw Exception('Échec de l\'ajout du produit: $errorMessage');
-      }
+      // Ajoutez le nouveau produit ET rafraîchissez la liste
+      products.add(newProduct);
+      filteredProducts.assignAll(products); // Force le rafraîchissement
+
+      Get.back();
+      Get.snackbar('Succès', 'Produit ajouté');
     } catch (e) {
-      error(e.toString());
-      Get.snackbar(
-        'Erreur',
-        'Échec de l\'ajout du produit: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 3),
-      );
+      Get.snackbar('Erreur', e.toString());
     } finally {
       isLoading(false);
     }
@@ -115,7 +96,7 @@ class ProductController extends GetxController {
   }
 
   // Méthode pour ajouter/retirer un favori
-  Future<void> toggleFavorite(String productId) async {
+  void toggleFavorite(String productId) {
     try {
       if (favoriteIds.contains(productId)) {
         favoriteIds.remove(productId);

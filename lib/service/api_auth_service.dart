@@ -4,20 +4,18 @@ import 'package:http/http.dart' as http;
 import 'package:fish_app/models/user_model.dart';
 
 class ApiAuthService {
-  //cree une instance securisé pour stocker les tokens
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  //definir un getter pour acceder au stockage securisé
   FlutterSecureStorage get storage => _storage;
 
-  final String baseUrl = 'http://10.0.2.2:8000/api';
-  //definir un entete par defaut pour tout les requetes
+  final String baseUrl = 'http://192.168.1.36:8000/api';
+
   Map<String, String> get _headers => {
     'Accept': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
     'Content-Type': 'application/json',
   };
-  //Cette fonction permet de récupérer les en-têtes d'authentification en lisant le token depuis le stockage sécurisé et en l'ajoutant aux en-têtes.
-  Future<Map<String, String>> _getAuthHeaders() async {
+
+  Future<Map<String, String>> getAuthHeaders() async {
     final headers = Map<String, String>.from(_headers);
     final token = await _storage.read(key: 'token');
     if (token != null) {
@@ -30,8 +28,7 @@ class ApiAuthService {
     return headers;
   }
 
-  //recuperation de token CSRF
-  Future<String?> _getCsrfToken() async {
+  Future<String?> getCsrfToken() async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/sanctum/csrf-cookie'),
@@ -58,13 +55,11 @@ class ApiAuthService {
     return null;
   }
 
-  //verification de la validite de token
   Future<bool> hasValidToken() async {
     final token = await _storage.read(key: 'token');
     return token != null;
   }
 
-  //gestion des erreurs
   dynamic _handleError(http.Response response) {
     switch (response.statusCode) {
       case 400:
@@ -82,12 +77,26 @@ class ApiAuthService {
     }
   }
 
-  //erreur dynamique
   dynamic _handleErrorDynamic(dynamic error) {
     throw error;
   }
 
-  //envoie les informations d'inscription via une requete POST
+  Future<String?> getUserId() async {
+    final token = await getToken();
+    if (token != null) {
+      final decodedToken = _decodeToken(token);
+      return decodedToken['user_id'];
+    }
+    return null;
+  }
+
+  Map<String, dynamic> _decodeToken(String token) {
+    final parts = token.split('.');
+    final payload = parts[1];
+    final decodedPayload = base64Url.decode(base64Url.normalize(payload));
+    return jsonDecode(utf8.decode(decodedPayload));
+  }
+
   Future<User> register(
     String name,
     String email,
@@ -95,8 +104,8 @@ class ApiAuthService {
     String passwordConfirmation,
   ) async {
     try {
-      final headers = await _getAuthHeaders();
-      final csrfToken = await _getCsrfToken();
+      final headers = await getAuthHeaders();
+      final csrfToken = await getCsrfToken();
       if (csrfToken != null) {
         headers['X-XSRF-TOKEN'] = csrfToken;
       }
@@ -112,13 +121,11 @@ class ApiAuthService {
       );
 
       print("API Response Status: ${response.statusCode}");
-      print(
-        "API Response Body: ${response.body}",
-      ); // Log the full response body
-      //si l'inscruption reussit , le token est enregistré et l'utilisateur est retourné
+      print("API Response Body: ${response.body}");
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        print("Decoded Data: $data"); // Log the decoded response
+        print("Decoded Data: $data");
         if (data != null && data.containsKey('User')) {
           final user = User.fromJson(data['User']);
           user.token = data['token'];
@@ -136,10 +143,13 @@ class ApiAuthService {
     }
   }
 
-  //login , envoie les infos de cnx via une requete post
+  Future<String> getToken() async {
+    return await _storage.read(key: 'token') ?? '';
+  }
+
   Future<User> login(String email, String password) async {
     try {
-      final headers = await _getAuthHeaders();
+      final headers = await getAuthHeaders();
 
       final response = await http.post(
         Uri.parse('$baseUrl/login'),
@@ -149,16 +159,14 @@ class ApiAuthService {
 
       print("Login Response Status: ${response.statusCode}");
       print("Login Response Body: ${response.body}");
-      //si la cnx est reussite , le token est enregistré pour les requetes futures
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Accepter 201
         final data = jsonDecode(response.body);
         print("Login Response Data: $data");
 
         if (data != null &&
             data.containsKey('User') &&
             data.containsKey('Token')) {
-          // Vérifie bien les clés
           final user = User.fromJson(data['User']);
           final token = data['Token'].toString();
 
@@ -178,5 +186,43 @@ class ApiAuthService {
       print('Error logging in user: $e');
       throw _handleErrorDynamic(e);
     }
+  }
+
+  Future<void> logout() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/logout'),
+        headers: await getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        await _storage.delete(key: 'token');
+        print('Logged out successfully.');
+      } else {
+        throw _handleError(response);
+      }
+    } catch (e) {
+      print('Error during logout: $e');
+      throw _handleErrorDynamic(e);
+    }
+  }
+
+  Future<void> clearToken() async {
+    await _storage.delete(key: 'token');
+  }
+
+  String handleError(dynamic error) {
+    if (error is http.Response) {
+      print('Error Response Status: ${error.statusCode}');
+      print('Error Response Headers: ${error.headers}');
+      print('Error Response Body: ${error.body}');
+      try {
+        final data = jsonDecode(error.body);
+        return data['message'] ?? 'Something went wrong';
+      } catch (_) {
+        return 'Something went wrong';
+      }
+    }
+    return error.toString();
   }
 }
