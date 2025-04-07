@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:fish_app/models/fishingJournal.dart';
 
 class FishJournalCard extends StatelessWidget {
-  final Map<String, dynamic> entry;
+  final FishingJournal entry;
   final VoidCallback onDelete;
   final VoidCallback onEdit;
 
@@ -17,75 +18,77 @@ class FishJournalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200, width: 1),
-      ),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.white],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Colors.blue.shade50, Colors.white],
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with title and time
+              /// Title & Time
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    entry['title'] ?? 'Fishing Journal',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                  Flexible(
+                    child: Text(
+                      entry.title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                      horizontal: 10,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      entry['time'] ??
-                          DateFormat('HH:mm').format(DateTime.now()),
+                      entry.time,
                       style: TextStyle(
-                        color: Colors.blue.shade800,
-                        fontWeight: FontWeight.w500,
+                        color: Colors.blue.shade900,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
 
-              // Location with icon
+              /// Location & Conditions
               Row(
                 children: [
                   Icon(
                     Icons.location_on,
-                    size: 16,
                     color: Colors.blue.shade700,
+                    size: 18,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    entry['location'] ?? 'Unknown location',
-                    style: TextStyle(
-                      color: Colors.blue.shade700,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${entry.location} - ${entry.fishingConditions}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
                 ],
@@ -93,30 +96,30 @@ class FishJournalCard extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Description with subtle background
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade200),
+              /// Notes
+              if (entry.notes.isNotEmpty) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Text(
+                    entry.notes,
+                    style: const TextStyle(fontSize: 14, height: 1.5),
+                  ),
                 ),
-                child: Text(
-                  entry['description'] ?? '',
-                  style: const TextStyle(fontSize: 15, height: 1.4),
-                ),
-              ),
+                const SizedBox(height: 12),
+              ],
 
-              const SizedBox(height: 12),
-
-              // Footer with fish type and actions
+              /// Bottom row: Species caught + Buttons
               Row(
                 children: [
-                  // Fish type chip with icon
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
+                      horizontal: 12,
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
@@ -124,35 +127,35 @@ class FishJournalCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.iso, size: 16, color: Colors.blue.shade800),
+                        Icon(
+                          Icons.emoji_nature,
+                          color: Colors.blue.shade800,
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
-                          entry['fishType'] ?? 'General',
+                          entry.speciesCaught,
                           style: TextStyle(
                             color: Colors.blue.shade800,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   const Spacer(),
-
-                  // Edit button
                   IconButton(
                     icon: Icon(Icons.edit, color: Colors.blue.shade600),
                     onPressed: onEdit,
                     splashRadius: 20,
+                    tooltip: 'Modifier',
                   ),
-
-                  // Delete button
                   IconButton(
                     icon: Icon(Icons.delete, color: Colors.red.shade400),
-                    onPressed: onDelete,
+                    onPressed: () => _confirmDelete(context),
                     splashRadius: 20,
+                    tooltip: 'Supprimer',
                   ),
                 ],
               ),
@@ -160,6 +163,35 @@ class FishJournalCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Confirmer la suppression'),
+            content: const Text(
+              'Voulez-vous vraiment supprimer cette entrée ?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Annuler'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  onDelete();
+                },
+                child: const Text(
+                  'Supprimer',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
+          ),
     );
   }
 }

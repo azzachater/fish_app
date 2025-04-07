@@ -1,92 +1,116 @@
-import 'package:fish_app/controller/task_controller.dart';
+import 'package:fish_app/models/fishingJournal.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'journal_controller.dart';
 
 class AddJournalController extends GetxController {
-  // États observables (conservés comme dans votre version)
-  var selectedDate = DateTime.now().obs;
-  var fromTime = Rx<TimeOfDay?>(null);
-  var toTime = Rx<TimeOfDay?>(null);
-  var descriptionController = TextEditingController();
+  // Contrôleurs de texte
+  final titleController = TextEditingController();
+  final locationController = TextEditingController();
+  final speciesController = TextEditingController();
+  final conditionsController = TextEditingController();
+  final notesController = TextEditingController();
 
-  // Sauvegarder le journal (adapté pour le système de dates)
-  void saveJournal() {
-    final dateKey = DateFormat('yyyy-MM-dd').format(selectedDate.value);
-    final timeKey =
-        fromTime.value != null
-            ? "${fromTime.value!.hour}:${fromTime.value!.minute}"
-            : DateFormat('HH:mm').format(DateTime.now());
+  // Sélecteurs de date/heure
+  final selectedDate = DateTime.now().obs;
+  final selectedTime = TimeOfDay.now().obs;
+  final isEditing = false.obs;
+  String? editId;
 
-    if (descriptionController.text.isNotEmpty) {
-      final newJournal = {
-        "title": "Pêche du ${DateFormat('dd/MM').format(selectedDate.value)}",
-        "description": descriptionController.text,
-        "status": "Enregistré",
-        "icon": _getIconForTime(fromTime.value),
-        "date": dateKey,
-        "time": timeKey,
-      };
-
-      Get.find<TaskController>().addTask(newJournal);
-      descriptionController.clear();
-
-      Get.back(result: newJournal);
-      Get.snackbar(
-        'Succès',
-        'Journal enregistré pour le ${DateFormat('dd/MM/yyyy').format(selectedDate.value)}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-    } else {
-      Get.snackbar(
-        'Erreur',
-        'Veuillez entrer une description',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+  @override
+  void onInit() {
+    super.onInit();
+    final args = Get.arguments;
+    if (args != null) {
+      _initEditData(args as Map<String, dynamic>);
     }
   }
 
-  // Méthode pour choisir l'icône en fonction de l'heure
-  String _getIconForTime(TimeOfDay? time) {
-    if (time == null) return "🎣";
-    return time.hour < 6
-        ? "🌙"
-        : time.hour < 12
-        ? "🌅"
-        : time.hour < 18
-        ? "☀️"
-        : "🌄";
+  void _initEditData(Map<String, dynamic> entry) {
+    isEditing.value = true;
+    editId = entry['id'];
+    titleController.text = entry['title'];
+    locationController.text = entry['location'];
+    speciesController.text = entry['species_caught'];
+    conditionsController.text = entry['fishing_conditions'];
+    notesController.text = entry['notes'];
+    selectedDate.value = DateFormat('yyyy-MM-dd').parse(entry['date']);
+    selectedTime.value = _parseTime(entry['time']);
   }
 
-  // Conservez vos méthodes selectDate et selectTime existantes
-  Future<void> selectTime(BuildContext context, bool isFrom) async {
-    final initialTime = TimeOfDay.now();
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-    );
-    if (picked != null) {
-      if (isFrom) {
-        fromTime.value = picked;
-      } else {
-        toTime.value = picked;
-      }
-    }
+  TimeOfDay _parseTime(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
-  void selectDate(BuildContext context) async {
+  Future<void> selectDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: selectedDate.value,
-      firstDate: DateTime(2020),
+      firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
     if (picked != null) {
       selectedDate.value = picked;
     }
+  }
+
+  Future<void> selectTime(BuildContext context) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: selectedTime.value,
+    );
+    if (picked != null) {
+      selectedTime.value = picked;
+    }
+  }
+
+  void saveJournal() {
+    if (!_validateFields()) return;
+
+    final journalData = FishingJournal(
+      id: editId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      title: titleController.text,
+      location: locationController.text,
+      speciesCaught: speciesController.text,
+      fishingConditions: conditionsController.text,
+      notes: notesController.text,
+      date: DateFormat('yyyy-MM-dd').format(selectedDate.value),
+      time: '${selectedTime.value.hour}:${selectedTime.value.minute}',
+    );
+
+    final journalController = Get.find<JournalController>();
+    if (isEditing.value) {
+      journalController.updateEntry(editId!, journalData);
+    } else {
+      journalController.addEntry(journalData);
+    }
+
+    Get.back(result: journalData);
+  }
+
+  bool _validateFields() {
+    if (titleController.text.isEmpty || locationController.text.isEmpty) {
+      Get.snackbar(
+        'Champs requis',
+        'Veuillez remplir tous les champs obligatoires',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  void onClose() {
+    titleController.dispose();
+    locationController.dispose();
+    speciesController.dispose();
+    conditionsController.dispose();
+    notesController.dispose();
+    super.onClose();
   }
 }

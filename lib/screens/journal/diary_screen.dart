@@ -1,13 +1,14 @@
+import 'package:fish_app/controller/journal_controller.dart';
+import 'package:fish_app/models/fishingJournal.dart';
+import 'package:fish_app/screens/journal/add_journal_page.dart';
 import 'package:fish_app/screens/journal/data_selector.dart';
 import 'package:fish_app/screens/journal/fish_journal_card.dart';
 import 'package:fish_app/screens/journal/journal_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:fish_app/controller/journal_controller.dart';
-import 'package:fish_app/screens/journal/add_journal_page.dart';
 
 class JournalScreen extends StatelessWidget {
-  final JournalController journalController = Get.put(JournalController());
+  final JournalController controller = Get.find<JournalController>();
 
   JournalScreen({super.key});
 
@@ -22,7 +23,7 @@ class JournalScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Expanded(
             child: Obx(() {
-              final entries = journalController.filteredEntries;
+              final entries = controller.filteredEntries;
               if (entries.isEmpty) {
                 return _buildEmptyState();
               }
@@ -47,12 +48,12 @@ class JournalScreen extends StatelessWidget {
           Icon(Icons.note_add, size: 60, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            'No entries for this date',
+            'Aucune entrée pour cette date',
             style: TextStyle(fontSize: 18, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
-            'Tap + to add a new fishing journal',
+            'Appuyez sur + pour ajouter une entrée',
             style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
@@ -60,7 +61,7 @@ class JournalScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildJournalList(List<Map<String, dynamic>> entries) {
+  Widget _buildJournalList(List<FishingJournal> entries) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: entries.length,
@@ -68,17 +69,20 @@ class JournalScreen extends StatelessWidget {
         final entry = entries[index];
         return FishJournalCard(
           entry: entry,
-          onDelete: () => journalController.deleteEntry(entry['id']),
+          onDelete: () => controller.deleteEntry(entry.id),
           onEdit: () => _navigateToEdit(entry),
         );
       },
     );
   }
 
-  void _navigateToEdit(Map<String, dynamic> entry) async {
-    final result = await Get.to(() => AddJournalPage(entry: entry));
+  void _navigateToEdit(FishingJournal entry) async {
+    final result = await Get.to<FishingJournal?>(
+      () => AddJournalPage(entry: entry),
+    );
+
     if (result != null) {
-      journalController.updateEntry(entry['id'], result);
+      controller.updateEntry(entry.id, result);
     }
   }
 }
