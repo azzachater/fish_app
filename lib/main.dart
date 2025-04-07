@@ -1,3 +1,5 @@
+import 'package:fish_app/controllers/profile_controller.dart';
+import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/screens/auth/signup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,12 +11,14 @@ import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/event_journal_controller.dart';
 import 'package:fish_app/controller/favorite_controller.dart';
 
-
 void main() {
   Get.put(AuthController()); // Initialisation correcte du controller
    Get.put(CartController());
    Get.put(FavoriteController());
    Get.put(() => JournalController());
+   // Important : met UserController AVANT ProfileController
+  Get.put(UserController());
+  Get.put(ProfileController());
   runApp(const MyApp());
 }
 

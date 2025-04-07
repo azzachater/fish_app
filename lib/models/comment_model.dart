@@ -23,7 +23,7 @@ class Comment {
     id: json['id'].toString(),
     user: json.containsKey('user') && json['user'] != null
         ? User.fromJson(json['user'])
-        : User(id: 0, name: "Unknown", avatar: '', email: '', password: '', bio: '', passwordConfirmation: ''), // ✅ Empêche l'erreur si `user` est null
+        : User(id: 0, name: "Unknown",email: '', avatar: '', bio: ''), // ✅ Empêche l'erreur si `user` est null
     content: json['content'] ?? '',
     timestamp: json['created_at'] ?? '',
     postId: json['post_id'].toString(),

@@ -1,70 +1,60 @@
 class User {
   final int id;
   String name;
-  String avatar;
   String email;
-  String password;
-  String passwordConfirmation;
-  String bio;
   String? token;
+  String avatar;
+  String bio;
 
   User({
     required this.id,
     required this.name,
-    required this.avatar,
     required this.email,
-    required this.password,
-    required this.passwordConfirmation,
-    required this.bio,
     this.token,
+    required this.avatar,
+    required this.bio,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
-  return User(
-    id: int.tryParse(json['id'].toString()) ?? 0, // Convertir id en int
-    name: json['name'] ?? '',
-    avatar: json['avatar'] ?? '',
-    email: json['email'] ?? '',
-    password: json['password'] ?? '',
-    passwordConfirmation: json['password_confirmation'] ?? '',
-    bio: json['bio'] ?? '',
-    token: json['token'],
-  );
-}
+    // Extrait les données du profil si elles existent
+    final profile = json['profile'] is Map ? json['profile'] : {};
+    
+    return User(
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      name: json['name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      token: json['token']?.toString(),
+      avatar: profile['avatar']?.toString() ?? 'assets/images/cover_default_image.png',
+      bio: profile['bio']?.toString() ?? 'je suis un pecheur et sa c est mon profile..!',
+    );
+  }
 
-
-  // 🔥 **Ajout de la méthode toJson**
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
-      'avatar': avatar,
       'email': email,
-      'password': password, // Attention : éviter d'inclure le mot de passe en clair
-      'password_confirmation': passwordConfirmation,
-      'bio': bio,
       'token': token,
+      'avatar': avatar,
+      'bio': bio,
     };
   }
 
   User copyWith({
-    String? avatar,
-    String? bio,
+    int? id,
     String? name,
     String? email,
-    String? password,
-    String? passwordConfirmation,
     String? token,
+    String? avatar,
+    String? bio,
   }) {
     return User(
-      id: id,
+      id: id ?? this.id,
       name: name ?? this.name,
-      avatar: avatar ?? this.avatar,
       email: email ?? this.email,
-      password: password ?? this.password,
-      passwordConfirmation: passwordConfirmation ?? this.passwordConfirmation,
-      bio: bio ?? this.bio,
       token: token ?? this.token,
+      avatar: avatar ?? this.avatar,
+      bio: bio ?? this.bio,
     );
   }
 }

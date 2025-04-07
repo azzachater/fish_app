@@ -28,8 +28,8 @@ class UsersProfileHeader extends StatelessWidget {
           Container(
             height: 200,
             decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(user.avatar), // Utilisation de l'avatar comme couverture
+              image: const DecorationImage(
+                image: AssetImage('assets/images/cover_default_image.png'),
                 fit: BoxFit.cover,
               ),
             ),

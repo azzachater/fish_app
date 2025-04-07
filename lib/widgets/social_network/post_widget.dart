@@ -177,7 +177,7 @@ class PostWidget extends StatelessWidget {
                     const Text('Comment', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
-                Row(
+                /*Row(
                   children: [
                     IconButton(
                       icon: const Icon(FontAwesomeIcons.share, color: Colors.grey),
@@ -186,7 +186,7 @@ class PostWidget extends StatelessWidget {
                     const SizedBox(width: 4),
                     const Text('Share', style: TextStyle(color: Colors.grey)),
                   ],
-                ),
+                ),*/
               ],
             ),
           ),

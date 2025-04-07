@@ -1,41 +1,63 @@
 import 'package:get/get.dart';
 import '../../models/user_model.dart';
-import 'package:fish_app/data/user_data.dart'; // Importation de la liste des utilisateurs
+import 'user_controller.dart';
 
 class SearchProfileController extends GetxController {
-  // Liste des utilisateurs filtrés
+  final UserController _userController = Get.find<UserController>();
+
   var filteredUsers = <User>[].obs;
-
-  // Liste complète des utilisateurs (stockée dans users_data)
-  var allUsers = <User>[];
-
-  // État pour savoir si on est en mode recherche
   var isSearching = false.obs;
+  var isLoading = false.obs;
 
-  // Initialisation avec la liste complète des utilisateurs
   @override
   void onInit() {
     super.onInit();
-    allUsers = usersData; // Utiliser la liste des utilisateurs venant de 'user_data.dart'
-    filteredUsers.assignAll(allUsers); // Au départ, on montre tous les utilisateurs
+    fetchAllUsersFromController();
   }
 
-  // Fonction pour filtrer les utilisateurs en fonction du texte saisi
-  void filterUsers(String query) {
-    if (query.isEmpty) {
-      filteredUsers.assignAll(allUsers); // Réinitialiser la liste filtrée
-    } else {
-      filteredUsers.assignAll(allUsers.where((user) {
-        return user.name.toLowerCase().contains(query.toLowerCase());
-      }).toList());
+  void fetchAllUsersFromController() async {
+    try {
+      isLoading(true);
+
+      /// Appel le UserController pour charger les utilisateurs s'ils ne sont pas encore là
+      if (_userController.allUsers.isEmpty) {
+        await _userController.fetchAllUsers();
+      }
+
+      /// Tu copies la liste dans filteredUsers pour l'utiliser localement
+      filteredUsers.assignAll(_userController.allUsers);
+
+      /// 🔍 Ajoute des logs
+      print('📋 Utilisateurs récupérés via UserController :');
+      for (var user in filteredUsers) {
+        print('👤 ${user.name} - ${user.email}- Avatar: ${user.avatar}');
+      }
+    } catch (e) {
+      Get.snackbar('Erreur', 'Impossible de charger les utilisateurs');
+      print('❌ Erreur dans fetchAllUsersFromController: $e');
+    } finally {
+      isLoading(false);
     }
   }
 
-  // Fonction pour activer/désactiver la recherche
+  void filterUsers(String query) {
+    if (query.isEmpty) {
+      filteredUsers.assignAll(_userController.allUsers);
+    } else {
+      filteredUsers.assignAll(
+        _userController.allUsers.where(
+          (user) => user.name.toLowerCase().contains(query.toLowerCase()),
+        ).toList(),
+      );
+    }
+
+    print('🔎 Filtrage avec "$query", ${filteredUsers.length} résultats trouvés');
+  }
+
   void toggleSearch() {
     isSearching.value = !isSearching.value;
     if (!isSearching.value) {
-      filteredUsers.assignAll(allUsers);  // Réinitialiser la liste des utilisateurs
+      filteredUsers.assignAll(_userController.allUsers);
     }
   }
 }

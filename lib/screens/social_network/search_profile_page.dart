@@ -1,14 +1,14 @@
 import 'package:fish_app/controllers/search_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'user_profile_page.dart';  // Import de la page de profil
+import 'user_profile_page.dart';
 
 class SearchProfilePage extends StatelessWidget {
   const SearchProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final SearchProfileController controller = Get.put(SearchProfileController()); // Initialisation du contrôleur
+    final SearchProfileController controller = Get.put(SearchProfileController());
 
     return Scaffold(
       appBar: AppBar(
@@ -17,55 +17,64 @@ class SearchProfilePage extends StatelessWidget {
               ? TextField(
                   autofocus: true,
                   decoration: const InputDecoration(
-                    hintText: 'Search by name',
+                    hintText: 'Rechercher un utilisateur',
                     border: InputBorder.none,
                     prefixIcon: Icon(Icons.search),
                   ),
-                  onChanged: (query) {
-                    controller.filterUsers(query); // Filtrage des utilisateurs en temps réel
-                  },
+                  onChanged: controller.filterUsers,
+                  style: const TextStyle(color: Colors.white),
                 )
-              : const Text('Search Users');
+              : const Text('Rechercher un utilisateur');
         }),
         backgroundColor: Colors.blue,
         actions: [
           IconButton(
-            icon: Obx(() {
-              return controller.isSearching.value
-                  ? const Icon(Icons.cancel)
-                  : const Icon(Icons.search);
-            }),
-            onPressed: () {
-              controller.toggleSearch(); // Toggle de l'état de recherche
-            },
+            icon: Obx(() => Icon(
+                  controller.isSearching.value ? Icons.close : Icons.search,
+                  color: Colors.white,
+                )),
+            onPressed: controller.toggleSearch,
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Liste des utilisateurs filtrés
-          Expanded(
-            child: Obx(() {
-              return ListView.builder(
-                itemCount: controller.filteredUsers.length,
-                itemBuilder: (context, index) {
-                  final user = controller.filteredUsers[index];
-                  return ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: AssetImage(user.avatar),
-                    ),
-                    title: Text(user.name),
-                    onTap: () {
-                      // Lorsque l'utilisateur clique sur un autre utilisateur, naviguer vers son profil
-                      Get.to(UserProfilePage(user: user));  // Utilisation de GetX pour la navigation
-                    },
-                  );
-                },
-              );
-            }),
-          ),
-        ],
-      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.filteredUsers.isEmpty) {
+          return const Center(child: Text('Aucun utilisateur trouvé'));
+        }
+
+        return ListView.builder(
+          itemCount: controller.filteredUsers.length,
+          itemBuilder: (context, index) {
+            final user = controller.filteredUsers[index];
+            return ListTile(
+              leading: CircleAvatar(
+                radius: 25,
+                backgroundImage: _getAvatarImage(user.avatar),
+              ),
+              title: Text(
+                user.name,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              onTap: () {
+                Get.to(() => UserProfilePage(user: user));
+              },
+            );
+          },
+        );
+      }),
     );
+  }
+
+  /// 🔁 Fonction helper pour charger l’image avec fallback
+  ImageProvider _getAvatarImage(String? avatarUrl) {
+    if (avatarUrl != null && avatarUrl.isNotEmpty && avatarUrl.startsWith('http')) {
+      return NetworkImage(avatarUrl);
+    } else {
+      return const AssetImage('assets/images/default_avatar.png');
+    }
   }
 }

@@ -162,7 +162,7 @@ Future<String> getToken() async {
       if (data != null && data.containsKey('User') && data.containsKey('Token')) { 
         final user = User.fromJson(data['User']);
         final token = data['Token'].toString();
-
+print("🔎 User Data JSON: ${data['User']}");
         user.token = token;
         await _storage.write(key: 'token', value: token);
         print("Saved Token: $token");
