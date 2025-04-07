@@ -1,4 +1,6 @@
+import 'package:fish_app/screens/social_network/social_home_page.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String selectedView;
@@ -24,8 +26,8 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        onPressed: () {
-          Navigator.pop(context);
+        onPressed: () async {
+          await Get.offAll(() => SocialHomePage());
         },
         icon: const Icon(Icons.arrow_back, color: Colors.black),
       ),
