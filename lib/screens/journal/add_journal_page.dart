@@ -50,30 +50,27 @@ class AddJournalPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Date & Time Selectors
             _buildDateTimeSelector(context),
+
             const SizedBox(height: 20),
+            // Title Input
             _buildTextField('Title', _titleController),
+
             const SizedBox(height: 16),
+            // Location Input
             _buildTextField('Location', _locationController),
+
             const SizedBox(height: 16),
+            // Fish Type Input
             _buildTextField('Fish Type', _fishTypeController),
+
             const SizedBox(height: 16),
-            const Text(
-              'Description',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _descriptionController,
-              maxLines: 5,
-              decoration: InputDecoration(
-                hintText: 'Describe your fishing experience...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
+            // Description Input
+            _buildDescriptionField(),
+
             const SizedBox(height: 30),
+            // Save Button
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -97,6 +94,7 @@ class AddJournalPage extends StatelessWidget {
     );
   }
 
+  // Date & Time Selector
   Widget _buildDateTimeSelector(BuildContext context) {
     return Row(
       children: [
@@ -139,6 +137,7 @@ class AddJournalPage extends StatelessWidget {
     );
   }
 
+  // Text Input Field Builder
   Widget _buildTextField(String label, TextEditingController controller) {
     return TextField(
       controller: controller,
@@ -149,6 +148,29 @@ class AddJournalPage extends StatelessWidget {
     );
   }
 
+  // Description Input Field with custom styling
+  Widget _buildDescriptionField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Description',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _descriptionController,
+          maxLines: 5,
+          decoration: InputDecoration(
+            hintText: 'Describe your fishing experience...',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Date Selection Logic
   Future<void> _selectDate(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
@@ -161,6 +183,7 @@ class AddJournalPage extends StatelessWidget {
     }
   }
 
+  // Time Selection Logic
   Future<void> _selectTime(BuildContext context) async {
     final picked = await showTimePicker(
       context: context,
@@ -171,6 +194,7 @@ class AddJournalPage extends StatelessWidget {
     }
   }
 
+  // Save Journal Logic
   void _saveJournal(BuildContext context) {
     if (_titleController.text.isEmpty || _descriptionController.text.isEmpty) {
       Get.snackbar(
