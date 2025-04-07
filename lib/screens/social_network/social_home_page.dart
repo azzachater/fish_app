@@ -69,7 +69,7 @@ class SocialHomePage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const CreatePostWidget(),
+             CreatePostWidget(),
            Obx(() {
   // Trie les posts directement ici
   List<Post> sortedPosts = List.from(postController.posts)

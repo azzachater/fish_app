@@ -1,4 +1,4 @@
-import '../models/comment_model.dart';
+/*import '../models/comment_model.dart';
 import 'user_data.dart';
 
 final List<Comment> commentsForPost1 = [
@@ -203,3 +203,4 @@ final List<Comment> allComments = [
   ...commentsForPost9,
   ...commentsForPost10,
 ];
+*/

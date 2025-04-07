@@ -56,17 +56,19 @@ class UserController extends GetxController {
   }
 
   Future<User?> checkUser(String id) async {
-    try {
-      isLoading(true);
-      error('');
-      return await _apiUserService.checkUser(id);
-    } catch (e) {
-      error(e.toString());
-      Get.snackbar('Erreur', error.value,
-          snackPosition: SnackPosition.BOTTOM);
-      return null;
-    } finally {
-      isLoading(false);
-    }
+  try {
+    isLoading(true);
+    error('');
+    final user = await _apiUserService.checkUser(id);
+    return user;
+  } catch (e) {
+    error(e.toString());
+    Get.snackbar('Erreur', error.value,
+        snackPosition: SnackPosition.BOTTOM);
+    return null;
+  } finally {
+    isLoading(false);
   }
+}
+
 }

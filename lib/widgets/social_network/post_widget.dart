@@ -53,6 +53,19 @@ class PostWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("user name: ${post.user.name} - Avatar path:${post.user.avatar}");
+
+   ImageProvider _buildAvatarImage(String avatarPath) {
+  if (avatarPath.isEmpty) {
+    return const AssetImage('assets/images/cover_default_image.png');
+  } else if (avatarPath.startsWith('http')) {
+    return NetworkImage(avatarPath);
+  } else if (avatarPath.startsWith('assets/')) {
+    return AssetImage(avatarPath);
+  } else {
+    return FileImage(File(avatarPath));
+  }
+}
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -70,21 +83,16 @@ class PostWidget extends StatelessWidget {
         children: [
           ListTile(
             leading: CircleAvatar(
-              backgroundImage: post.user.avatar.isNotEmpty
-                  ? (post.user.avatar.startsWith('http') 
-                      ? NetworkImage(post.user.avatar) 
-                      : (post.user.avatar.startsWith('assets/') 
-                          ? AssetImage(post.user.avatar) 
-                          : FileImage(File(post.user.avatar)))) 
-                  : AssetImage('assets/images/default_avatar.png'), // Image par défaut si aucune image
-              radius: 22,
-            ),
+  radius: 22,
+  backgroundImage: _buildAvatarImage(post.user.avatar),
+),
+
             title: Text(
               post.user.name, // Affichage du nom de l'utilisateur
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
-              post.createdAt.toString(),
+              post.formattedTime,
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
             contentPadding: const EdgeInsets.all(10),

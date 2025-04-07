@@ -12,16 +12,16 @@ class ProfileHeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ImageProvider _buildImageProvider(String avatarPath) {
-  if (avatarPath.isEmpty) {
-    return AssetImage('assets/images/default_avatar.png'); // une image par défaut
-  } else if (avatarPath.startsWith('http')) {
-    return NetworkImage(avatarPath);
-  } else if (avatarPath.startsWith('assets/')) {
-    return AssetImage(avatarPath);
-  } else {
-    return FileImage(File(avatarPath));
-  }
-}
+      if (avatarPath.isEmpty) {
+        return AssetImage('assets/images/default_avatar.png');
+      } else if (avatarPath.startsWith('http')) {
+        return NetworkImage(avatarPath);
+      } else if (avatarPath.startsWith('assets/')) {
+        return AssetImage(avatarPath);
+      } else {
+        return FileImage(File(avatarPath));
+      }
+    }
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
@@ -47,15 +47,16 @@ class ProfileHeaderWidget extends StatelessWidget {
         }
 
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Cover Photo
             Container(
               height: 200,
-              decoration: BoxDecoration(
-                image:const DecorationImage(
-                image: AssetImage('assets/images/cover_default_image.png'),
-                fit: BoxFit.cover,
-              ),
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/cover_default_image.png'),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             Transform.translate(
@@ -63,29 +64,22 @@ class ProfileHeaderWidget extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start, // Aligné à gauche
                   children: [
-                    // Profile Picture
-                    Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        CircleAvatar(
-                          radius: 55,
-                          child: CircleAvatar(
-                                  radius: 55,
-                                      backgroundImage: _buildImageProvider(controller.user.value!.avatar),
-),
-                        ),
-                      ],
+                    // Profile Picture (aligné à gauche)
+                    CircleAvatar(
+                      radius: 55,
+                      backgroundImage: _buildImageProvider(controller.user.value!.avatar),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     // Name
                     Text(
                       controller.user.value!.name,
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.left,
                     ),
-                    SizedBox(height: 10),
-                    // Edit Profile Button
+                    const SizedBox(height: 10),
+                    // Edit Profile Button (aligné à gauche)
                     ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
@@ -99,16 +93,16 @@ class ProfileHeaderWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      icon: Icon(Icons.edit, color: Colors.white),
-                      label: Text(
+                      icon: const Icon(Icons.edit, color: Colors.white),
+                      label: const Text(
                         'Edit Profile',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     // Bio
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: const EdgeInsets.only(right: 16.0),
                       child: Text(
                         controller.user.value!.bio,
                         textAlign: TextAlign.left,

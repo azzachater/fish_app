@@ -24,7 +24,7 @@ class User {
       name: json['name']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
       token: json['token']?.toString(),
-      avatar: profile['avatar']?.toString() ?? 'assets/images/cover_default_image.png',
+      avatar: profile['avatar']?.toString() ?? 'assets/images/default_avatar.png',
       bio: profile['bio']?.toString() ?? 'je suis un pecheur et sa c est mon profile..!',
     );
   }

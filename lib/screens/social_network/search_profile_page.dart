@@ -38,12 +38,13 @@ class SearchProfilePage extends StatelessWidget {
         ],
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
         if (controller.filteredUsers.isEmpty) {
-          return const Center(child: Text('Aucun utilisateur trouvé'));
+          return const Center(
+            child: Text(
+              'Aucun utilisateur trouvé',
+              style: TextStyle(fontSize: 16),
+            ),
+          );
         }
 
         return ListView.builder(
@@ -57,7 +58,10 @@ class SearchProfilePage extends StatelessWidget {
               ),
               title: Text(
                 user.name,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               onTap: () {
                 Get.to(() => UserProfilePage(user: user));
@@ -69,12 +73,12 @@ class SearchProfilePage extends StatelessWidget {
     );
   }
 
-  /// 🔁 Fonction helper pour charger l’image avec fallback
   ImageProvider _getAvatarImage(String? avatarUrl) {
-    if (avatarUrl != null && avatarUrl.isNotEmpty && avatarUrl.startsWith('http')) {
+    if (avatarUrl != null && 
+        avatarUrl.isNotEmpty && 
+        avatarUrl.startsWith('http')) {
       return NetworkImage(avatarUrl);
-    } else {
-      return const AssetImage('assets/images/default_avatar.png');
     }
+    return const AssetImage('assets/images/default_avatar.png');
   }
 }

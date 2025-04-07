@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // Importation de GetX
-import '../../models/comment_model.dart'; // Importation du modèle Comment
 import '../../models/post_model.dart'; // Importation du modèle Post
-import '../../data/user_data.dart';  // Importation des données utilisateur
 import '../../controllers/comment_controller.dart'; // Importation du CommentController
 
 class CommentPage extends StatelessWidget {
@@ -40,11 +38,13 @@ class CommentPage extends StatelessWidget {
                     final comment = commentController.comments[index];
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: AssetImage(comment.user.avatar), // Correction de l'affichage
-                      ),
+  backgroundImage: comment.user.avatar.startsWith('http')
+      ? NetworkImage(comment.user.avatar)
+      : AssetImage(comment.user.avatar) as ImageProvider,
+),
                       title: Text(comment.user.name),
                       subtitle: Text(comment.content),
-                      trailing: Text(comment.timestamp),
+                      trailing: Text( comment.formattedTime),
                     );
                   },
                 );

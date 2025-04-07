@@ -61,23 +61,24 @@ class ApiUserService {
   }
 
   Future<User> checkUser(String id) async {
-    try {
-      final headers = await _authService.getAuthHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/checkUser/$id'),
-        headers: headers,
-      );
+  try {
+    final headers = await _authService.getAuthHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/user/$id'),
+      headers: headers,
+    );
 
-      if (response.statusCode == 200) {
-        return User.fromJson(jsonDecode(response.body));
-      } else if (response.statusCode == 404) {
-        throw Exception('Utilisateur non trouvé');
-      } else {
-        throw Exception('Échec de la vérification: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error in checkUser: $e');
-      rethrow;
+    if (response.statusCode == 200) {
+      return User.fromJson(jsonDecode(response.body));
+    } else if (response.statusCode == 404) {
+      throw Exception('Utilisateur non trouvé');
+    } else {
+      throw Exception('Échec de la vérification: ${response.statusCode}');
     }
+  } catch (e) {
+    print('Error in checkUser: $e');
+    rethrow;
   }
+}
+
 }
