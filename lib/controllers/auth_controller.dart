@@ -1,6 +1,5 @@
+import 'package:fish_app/service/api_auth_service.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../service/api_auth_service.dart';
 import '../models/user_model.dart';
 
 class AuthController extends GetxController {

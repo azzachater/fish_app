@@ -27,6 +27,7 @@ class CustomNavBar extends StatelessWidget {
             GButton(icon: Icons.home, text: 'Home'),
             GButton(icon: Icons.storefront_sharp, text: 'Marketplace'),
             GButton(icon: Icons.library_books, text: 'Diary'),
+            GButton(icon: Icons.analytics, text: 'Prévisions'),
             GButton(icon: Icons.account_circle, text: 'Profile'),
           ],
         ),

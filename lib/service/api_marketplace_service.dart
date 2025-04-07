@@ -7,7 +7,7 @@ import 'package:http_parser/http_parser.dart';
 
 class ApiProductService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.36:8000/api';
+  final String baseUrl = 'http://192.168.1.45:8000/api';
 
   // Headers for requests
   Map<String, String> get headers => {
@@ -70,59 +70,6 @@ class ApiProductService {
     }
   }
 
-  /*Future<Product> createProduct(Product product, {File? imageFile}) async {
-    try {
-      final headers = await _getAuthHeaders();
-
-      // Création de la requête multipart
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$baseUrl/products'),
-      );
-
-      // Ajout des headers
-      request.headers.addAll(headers);
-
-      // Ajout des champs texte
-      request.fields['name'] = product.name;
-      request.fields['description'] = product.description;
-      request.fields['price'] = product.price.toString();
-      request.fields['unit'] = product.unit;
-      request.fields['stock'] = product.stock.toString();
-      request.fields['category'] = product.category;
-
-      // Ajout du fichier image si fourni
-      if (imageFile != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'image',
-            imageFile.path,
-            contentType: MediaType(
-              'image',
-              'jpeg',
-            ), // Adaptez selon le type d'image
-          ),
-        );
-      }
-
-      // Envoi de la requête
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final Map<String, dynamic> responseData = jsonDecode(responseBody);
-        return Product.fromJson(responseData);
-      } else {
-        throw Exception(
-          _handleError(http.Response(responseBody, response.statusCode)),
-        );
-      }
-    } catch (e) {
-      print('❌ Error creating product: $e');
-      throw Exception(e.toString());
-    }
-  }*/
-  // Utilisez cette version de createProduct (multipart)
   Future<Product> createProduct(
     Product product, {
     required File imageFile,

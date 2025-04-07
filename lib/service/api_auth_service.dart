@@ -7,7 +7,7 @@ class ApiAuthService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   FlutterSecureStorage get storage => _storage;
 
-  final String baseUrl = 'http://192.168.1.36:8000/api';
+  final String baseUrl = 'http://192.168.1.45:8000/api';
 
   Map<String, String> get _headers => {
     'Accept': 'application/json',

@@ -1,81 +1,110 @@
+import 'package:fish_app/screens/event/event_page.dart';
+import 'package:fish_app/service/api_event_service.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/event.dart';
 
 class EventController extends GetxController {
   var events = <Event>[].obs;
+  var isLoading = false.obs; // Nouvel état de chargement
+  final ApiEventService _eventService = ApiEventService();
 
   @override
   void onInit() {
     super.onInit();
-    // Ajouter des événements par défaut
-    addDefaultEvents();
+    fetchEvents();
   }
 
-  // Méthode pour ajouter des événements par défaut
-  void addDefaultEvents() {
-    events.addAll([
-      Event(
-        title: 'Pêche au matin',
-        date: '2025-03-28',
-        location: 'Lac de Tunis',
-        description: 'Un événement pour tous les passionnés.',
-        participants: ['Alice', 'Bob'],
-      ),
-      Event(
-        title: 'Compétition de pêche',
-        date: '2025-04-05',
-        location: 'Plage de Hammamet',
-        description: 'Venez participer à une compétition excitante.',
-        participants: ['Jean', 'Sarah'],
-      ),
-      Event(
-        title: 'Sortie pêche relax',
-        date: '2025-04-10',
-        location: 'Île de Djerba',
-        description: 'Détente et pêche entre amis.',
-        participants: ['Marc', 'Chloé'],
-      ),
-    ]);
-  }
-
-  // Méthode pour rejoindre un événement
-  void joinEvent(int index, String user) {
-    if (!events[index].participants.contains(user)) {
-      events[index].participants.add(user);
-      events.refresh(); // Mise à jour de l'UI
+  Future<void> fetchEvents() async {
+    try {
+      isLoading(true);
+      final fetchedEvents = await _eventService.getEvents();
+      events.assignAll(fetchedEvents);
+    } catch (e) {
+      Get.snackbar('Erreur', 'Échec du chargement des événements');
+      print('❌ fetchEvents error: $e');
+    } finally {
+      isLoading(false);
     }
   }
 
-  // Méthode pour ajouter un événement
-  void addEvent(
-    String title,
-    String location,
-    String description,
-    String date,
-  ) {
-    if (title.isEmpty ||
-        location.isEmpty ||
-        description.isEmpty ||
-        date.isEmpty) {
-      Get.snackbar('Erreur', 'Tous les champs doivent être remplis !');
+  void joinEvent(int index, String userAvatarUrl) async {
+    final event = events[index];
+
+    if (!event.participants.contains(userAvatarUrl)) {
+      try {
+        // Créez une nouvelle liste de participants
+        final updatedParticipants = [...event.participants, userAvatarUrl];
+
+        // Créez un événement mis à jour
+        final updatedEvent = Event(
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          location: event.location,
+          date: event.date, // Conservez la date originale
+          participants: updatedParticipants,
+        );
+
+        // Envoyez la mise à jour à l'API
+        final saved = await _eventService.updateEvent(updatedEvent);
+
+        // Mettez à jour la liste locale
+        events[index] = saved;
+
+        Get.snackbar('Succès', 'Participation enregistrée');
+      } catch (e) {
+        Get.snackbar('Erreur', 'Échec de la participation: ${e.toString()}');
+        print('❌ joinEvent error: $e');
+      }
+    } else {
+      Get.snackbar('Info', 'Vous participez déjà');
+    }
+  }
+
+  Future<void> addEvent({
+    required String title,
+    required String location,
+    required String description,
+    required DateTime date,
+  }) async {
+    if (title.isEmpty || location.isEmpty) {
+      Get.snackbar('Erreur', 'Titre et lieu sont obligatoires');
       return;
     }
 
-    Event newEvent = Event(
-      title: title,
-      location: location,
-      description: description,
-      date: date,
-      participants: [],
-    );
-    events.add(newEvent);
-    Get.snackbar('Événement ajouté', 'L\'événement a été ajouté avec succès!');
+    try {
+      isLoading(true);
+      final newEvent = Event(
+        title: title,
+        location: location,
+        description: description,
+        date: date,
+        participants: [],
+      );
+
+      final createdEvent = await _eventService.createEvent(newEvent);
+      events.add(createdEvent);
+
+      await Get.offAll(() => EventPage());
+      Get.snackbar('Succès', 'Événement créé');
+    } catch (e) {
+      Get.snackbar('Erreur', 'Échec de la création: ${e.toString()}');
+    } finally {
+      isLoading(false);
+    }
   }
 
-  // Méthode pour supprimer un événement
-  void deleteEvent(int index) {
-    events.removeAt(index);
-    events.refresh();
-    Get.snackbar('Événement supprimé', 'L\'événement a été supprimé.');
+  Future<void> deleteEvent(String eventId) async {
+    try {
+      isLoading(true);
+      await _eventService.deleteEvent(eventId);
+      events.removeWhere((e) => e.id == eventId);
+      Get.snackbar('Succès', 'Événement supprimé');
+    } catch (e) {
+      Get.snackbar('Erreur', 'Échec de la suppression: ${e.toString()}');
+      print('❌ deleteEvent error: $e');
+    } finally {
+      isLoading(false);
+    }
   }
 }

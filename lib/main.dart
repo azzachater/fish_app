@@ -1,10 +1,12 @@
 import 'package:fish_app/controller/add_cart_controller.dart';
 import 'package:fish_app/controller/add_journal_controller.dart';
+import 'package:fish_app/controller/forecast_controller.dart';
 import 'package:fish_app/controllers/auth_controller.dart';
 import 'package:fish_app/controller/event_controller.dart';
 import 'package:fish_app/controller/journal_controller.dart';
 import 'package:fish_app/controller/task_controller.dart';
 import 'package:fish_app/screens/Authentification/signup_page.dart';
+import 'package:fish_app/screens/forecast/forecast_view.dart';
 import 'package:fish_app/screens/marketplace/product_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -23,6 +25,7 @@ void main() {
   Get.put(AddJournalController());
   Get.put(CartControllerX());
   Get.put(JournalController());
+  Get.put(ForecastController());
   runApp(const MyApp());
 }
 
@@ -45,6 +48,7 @@ class MyApp extends StatelessWidget {
           name: '/product',
           page: () => ProductDetailPage(product: Get.arguments),
         ),
+        GetPage(name: '/forecast', page: () => ForecastView()),
       ],
     );
   }

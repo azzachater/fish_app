@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class MapService {
   // Pour émulateur Android:
-  final String baseUrl = "http://192.168.1.24/api/spots";
+  final String baseUrl = "http://192.168.1.45:8000/spots";
 
   // Pour appareil physique (remplacez par l'IP de votre machine):
   // final String baseUrl = "http://192.168.x.x:8000/api/spots";
