@@ -23,27 +23,34 @@ class Post {
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
-    try {
-      return Post(
-        id: json['id'].toString(),
-        user: User.fromJson(json['user']),
-        createdAt: json['created_at'] != null
-            ? DateTime.parse(json['created_at'])
-            : DateTime.now(),
-        postText: json['post_text']?.toString() ?? '',
-        postImage: json['post_image']?.toString() ?? '',
-        likeCount: (json['like_count'] is int) ? json['like_count'] : int.tryParse(json['like_count'].toString()) ?? 0,
-        isLiked: json['is_liked'] == true,
-        comments: (json['comments'] as List<dynamic>? ?? [])
-            .map((comment) => Comment.fromJson(comment))
-            .toList(),
-      );
-    } catch (e) {
-      print("🚨 Error in Post.fromJson: $e");
-      print("⚠️ Problematic JSON: $json");
-      rethrow;
-    }
+  try {
+    // Extrait les données de l'utilisateur
+    final userJson = json['user'] is Map ? json['user'] : {};
+    final avatar = userJson['avatar']?.toString() ?? ''; // Prend directement 'avatar' depuis user
+
+    return Post(
+      id: json['id'].toString(),
+      user: User(
+        id: int.tryParse(userJson['id']?.toString() ?? '0') ?? 0,
+        name: userJson['name']?.toString() ?? 'Inconnu',
+        email: '', // Non fourni par l'API dans les posts
+        token: null,
+        avatar: avatar, // Utilise le champ 'avatar' de l'API
+        bio: '', // Non fourni par l'API dans les posts
+      ),
+      createdAt: DateTime.parse(json['created_at']),
+      postText: json['post_text'] ?? '',
+      postImage: json['post_image'] ?? '',
+      likeCount: json['like_count'] ?? 0,
+      isLiked: json['is_liked'] ?? false,
+      comments: [], // Non fourni par l'API dans les posts
+    );
+  } catch (e) {
+    print("🚨 Error parsing Post: $e");
+    print("🛑 JSON: $json");
+    rethrow;
   }
+}
 
   // Méthode pour formater le temps comme Facebook
   String get formattedTime {

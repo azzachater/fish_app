@@ -17,18 +17,25 @@ class PostController extends GetxController {
   }
 
   Future<void> fetchPosts() async {
-    try {
-      isLoading.value = true;
-      error.value = "";
-      final fetchedPosts = await _apiPostService.getPosts();
-      posts.value = fetchedPosts;
-    } catch (e) {
-      print("error fetching posts: $e");
-      error.value = e.toString();
-    } finally {
-      isLoading.value = false;
+  try {
+    isLoading.value = true;
+    final fetchedPosts = await _apiPostService.getPosts();
+    print("✅ Posts reçus : ${fetchedPosts.length}");
+    
+    for (var post in fetchedPosts) {
+      print("📌 Post ID: ${post.id}");
+      print("👤 User: ${post.user.name}");
+      print("🖼️ Avatar: ${post.user.avatar}");
     }
+    
+    posts.value = fetchedPosts;
+  } catch (e) {
+    print("❌ Erreur: $e");
+    error.value = "Impossible de charger les posts";
+  } finally {
+    isLoading.value = false;
   }
+}
 
   Future<void> createPost(String postText, String postImage) async {
   try {
