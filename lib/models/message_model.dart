@@ -21,7 +21,7 @@ class Message {
       content: json['content'] ?? '',
       createdAt: DateTime.parse(json['created_at']),
       isRead: json['is_read'] ?? false,
-      sender: User.fromJson(json['sender']),
+      sender: User.fromJson(json['sender'] ?? {}),
     );
   }
 }

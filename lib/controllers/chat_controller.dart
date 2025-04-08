@@ -95,42 +95,40 @@ class ChatController extends GetxController {
   }
 
   Future<void> sendMessage(String content, int receiverId) async {
-    try {
-      isLoading(true);
+  try {
+    isLoading(true);
+    
+    // Send to server and wait for response
+    final response = await _apiChatService.sendMessage(receiverId, content);
+    
+    // Safely handle the response
+    if (response.containsKey('data') && response['data'] is Map<String, dynamic>) {
+      final messageData = response['data'] as Map<String, dynamic>;
       
-      // Envoyer le message
-      final json = await _apiChatService.sendMessage(receiverId, content);
-      final message = Message.fromJson(json['data']);
-      
-      // Ajouter le message à la liste actuelle
-      conversationMessages.insert(0, message);
-      
-      // Recharger la liste des conversations
-      await loadConversations();
-      
-      // Trouver la conversation mise à jour
-      final updatedConversation = conversations.firstWhere(
-        (conv) => conv.userOne.id == receiverId || conv.userTwo.id == receiverId,
-        orElse: () => Conversation(
-          id: -1, // Temporaire en attendant la vraie conversation
-          userOne: currentUser.value!,
-          userTwo: allUsers.firstWhere((u) => u.id == receiverId),
-          messages: [message],
-        ),
+      // Ensure the message is attributed to current user
+      final serverMessage = Message(
+        id: messageData['id'] as int,
+        content: messageData['content'] as String,
+        createdAt: DateTime.parse(messageData['created_at'] as String),
+        isRead: false,
+        sender: currentUser.value!, // Force current user as sender
       );
       
-      // Recharger les messages si c'est une nouvelle conversation
-      if (updatedConversation.id != -1) {
-        await loadMessages(updatedConversation.id);
-      }
-    } catch (e) {
-      print('Error sending message: $e');
-      Get.snackbar('Error', 'Failed to send message');
-    } finally {
-      isLoading(false);
+      conversationMessages.insert(0, serverMessage);
+      
+      // Update conversations list
+      await loadConversations();
+    } else {
+      throw Exception('Invalid message data format');
     }
+    
+  } catch (e) {
+    print('Error sending message: $e');
+    Get.snackbar('Error', 'Failed to send message: ${e.toString()}');
+  } finally {
+    isLoading(false);
   }
-
+}
   void filterUsers(String query) {
     if (query.isEmpty) {
       filteredUsers.assignAll(allUsers.where((u) => u.id != currentUser.value?.id));

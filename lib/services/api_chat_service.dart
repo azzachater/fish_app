@@ -50,24 +50,30 @@ class ApiChatService {
 
 
   Future<Map<String, dynamic>> sendMessage(int receiverId, String content) async {
-    try {
-      final headers = await _authService.getAuthHeaders();
-      headers['Content-Type'] = 'application/json';
+  try {
+    final headers = await _authService.getAuthHeaders();
+    headers['Content-Type'] = 'application/json';
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/message/send/$receiverId'),
-        headers: headers,
-        body: jsonEncode({'content': content}),
-      );
+    final response = await http.post(
+      Uri.parse('$baseUrl/message/send/$receiverId'),
+      headers: headers,
+      body: jsonEncode({'content': content}),
+    );
 
-      if (response.statusCode == 201) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Failed to send message');
+    print("Send message response: ${response.statusCode} - ${response.body}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseBody = jsonDecode(response.body);
+      if (responseBody is! Map<String, dynamic>) {
+        throw Exception('Invalid response format');
       }
-    } catch (e) {
-      print('sendMessage error: $e');
-      rethrow;
+      return responseBody;
+    } else {
+      throw Exception('Failed to send message: ${response.statusCode}');
     }
+  } catch (e) {
+    print('sendMessage error: $e');
+    rethrow;
   }
+}
 }

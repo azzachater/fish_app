@@ -163,12 +163,16 @@ class ChatRoom extends StatelessWidget {
                 }),
               ),
             ),
-            ChatComposer(
-              user: user, // Ajout du paramètre user manquant
-              onSendMessage: (text) {
-                chatController.sendMessage(text, user.id);
-              },
-            ),
+           ChatComposer(
+  user: user,
+  onSendMessage: (text) async {
+    try {
+      await chatController.sendMessage(text, user.id);
+    } catch (e) {
+      //
+    }
+  },
+),
           ],
         ),
       ),
