@@ -1,4 +1,4 @@
-import '../models/message_model.dart';
+/*import '../models/message_model.dart';
 import 'user_data.dart';
 
 
@@ -322,4 +322,4 @@ void markMessageAsRead(int index) {
   final Message message = recentChatsData[index];
   final Message updatedMessage = message.copyWith(isRead: true, unreadCount: 0);
   recentChatsData[index] = updatedMessage;
-}
+}*/

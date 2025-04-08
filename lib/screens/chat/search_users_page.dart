@@ -1,27 +1,36 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../screens/chat/chat_room.dart';
 import '../../constants/theme.dart';
-import 'package:fish_app/controllers/chat_controller.dart';
+import '../../controllers/chat_controller.dart';
 
 class SearchUsersPage extends StatelessWidget {
   const SearchUsersPage({super.key});
+
+  ImageProvider _buildImageProvider(String avatarPath) {
+    if (avatarPath.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    } else if (avatarPath.startsWith('http')) {
+      return NetworkImage(avatarPath);
+    } else if (avatarPath.startsWith('assets/')) {
+      return AssetImage(avatarPath);
+    } else {
+      return FileImage(File(avatarPath));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final chatController = Get.find<ChatController>();
     final searchController = TextEditingController();
 
-    // Réinitialiser les utilisateurs lorsqu'on entre dans la page
-    chatController.filterUsers(""); 
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context); // Retour à la page précédente
-          },
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
         ),
         title: TextField(
           controller: searchController,
@@ -30,36 +39,34 @@ class SearchUsersPage extends StatelessWidget {
             hintStyle: TextStyle(color: Colors.white.withAlpha(179)),
             border: InputBorder.none,
           ),
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
           onChanged: (value) {
-            chatController.filterUsers(value); // Filtrer les utilisateurs en fonction de la saisie
+            chatController.filterUsers(value);
           },
         ),
         backgroundColor: AppTheme.primaryColor,
       ),
       body: Obx(() {
+        if (chatController.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         return ListView.builder(
-          itemCount: chatController.filteredUsers.length, // Utiliser la liste filtrée de GetX
+          itemCount: chatController.filteredUsers.length,
           itemBuilder: (context, index) {
             final user = chatController.filteredUsers[index];
             return ListTile(
-              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               leading: CircleAvatar(
                 radius: 25,
-                backgroundImage: AssetImage(user.avatar), // Photo de profil
+                backgroundImage: _buildImageProvider(user.avatar),
               ),
               title: Text(
                 user.name,
                 style: AppTheme.heading2.copyWith(fontSize: 16),
               ),
               onTap: () {
-                // Naviguer vers la page de chat avec l'utilisateur sélectionné
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatRoom(user: user),
-                  ),
-                );
+                Get.to(() => ChatRoom(user: user));
               },
             );
           },

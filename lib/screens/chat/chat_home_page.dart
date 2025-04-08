@@ -52,7 +52,7 @@ class ChatHomePage extends StatelessWidget {
                       controller: tabBarController.tabController,
                       children: [
                         ChatPage(),
-                        GroupPage(),
+                        //GroupPage(),
                       ],
                     ),
                   ),
@@ -66,9 +66,9 @@ class ChatHomePage extends StatelessWidget {
         onPressed: () {
           if (tabBarController.currentTabIndex.value == 0) {
             Get.to(SearchUsersPage());
-          } else {
-            Get.to(CreateSearchGroup());
-          }
+          } //else {
+            //Get.to(CreateSearchGroup());
+          //}
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),

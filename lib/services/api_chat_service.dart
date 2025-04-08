@@ -27,24 +27,27 @@ class ApiChatService {
   }
 
   Future<Map<String, dynamic>> getMessages(int conversationId) async {
-    try {
-      final headers = await _authService.getAuthHeaders();
+  try {
+    final headers = await _authService.getAuthHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/conversations/$conversationId'),
+      headers: headers,
+    );
 
-      final response = await http.get(
-        Uri.parse('$baseUrl/conversations/$conversationId'),
-        headers: headers,
-      );
+    print("Réponse de l'API : ${response.body}"); // Log de la réponse brute
 
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Failed to load messages');
-      }
-    } catch (e) {
-      print('getMessages error: $e');
-      rethrow;
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load messages');
     }
+  } catch (e) {
+    print('getMessages error: $e');
+    rethrow;
   }
+}
+
+
 
   Future<Map<String, dynamic>> sendMessage(int receiverId, String content) async {
     try {

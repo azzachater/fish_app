@@ -1,4 +1,4 @@
-// lib/views/group_chat/group_chat_page.dart
+/*// lib/views/group_chat/group_chat_page.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../models/group_model.dart';
@@ -99,4 +99,4 @@ class GroupChatPage extends StatelessWidget {
       ),
     );
   }
-}
+}*/

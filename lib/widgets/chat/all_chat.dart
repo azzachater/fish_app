@@ -1,20 +1,35 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../controllers/chat_controller.dart';
 import '../../screens/chat/chat_room.dart';
 import '../../constants/theme.dart';
 
 class AllChats extends StatelessWidget {
-final ChatController chatController = Get.put(ChatController());
+  final ChatController chatController = Get.put(ChatController());
 
    AllChats({super.key});
+
+  ImageProvider _buildImageProvider(String avatarPath) {
+    if (avatarPath.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    } else if (avatarPath.startsWith('http')) {
+      return NetworkImage(avatarPath);
+    } else if (avatarPath.startsWith('assets/')) {
+      return AssetImage(avatarPath);
+    } else {
+      return FileImage(File(avatarPath));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Container(
-          padding: EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.only(top: 10),
           child: Row(
             children: [
               Text(
@@ -24,52 +39,79 @@ final ChatController chatController = Get.put(ChatController());
             ],
           ),
         ),
-        Obx(() => ListView.builder(
-              shrinkWrap: true,
-              physics: ScrollPhysics(),
-              itemCount: chatController.allChats.length,
-              itemBuilder: (context, int index) {
-                final allChat = chatController.allChats[index];
-                return GestureDetector(
-                  onTap: () {
-                    chatController.markMessageAsRead(index, false);
-                    Get.to(() => ChatRoom(user: allChat.sender));
-                  },
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      radius: 28,
-                      backgroundImage: AssetImage(allChat.avatar),
-                    ),
-                    title: Text(
-                      allChat.sender.name,
-                      style: AppTheme.heading2.copyWith(fontSize: 16),
-                    ),
-                    subtitle: Text(allChat.text, style: AppTheme.bodyText1),
-                    trailing: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        allChat.unreadCount == 0
-                            ? Icon(Icons.done_all, color: AppTheme.bodyTextTime.color)
-                            : CircleAvatar(
-                                radius: 8,
-                                backgroundColor: AppTheme.unreadChatBG,
-                                child: Text(
-                                  allChat.unreadCount.toString(),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+        Obx(() {
+          final currentUser = chatController.currentUser.value;
+          if (currentUser == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: chatController.conversations.length,
+            itemBuilder: (context, int index) {
+              final conversation = chatController.conversations[index];
+
+              // Déterminer l'autre utilisateur
+              final otherUser = (currentUser.id == conversation.userOne.id)
+                  ? conversation.userTwo
+                  : conversation.userOne;
+
+              final lastMessage = conversation.messages.isNotEmpty 
+                  ? conversation.messages.last 
+                  : null;
+
+              return GestureDetector(
+                onTap: () {
+                  chatController.loadMessages(conversation.id);
+                  Get.to(() => ChatRoom(user: otherUser));
+                },
+                child: ListTile(
+                  leading: CircleAvatar(
+                    radius: 28,
+                    backgroundImage: _buildImageProvider(otherUser.avatar),
+                  ),
+                  title: Text(
+                    otherUser.name,
+                    style: AppTheme.heading2.copyWith(fontSize: 16),
+                  ),
+                  subtitle: Text(
+                    lastMessage?.content ?? '',
+                    style: AppTheme.bodyText1,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      lastMessage?.isRead == true
+                          ? Icon(Icons.done_all, color: AppTheme.bodyTextTime.color)
+                          : CircleAvatar(
+                              radius: 8,
+                              backgroundColor: AppTheme.unreadChatBG,
+                              child: const Text(
+                                '1',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                        SizedBox(height: 10),
-                        Text(allChat.time, style: AppTheme.bodyTextTime),
-                      ],
-                    ),
+                            ),
+                      const SizedBox(height: 10),
+                      Text(
+                        lastMessage != null
+                            ? DateFormat('HH:mm').format(lastMessage.createdAt)
+                            : '',
+                        style: AppTheme.bodyTextTime,
+                      ),
+                    ],
                   ),
-                );
-              },
-            )),
+                ),
+              );
+            },
+          );
+        }),
       ],
     );
   }

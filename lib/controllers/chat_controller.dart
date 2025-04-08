@@ -1,70 +1,151 @@
 import 'package:get/get.dart';
 import '../../models/message_model.dart';
-import '../../data/message_data.dart';
+import '../../models/conversation_model.dart';
 import '../../models/user_model.dart';
-import '../../data/user_data.dart';
+import '../../services/api_chat_service.dart';
+import '../../services/api_user_service.dart';
 
 class ChatController extends GetxController {
-  var allChats = <Message>[].obs;
-  var recentChats = <Message>[].obs;
+  final ApiChatService _apiChatService = ApiChatService();
+  final ApiUserService _apiUserService = ApiUserService();
+
+  var conversations = <Conversation>[].obs;
   var conversationMessages = <Message>[].obs;
   var filteredUsers = <User>[].obs;
+  var currentUser = Rxn<User>();
+  var isLoading = false.obs;
+  var allUsers = <User>[].obs;
 
   @override
   void onInit() {
-    loadChats();
     super.onInit();
+    loadCurrentUser();
+    loadAllUsers();
+    loadConversations();
   }
 
-  @override
-  void onClose() {
-    // Réinitialiser la liste des utilisateurs filtrés quand on quitte la page
-    filteredUsers.clear();
-    super.onClose();
-  }
-
-  void loadChats() {
-    allChats.assignAll(allChatsData);
-    recentChats.assignAll(recentChatsData);
-  }
-
-  void loadMessages(int userId) {
-    final messages = messagesData.where((message) =>
-        (message.sender.id == currentUser.id && message.receiver?.id == userId) ||
-        (message.receiver?.id == currentUser.id && message.sender.id == userId)
-    ).toList();
-  conversationMessages.assignAll(messages);
-     
-  }
-
-  void filterUsers(String query) {
-    final List<User> results = usersData.where((user) {
-      final String userName = user.name.toLowerCase();
-      final String searchQuery = query.toLowerCase();
-      return userName.contains(searchQuery);
-    }).toList();
-    filteredUsers.assignAll(results); // Mettre à jour la liste filtrée
-  }
-
-  void markMessageAsRead(int index, bool isRecent) {
-    if (isRecent) {
-      recentChats[index] = recentChats[index].copyWith(isRead: true, unreadCount: 0);
-    } else {
-      allChats[index] = allChats[index].copyWith(isRead: true, unreadCount: 0);
+  Future<void> loadCurrentUser() async {
+    try {
+      isLoading(true);
+      currentUser.value = await _apiUserService.getCurrentUser();
+    } catch (e) {
+      print('Error loading current user: $e');
+      Get.snackbar('Error', 'Failed to load user data');
+    } finally {
+      isLoading(false);
     }
   }
 
-  void sendMessage(String text, User receiver) {
-    final newMessage = Message(
-      sender: currentUser,
-      receiver: receiver,
-      text: text,
-      time: 'Now', // Remplacer par l'heure réelle
-      avatar: 'assets/images/users/you.png',
-      unreadCount: 1,
-      isRead: false,
-    );
+  Future<void> loadAllUsers() async {
+    try {
+      isLoading(true);
+      final users = await _apiUserService.getAllUsers();
+      allUsers.assignAll(users);
+      filteredUsers.assignAll(
+        users.where((u) => u.id != currentUser.value?.id).toSet().toList()
+      );
+    } catch (e) {
+      print('Error loading all users: $e');
+      Get.snackbar('Error', 'Failed to load users');
+    } finally {
+      isLoading(false);
+    }
+  }
 
-    conversationMessages.insert(0,newMessage);
+  Future<void> loadConversations() async {
+    try {
+      isLoading(true);
+      final data = await _apiChatService.getMyConversations();
+      conversations.assignAll(data.map((json) => Conversation.fromJson(json)));
+    } catch (e) {
+      print('Error loading conversations: $e');
+      Get.snackbar('Error', 'Failed to load conversations');
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  Future<void> loadMessages(int conversationId) async {
+    try {
+      isLoading(true);
+      conversationMessages.clear();
+      
+      final json = await _apiChatService.getMessages(conversationId);
+      
+      if (json.containsKey('message') && json['message'] == 'Record not found.') {
+        conversationMessages.assignAll([]);
+        return;
+      }
+      
+      if (json.containsKey('messages') && json['messages'] is List) {
+        final messages = (json['messages'] as List)
+            .map((msgJson) => Message.fromJson(msgJson))
+            .toList();
+        conversationMessages.assignAll(messages.reversed);
+      } else {
+        throw Exception('Invalid messages format');
+      }
+    } catch (e) {
+      print('Error loading messages: $e');
+      Get.snackbar('Error', 'Failed to load messages');
+      conversationMessages.assignAll([]);
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  Future<void> sendMessage(String content, int receiverId) async {
+    try {
+      isLoading(true);
+      
+      // Envoyer le message
+      final json = await _apiChatService.sendMessage(receiverId, content);
+      final message = Message.fromJson(json['data']);
+      
+      // Ajouter le message à la liste actuelle
+      conversationMessages.insert(0, message);
+      
+      // Recharger la liste des conversations
+      await loadConversations();
+      
+      // Trouver la conversation mise à jour
+      final updatedConversation = conversations.firstWhere(
+        (conv) => conv.userOne.id == receiverId || conv.userTwo.id == receiverId,
+        orElse: () => Conversation(
+          id: -1, // Temporaire en attendant la vraie conversation
+          userOne: currentUser.value!,
+          userTwo: allUsers.firstWhere((u) => u.id == receiverId),
+          messages: [message],
+        ),
+      );
+      
+      // Recharger les messages si c'est une nouvelle conversation
+      if (updatedConversation.id != -1) {
+        await loadMessages(updatedConversation.id);
+      }
+    } catch (e) {
+      print('Error sending message: $e');
+      Get.snackbar('Error', 'Failed to send message');
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  void filterUsers(String query) {
+    if (query.isEmpty) {
+      filteredUsers.assignAll(allUsers.where((u) => u.id != currentUser.value?.id));
+    } else {
+      filteredUsers.assignAll(allUsers.where((user) {
+        return user.name.toLowerCase().contains(query.toLowerCase()) && 
+               user.id != currentUser.value?.id;
+      }));
+    }
+  }
+
+  User getOtherUser(Conversation conversation) {
+    if (conversation.userOne.id == currentUser.value?.id) {
+      return conversation.userTwo;
+    }
+    return conversation.userOne;
   }
 }

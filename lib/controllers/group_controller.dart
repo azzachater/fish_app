@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+/*import 'package:get/get.dart';
 import '../../models/group_model.dart';
 import '../../data/group_data.dart';
 import '../../models/message_model.dart';
@@ -102,3 +102,4 @@ class GroupController extends GetxController {
     update();  // Met à jour l'interface utilisateur
   }
 }
+*/
