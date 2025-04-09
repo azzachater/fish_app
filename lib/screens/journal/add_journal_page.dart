@@ -1,6 +1,8 @@
+import 'package:fish_app/controller/journal_controller.dart';
 import 'package:fish_app/models/fishingJournal.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class AddJournalPage extends StatefulWidget {
   final FishingJournal? entry;
@@ -110,16 +112,31 @@ class _AddJournalPageState extends State<AddJournalPage>
     );
   }
 
+  // Remplacez la méthode _saveJournal() par :
+  // Modifiez la méthode _saveJournal pour utiliser la date exacte
   void _saveJournal() {
-    Get.snackbar(
-      "Succès",
-      "Journal enregistré !",
-      backgroundColor: Colors.blue[100],
-      colorText: Colors.black,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(12),
-      borderRadius: 10,
+    // Formattez la date sélectionnée en yyyy-MM-dd
+    final formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    print("Enregistrement pour la date: $formattedDate"); // Debug
+
+    final journal = FishingJournal(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: _titleController.text,
+      location: _locationController.text,
+      speciesCaught: _speciesController.text,
+      fishingConditions: _conditionsController.text,
+      notes: _notesController.text,
+      date: formattedDate, // Utilisez la date formatée
+      time: '${_selectedTime.hour}:${_selectedTime.minute}',
     );
+
+    final controller = Get.find<JournalController>();
+    controller.addEntry(journal).then((_) {
+      // Filtre à nouveau pour la date actuelle
+      controller.filterByDate(_selectedDate);
+      Get.back();
+      Get.snackbar("Succès", "Journal enregistré !");
+    });
   }
 
   @override

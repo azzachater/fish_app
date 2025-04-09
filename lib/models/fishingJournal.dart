@@ -56,4 +56,12 @@ class FishingJournal {
       return date;
     }
   }
+
+  String get formattedDateForDisplay {
+    return DateFormat('EEE d').format(DateFormat('yyyy-MM-dd').parse(date));
+  }
+
+  String get formattedTimeForDisplay {
+    return DateFormat('HH:mm').format(DateFormat('HH:mm').parse(time));
+  }
 }

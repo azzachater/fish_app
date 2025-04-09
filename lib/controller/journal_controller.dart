@@ -1,4 +1,5 @@
 import 'package:fish_app/models/fishingJournal.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../service/api_journal_service.dart';
@@ -8,6 +9,8 @@ class JournalController extends GetxController {
   final RxList<FishingJournal> _entries = <FishingJournal>[].obs;
   final RxList<FishingJournal> filteredEntries = <FishingJournal>[].obs;
   final RxBool useLiveData = false.obs;
+  var selectedDate = DateTime.now().obs;
+  var currentMonth = DateTime.now().obs;
 
   @override
   void onInit() {
@@ -58,10 +61,26 @@ class JournalController extends GetxController {
     }
   }
 
+  // Mettez à jour la méthode filterByDate
+  // Améliorez la méthode filterByDate
   void filterByDate(DateTime date) {
+    selectedDate.value = date; // Ajoutez cette ligne
     final dateStr = DateFormat('yyyy-MM-dd').format(date);
-    filteredEntries.assignAll(_entries.where((entry) => entry.date == dateStr));
+
+    filteredEntries.assignAll(
+      _entries.where((entry) {
+        try {
+          final entryDate = DateFormat('yyyy-MM-dd').parse(entry.date);
+          final entryDateStr = DateFormat('yyyy-MM-dd').format(entryDate);
+          return entryDateStr == dateStr;
+        } catch (e) {
+          return false;
+        }
+      }),
+    );
+
     filteredEntries.sort((a, b) => b.time.compareTo(a.time));
+    update();
   }
 
   Future<void> toggleDataMode(bool useApi) async {
@@ -75,19 +94,30 @@ class JournalController extends GetxController {
     filterByDate(DateTime.now());
   }
 
+  // Modifiez la méthode addEntry :
   Future<void> addEntry(FishingJournal entry) async {
-    if (useLiveData.value) {
-      try {
+    try {
+      if (useLiveData.value) {
+        print('🟢 Attempting to add entry to API');
         final newEntry = await _apiService.createJournalEntry(entry.toJson());
         _entries.add(FishingJournal.fromJson(newEntry));
-      } catch (e) {
-        Get.snackbar('Erreur', 'Échec de l\'ajout: ${e.toString()}');
-        return;
+        Get.snackbar('Succès', 'Entrée ajoutée avec succès');
+      } else {
+        _entries.add(entry);
       }
-    } else {
-      _entries.add(entry);
+      filterByDate(DateFormat('yyyy-MM-dd').parse(entry.date));
+      update();
+    } catch (e) {
+      print('🔴 Error adding entry: $e');
+      Get.snackbar(
+        'Erreur',
+        "Échec de l'ajout: ${e.toString()}",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      rethrow;
     }
-    filterByDate(DateFormat('yyyy-MM-dd').parse(entry.date));
   }
 
   Future<void> updateEntry(String id, FishingJournal newData) async {
@@ -120,5 +150,28 @@ class JournalController extends GetxController {
     _entries.removeWhere((e) => e.id == id);
     filterByDate(DateTime.now());
     Get.snackbar('Succès', 'Entrée supprimée');
+  }
+
+  void selectDate(DateTime date) {
+    selectedDate.value = date;
+    filterByDate(date);
+  }
+
+  void goToPreviousMonth() {
+    currentMonth.value = DateTime(
+      currentMonth.value.year,
+      currentMonth.value.month - 1,
+    );
+  }
+
+  void goToNextMonth() {
+    currentMonth.value = DateTime(
+      currentMonth.value.year,
+      currentMonth.value.month + 1,
+    );
+  }
+
+  String getMonthYearText() {
+    return DateFormat.yMMMM().format(currentMonth.value);
   }
 }

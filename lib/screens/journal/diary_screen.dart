@@ -14,28 +14,34 @@ class JournalScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.filterByDate(DateTime.now());
+    });
     return Scaffold(
       appBar: JournalAppBar(onViewChange: (String view) {}, selectedView: ''),
       body: Column(
         children: [
-          const SizedBox(height: 16),
           DateSelector(),
-          const SizedBox(height: 16),
           Expanded(
             child: Obx(() {
-              final entries = controller.filteredEntries;
-              if (entries.isEmpty) {
+              if (controller.filteredEntries.isEmpty) {
                 return _buildEmptyState();
               }
-              return _buildJournalList(entries);
+              return _buildJournalList(controller.filteredEntries);
             }),
           ),
         ],
       ),
+      // Modifiez le FloatingActionButton :
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue[700],
         child: const Icon(Icons.add, color: Colors.white),
-        onPressed: () => Get.to(() => AddJournalPage()),
+        onPressed: () async {
+          final result = await Get.to(() => AddJournalPage());
+          if (result != null) {
+            controller.filterByDate(DateTime.now()); // Rafraîchit l'affichage
+          }
+        },
       ),
     );
   }

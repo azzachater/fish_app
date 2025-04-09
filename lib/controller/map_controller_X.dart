@@ -1,11 +1,12 @@
+import 'package:fish_app/models/spot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:get/get.dart';
-import 'package:fish_app/service/map_service.dart';
+import 'package:fish_app/service/api_map_service.dart';
 
 class MapControllerX extends GetxController {
   late MapController mapController;
-  var fishingSpots = <GeoPoint, String>{}.obs;
+  var fishingSpots = <GeoPoint, Map<String, dynamic>>{}.obs;
   final MapService mapService = MapService();
   final isLoading = false.obs;
 
@@ -50,14 +51,22 @@ class MapControllerX extends GetxController {
 
       for (var spot in spots) {
         final point = GeoPoint(
-          latitude: spot['latitude'],
-          longitude: spot['longitude'],
+          latitude: spot.latitude,
+          longitude: spot.longitude,
         );
-        fishingSpots[point] = spot['description'];
+
+        fishingSpots[point] = {
+          'description': spot.description,
+          'fish_species': spot.fishSpecies,
+          'recommended_techniques':
+              spot.recommendedTechniques, // attention à la casse
+          'depth': spot.depth, // champ corrigé ici
+        };
+
         await mapController.addMarker(
           point,
           markerIcon: MarkerIcon(
-            icon: Icon(Icons.location_pin, color: Colors.blue, size: 48),
+            icon: Icon(Icons.location_pin, color: Colors.red, size: 48),
           ),
         );
       }
@@ -72,42 +81,88 @@ class MapControllerX extends GetxController {
   }
 
   Future<void> addMarkerAtLocation(GeoPoint point) async {
-    final description = await Get.dialog<String>(_buildCommentDialog());
-    if (description == null || description.isEmpty) return;
+    final spotData = await Get.dialog<Map<String, String>>(
+      _buildSpotDetailsDialog(),
+    );
+
+    if (spotData == null) return;
 
     try {
-      final success = await mapService.addSpot(
-        point.latitude,
-        point.longitude,
-        description,
+      final spot = Spot(
+        name: spotData['name'] ?? 'Nouveau spot',
+        latitude: point.latitude,
+        longitude: point.longitude,
+        description: spotData['description'] ?? '',
+        fishSpecies: spotData['fish_species'] ?? '',
+        recommendedTechniques: spotData['fish_technique'] ?? '',
+        depth: spotData['depth'],
       );
 
+      final success = await mapService.addSpot(spot);
+
       if (success) {
-        await fetchFishingSpots(); // Rafraîchir les spots
+        fishingSpots[point] = {
+          'name': spot.name,
+          'description': spot.description,
+          'fish_species': spot.fishSpecies,
+          'fish_technique': spot.recommendedTechniques,
+          'depth': spot.depth,
+        };
+
+        await mapController.addMarker(
+          point,
+          markerIcon: MarkerIcon(
+            icon: Icon(Icons.location_pin, color: Colors.red, size: 48),
+          ),
+        );
+
         Get.snackbar("Succès", "Spot ajouté avec succès!");
-      } else {
-        Get.snackbar("Erreur", "Échec de l'ajout du spot");
       }
     } catch (e) {
-      Get.snackbar("Erreur", "Exception: ${e.toString()}");
+      Get.snackbar("Erreur", e.toString());
     }
   }
 
-  Widget _buildCommentDialog() {
-    final controller = TextEditingController();
+  Widget _buildSpotDetailsDialog() {
+    final nameController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final fishSpeciesController = TextEditingController();
+    final fishTechniqueController = TextEditingController();
+    final depthController = TextEditingController();
+
     return AlertDialog(
-      title: Text("Description du spot"),
-      content: TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          hintText: "Poissons présents, profondeur...",
+      title: Text("Détails du spot de pêche"),
+      content: SingleChildScrollView(
+        child: Column(
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(labelText: "Nom du spot"),
+            ),
+            // ... autres champs similaires ...
+            TextField(
+              controller: fishTechniqueController,
+              decoration: InputDecoration(
+                labelText: "Technique de pêche",
+                hintText: "fish_technique comme dans le backend",
+              ),
+            ),
+          ],
         ),
-        maxLines: 3,
       ),
       actions: [
         TextButton(onPressed: () => Get.back(), child: Text("Annuler")),
         ElevatedButton(
-          onPressed: () => Get.back(result: controller.text),
+          onPressed: () {
+            final spotData = {
+              'name': nameController.text,
+              'description': descriptionController.text,
+              'fish_species': fishSpeciesController.text,
+              'fish_technique': fishTechniqueController.text,
+              'depth': depthController.text,
+            };
+            Get.back(result: spotData);
+          },
           child: Text("Enregistrer"),
         ),
       ],

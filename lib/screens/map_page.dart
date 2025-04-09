@@ -9,7 +9,7 @@ class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Carte de Pêche")),
+      appBar: AppBar(title: Text("Carte des Spots de Pêche")),
       body: Stack(
         children: [
           OSMFlutter(
@@ -41,8 +41,39 @@ class MapPage extends StatelessWidget {
             ),
             onMapIsReady: (isReady) async {
               if (isReady) {
-                controller
-                    .fetchFishingSpots(); // Charger les spots au démarrage
+                controller.fetchFishingSpots();
+              }
+            },
+            onGeoPointClicked: (geoPoint) {
+              // Afficher les détails du spot quand on clique dessus
+              final spotInfo = controller.fishingSpots[geoPoint];
+              if (spotInfo != null) {
+                Get.dialog(
+                  AlertDialog(
+                    title: Text("Détails du Spot"),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("Description: ${spotInfo['description']}"),
+                        SizedBox(height: 8),
+                        Text("Espèces: ${spotInfo['fish_species']}"),
+                        SizedBox(height: 8),
+                        Text(
+                          "Techniques: ${spotInfo['recommended_techniques']}",
+                        ),
+                        SizedBox(height: 8),
+                        Text("Profondeur: ${spotInfo['depth']}m"),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: Text("Fermer"),
+                      ),
+                    ],
+                  ),
+                );
               }
             },
           ),
@@ -53,6 +84,12 @@ class MapPage extends StatelessWidget {
               onPressed: controller.moveToCurrentLocation,
               child: Icon(Icons.my_location),
             ),
+          ),
+          Obx(
+            () =>
+                controller.isLoading.value
+                    ? Center(child: CircularProgressIndicator())
+                    : Container(),
           ),
         ],
       ),
