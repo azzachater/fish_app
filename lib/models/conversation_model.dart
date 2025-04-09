@@ -5,36 +5,36 @@ class Conversation {
   final int id;
   final User userOne;
   final User userTwo;
-  final Message? lastMessage; // ✅ Ajouté ici
+  final Message? lastMessage;
+  final int unreadCount;
   final List<Message> messages;
 
   Conversation({
     required this.id,
     required this.userOne,
     required this.userTwo,
-    required this.messages,
     this.lastMessage,
+    this.unreadCount = 0,
+    this.messages = const [],
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
-  if (json['messages'] == null) {
-    throw Exception('Messages non trouvés dans la réponse');
-  }
-  try {
-    return Conversation(
-      id: json['id'],
-      userOne: User.fromJson(json['user_one']),
-      userTwo: User.fromJson(json['user_two']),
-      lastMessage: json['last_message'] != null
-          ? Message.fromJson(json['last_message'])
-          : null,
-      messages: json['messages'] != null
-          ? (json['messages'] as List).map((m) => Message.fromJson(m)).toList()
-          : [],
-    );
-  } catch (e) {
-    print('Erreur lors du parsing de la conversation : $e');
-    rethrow;
-  }
+    try {
+      return Conversation(
+        id: json['id'] as int,
+        userOne: User.fromJson(json['user_one']),
+        userTwo: User.fromJson(json['user_two']),
+        lastMessage: json['last_message'] != null 
+            ? Message.fromJson(json['last_message'])
+            : null,
+        unreadCount: (json['unread_count'] as int?) ?? 0,
+        messages: json['messages'] is List 
+            ? (json['messages'] as List).map((m) => Message.fromJson(m)).toList()
+            : [],
+      );
+    } catch (e) {
+      print('Error parsing Conversation: $e');
+      rethrow;
+    }
   }
 }

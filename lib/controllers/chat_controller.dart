@@ -15,6 +15,7 @@ class ChatController extends GetxController {
   var currentUser = Rxn<User>();
   var isLoading = false.obs;
   var allUsers = <User>[].obs;
+  var unreadCounts = <int, int>{}.obs;
 
   @override
   void onInit() {
@@ -22,6 +23,20 @@ class ChatController extends GetxController {
     loadCurrentUser();
     loadAllUsers();
     loadConversations();
+  }
+
+  List<Conversation> get sortedConversations {
+    return conversations.toList()
+      ..sort((a, b) {
+        final aDate = a.lastMessage?.createdAt ?? DateTime(0);
+        final bDate = b.lastMessage?.createdAt ?? DateTime(0);
+        return bDate.compareTo(aDate);
+      });
+  }
+
+  List<Conversation> get recentConversations {
+    final sorted = sortedConversations;
+    return sorted.length <= 3 ? sorted : sorted.sublist(0, 3);
   }
 
   Future<void> loadCurrentUser() async {
@@ -57,6 +72,10 @@ class ChatController extends GetxController {
       isLoading(true);
       final data = await _apiChatService.getMyConversations();
       conversations.assignAll(data.map((json) => Conversation.fromJson(json)));
+      
+      for (var conv in conversations) {
+        unreadCounts[conv.id] = conv.unreadCount;
+      }
     } catch (e) {
       print('Error loading conversations: $e');
       Get.snackbar('Error', 'Failed to load conversations');
@@ -70,65 +89,70 @@ class ChatController extends GetxController {
       isLoading(true);
       conversationMessages.clear();
       
-      final json = await _apiChatService.getMessages(conversationId);
+      // Marquer comme lus avant de charger
+      await _markMessagesAsRead(conversationId);
       
-      if (json.containsKey('message') && json['message'] == 'Record not found.') {
-        conversationMessages.assignAll([]);
-        return;
-      }
+      final json = await _apiChatService.getMessages(conversationId);
       
       if (json.containsKey('messages') && json['messages'] is List) {
         final messages = (json['messages'] as List)
             .map((msgJson) => Message.fromJson(msgJson))
             .toList();
+            
         conversationMessages.assignAll(messages.reversed);
-      } else {
-        throw Exception('Invalid messages format');
+        unreadCounts[conversationId] = 0;
+        update();
       }
     } catch (e) {
       print('Error loading messages: $e');
       Get.snackbar('Error', 'Failed to load messages');
-      conversationMessages.assignAll([]);
     } finally {
       isLoading(false);
     }
   }
 
-  Future<void> sendMessage(String content, int receiverId) async {
-  try {
-    isLoading(true);
-    
-    // Send to server and wait for response
-    final response = await _apiChatService.sendMessage(receiverId, content);
-    
-    // Safely handle the response
-    if (response.containsKey('data') && response['data'] is Map<String, dynamic>) {
-      final messageData = response['data'] as Map<String, dynamic>;
+  Future<void> _markMessagesAsRead(int conversationId) async {
+    try {
+      await _apiChatService.markMessagesAsRead(conversationId);
+      unreadCounts[conversationId] = 0;
       
-      // Ensure the message is attributed to current user
-      final serverMessage = Message(
-        id: messageData['id'] as int,
-        content: messageData['content'] as String,
-        createdAt: DateTime.parse(messageData['created_at'] as String),
-        isRead: false,
-        sender: currentUser.value!, // Force current user as sender
-      );
-      
-      conversationMessages.insert(0, serverMessage);
-      
-      // Update conversations list
-      await loadConversations();
-    } else {
-      throw Exception('Invalid message data format');
+      // Mise à jour locale
+      for (var msg in conversationMessages) {
+        if (msg.sender.id != currentUser.value?.id) {
+          msg.isRead = true;
+        }
+      }
+    } catch (e) {
+      print('Error marking messages as read: $e');
     }
-    
-  } catch (e) {
-    print('Error sending message: $e');
-    Get.snackbar('Error', 'Failed to send message: ${e.toString()}');
-  } finally {
-    isLoading(false);
   }
-}
+
+  Future<void> sendMessage(String content, int receiverId) async {
+    try {
+      isLoading(true);
+      final response = await _apiChatService.sendMessage(receiverId, content);
+      
+      if (response.containsKey('data')) {
+        final messageData = response['data'] as Map<String, dynamic>;
+        final serverMessage = Message(
+          id: messageData['id'] as int,
+          content: messageData['content'] as String,
+          createdAt: DateTime.parse(messageData['created_at']),
+          isRead: false,
+          sender: currentUser.value!,
+        );
+        
+        conversationMessages.insert(0, serverMessage);
+        await loadConversations();
+      }
+    } catch (e) {
+      print('Error sending message: $e');
+      Get.snackbar('Error', 'Failed to send message');
+    } finally {
+      isLoading(false);
+    }
+  }
+
   void filterUsers(String query) {
     if (query.isEmpty) {
       filteredUsers.assignAll(allUsers.where((u) => u.id != currentUser.value?.id));
@@ -145,5 +169,9 @@ class ChatController extends GetxController {
       return conversation.userTwo;
     }
     return conversation.userOne;
+  }
+
+  int getUnreadCountForConversation(int conversationId) {
+    return unreadCounts[conversationId] ?? 0;
   }
 }

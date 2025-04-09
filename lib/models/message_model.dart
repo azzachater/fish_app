@@ -4,7 +4,7 @@ class Message {
   final int id;
   final String content;
   final DateTime createdAt;
-  final bool isRead;
+ bool isRead;
   final User sender;
 
   Message({
@@ -20,7 +20,7 @@ class Message {
       id: json['id'] ?? 0,
       content: json['content'] ?? '',
       createdAt: DateTime.parse(json['created_at']),
-      isRead: json['is_read'] ?? false,
+      isRead: (json['is_read'] as int?)?.toInt() == 1 ?? false, // Correction ici
       sender: User.fromJson(json['sender'] ?? {}),
     );
   }
