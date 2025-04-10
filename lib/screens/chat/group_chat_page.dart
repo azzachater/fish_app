@@ -1,23 +1,21 @@
-/*// lib/views/group_chat/group_chat_page.dart
+// lib/views/group_chat/group_chat_page.dart 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../models/group_model.dart';
+import '../../models/group_conversation_model.dart';
 import '../../constants/theme.dart';
 import '../../widgets/chat/group_conversation.dart';
 import '../../widgets/chat/chat_composer.dart';
 import 'add_user_to_group_page.dart';
-import '../../controllers/group_controller.dart';
-import 'dart:io';
-import '../../data/user_data.dart';
+import '../../controllers/group_chat_controller.dart';
 
 class GroupChatPage extends StatelessWidget {
-  final Group group;
+  final GroupConversation group;
 
   const GroupChatPage({super.key, required this.group});
 
   @override
   Widget build(BuildContext context) {
-    final GroupController groupController = Get.find<GroupController>();
+    final GroupChatController groupController = Get.find<GroupChatController>();
 
     return Scaffold(
       appBar: AppBar(
@@ -29,8 +27,8 @@ class GroupChatPage extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundImage: group.avatar.startsWith('/')
-                  ? FileImage(File(group.avatar))
+              backgroundImage: group.avatar.startsWith('http')
+                  ? NetworkImage(group.avatar)
                   : AssetImage(group.avatar) as ImageProvider,
             ),
             const SizedBox(width: 20),
@@ -76,27 +74,26 @@ class GroupChatPage extends StatelessWidget {
                 ),
                 child: Obx(() {
                   final messages = groupController.groupMessages
-                      .where((m) => m.groupId == group.id)
-                      .toList()
-                      .reversed
+                      .where((m) => m.groupConversationId == group.id)
                       .toList();
 
-                  return GroupConversation(
+                  return GroupConversationWidget(
                     group: group,
                     messages: messages,
+                    currentUserId: groupController.currentUser.id,
                   );
                 }),
               ),
             ),
             ChatComposer(
               onSendMessage: (text) {
-                groupController.sendGroupMessage(text, group.id); // Un seul envoi ici
+                groupController.sendGroupMessage(text, group.id);
               },
-              user: currentUser,
+              user: groupController.currentUser,
             ),
           ],
         ),
       ),
     );
   }
-}*/
+}

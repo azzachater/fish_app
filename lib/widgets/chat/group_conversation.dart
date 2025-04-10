@@ -1,19 +1,19 @@
-/*
 // lib/widgets/chat/group_conversation.dart
 import 'package:flutter/material.dart';
-import '../../models/group_model.dart';
-import '../../models/message_model.dart';
+import '../../models/group_message_model.dart';
+import '../../models/group_conversation_model.dart';
 import '../../constants/theme.dart';
-import '../../data/user_data.dart';
 
-class GroupConversation extends StatelessWidget {
-  final Group group;
-  final List<Message> messages;
+class GroupConversationWidget extends StatelessWidget {
+  final GroupConversation group;
+  final List<GroupMessage> messages;
+  final int currentUserId;
 
-  const GroupConversation({
+  const GroupConversationWidget({
     super.key,
     required this.group,
     required this.messages,
+    required this.currentUserId,
   });
 
   @override
@@ -23,50 +23,60 @@ class GroupConversation extends StatelessWidget {
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
-        bool isMe = message.sender.id == currentUser.id;
-        
+        final isMe = message.senderId == currentUserId;
+
         return Container(
           margin: const EdgeInsets.only(top: 10),
           child: Column(
+            crossAxisAlignment:
+                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                mainAxisAlignment:
+                    isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   if (!isMe)
                     CircleAvatar(
                       radius: 15,
-                      backgroundImage: AssetImage(message.avatar),
+                      backgroundImage: message.sender.avatar.startsWith('http')
+                          ? NetworkImage(message.sender.avatar)
+                              as ImageProvider
+                          : AssetImage(message.sender.avatar),
                     ),
                   const SizedBox(width: 10),
                   Container(
                     padding: const EdgeInsets.all(10),
                     constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.6),
+                        maxWidth: MediaQuery.of(context).size.width * 0.6),
                     decoration: BoxDecoration(
-                      color: isMe ? AppTheme.primaryColor : Colors.grey[200],
+                      color: isMe
+                          ? AppTheme.primaryColor
+                          : Colors.grey[200],
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
-                        bottomLeft: Radius.circular(isMe ? 12 : 0),
-                        bottomRight: Radius.circular(isMe ? 0 : 12),
+                        bottomLeft:
+                            Radius.circular(isMe ? 12 : 0),
+                        bottomRight:
+                            Radius.circular(isMe ? 0 : 12),
                       ),
                     ),
                     child: Text(
-                      message.text,
+                      message.content,
                       style: AppTheme.bodyTextMessage.copyWith(
-                        color: isMe ? Colors.white : Colors.grey[800]),
+                        color: isMe ? Colors.white : Colors.grey[800],
+                      ),
                     ),
                   ),
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 5),
+                padding: const EdgeInsets.only(top: 5, left: 50, right: 10),
                 child: Row(
-                  mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                  mainAxisAlignment:
+                      isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                   children: [
-                    if (!isMe)
-                      const SizedBox(width: 40),
                     Icon(
                       Icons.done_all,
                       size: 20,
@@ -74,7 +84,7 @@ class GroupConversation extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      message.time,
+                      _formatTime(message.createdAt),
                       style: AppTheme.bodyTextTime,
                     ),
                   ],
@@ -86,5 +96,11 @@ class GroupConversation extends StatelessWidget {
       },
     );
   }
+
+  String _formatTime(DateTime dateTime) {
+    final time = TimeOfDay.fromDateTime(dateTime);
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '${hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} $period';
+  }
 }
-*/

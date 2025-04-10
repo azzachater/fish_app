@@ -1,12 +1,12 @@
-/*import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/group_controller.dart';
+import '../../controllers/group_chat_controller.dart';
 import '../../widgets/chat/recent_group_chat.dart';
 import '../../widgets/chat/all_groups.dart';
 import '../../constants/theme.dart';
 
 class GroupPage extends StatelessWidget {
-  final GroupController controller = Get.put(GroupController());
+  final GroupChatController controller = Get.put(GroupChatController());
 
   GroupPage({super.key});
 
@@ -22,7 +22,7 @@ class GroupPage extends StatelessWidget {
       return SingleChildScrollView(
         child: Column(
           children: [
-            RecentGroups(),
+            //RecentGroups(),
             AllGroups(),
           ],
         ),
@@ -30,4 +30,3 @@ class GroupPage extends StatelessWidget {
     });
   }
 }
-*/

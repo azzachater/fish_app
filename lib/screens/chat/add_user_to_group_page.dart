@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../models/group_model.dart';
+import '../../models/group_conversation_model.dart';
 import '../../constants/theme.dart';
-import '../../controllers/addusertogroup_controller.dart';
+import '../../controllers/group_chat_controller.dart';
 
 class AddUserToGroupPage extends StatelessWidget {
-  final Group group;
+  final GroupConversation  group;
 
   const AddUserToGroupPage({super.key, required this.group});
 
   @override
   Widget build(BuildContext context) {
-    final AddUserToGroupController controller = Get.put(AddUserToGroupController());
+    final GroupChatController controller = Get.put(GroupChatController());
 
     // Ajouter les membres existants du groupe à la sélection initiale
     if (controller.selectedUsers.isEmpty) {

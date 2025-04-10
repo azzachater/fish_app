@@ -1,13 +1,13 @@
 /*
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/group_controller.dart';
+import '../../controllers/group_chat_controller.dart';
 import '../../constants/theme.dart';
 import '../../screens/chat/group_chat_page.dart';
 import 'dart:io';
 
 class RecentGroups extends StatelessWidget {
-  final GroupController controller = Get.find();
+  final GroupChatController controller = Get.find();
 
   RecentGroups({super.key});
 
@@ -66,3 +66,4 @@ class RecentGroups extends StatelessWidget {
   }
 }
 */
+

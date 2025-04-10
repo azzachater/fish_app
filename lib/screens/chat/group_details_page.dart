@@ -5,13 +5,13 @@ import 'dart:io';
 import '../../models/group_model.dart';
 import '../../constants/theme.dart';
 import '../../data/user_data.dart';
-import '../../controllers/group_detail_controller.dart';
+import '../../controllers/group_chat_controller.dart';
 
 // ignore: must_be_immutable
 class GroupDetailsPage extends StatelessWidget {
   GroupDetailsPage({super.key});
 
-  final CreateSearchGroupController controller = Get.find();
+  final GroupChatController controller = Get.find();
   final TextEditingController groupNameController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   RxString groupImage = ''.obs;
