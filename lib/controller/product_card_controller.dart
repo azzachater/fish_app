@@ -63,18 +63,21 @@ class ProductController extends GetxController {
     try {
       isLoading(true);
       final newProduct = await apiService.createProduct(
-        product,
+        product.copyWith(id: ''), // Reset ID pour la création
         imageFile: imageFile,
       );
 
-      // Ajoutez le nouveau produit ET rafraîchissez la liste
       products.add(newProduct);
-      filteredProducts.assignAll(products); // Force le rafraîchissement
+      filteredProducts.assignAll(products);
 
       Get.back();
-      Get.snackbar('Succès', 'Produit ajouté');
+      Get.snackbar('Succès', 'Produit créé avec ID: ${newProduct.id}');
     } catch (e) {
-      Get.snackbar('Erreur', e.toString());
+      Get.snackbar(
+        'Erreur',
+        'Échec de création: ${e.toString().replaceAll('Exception: ', '')}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading(false);
     }

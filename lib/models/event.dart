@@ -17,20 +17,15 @@ class Event {
            participants ?? []; // Initialisation avec opérateur null-aware
 
   factory Event.fromJson(Map<String, dynamic> json) {
-    return Event(
-      id: json['id']?.toString(),
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      location: json['location'] ?? '',
-      date: DateTime.parse(
-        json['date'] is String ? json['date'] : json['date'].toString(),
-      ),
-      participants:
-          (json['participants'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList(),
-    );
-  }
+  return Event(
+    id: json['id']?.toString(),
+    title: json['title'] ?? '',
+    description: json['description'] ?? '',
+    location: json['location'] ?? '',
+    date: DateTime.parse(json['date'].toString()), // Force le parsing
+    participants: List<String>.from(json['participants'] ?? []),
+  );
+}
 
   Map<String, dynamic> toJson() {
     return {

@@ -23,7 +23,6 @@ void main() {
   Get.put(EventController());
   Get.put(TaskController());
   Get.put(AddJournalController());
-  Get.put(CartControllerX());
   Get.put(JournalController());
   Get.put(ForecastController());
   runApp(const MyApp());

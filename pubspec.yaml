@@ -56,6 +56,7 @@ dependencies:
   fl_chart: ^0.66.2 # pour afficher le graphique
   weather_icons: ^3.0.0
   font_awesome_flutter: ^10.5.0
+  lottie: ^3.3.1
 
 dev_dependencies:
   flutter_test:
@@ -89,6 +90,7 @@ flutter:
     - assets/images/posts/
     - assets/images/tips/
     - assets/images/participants/
+    - assets/animations/fishing.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

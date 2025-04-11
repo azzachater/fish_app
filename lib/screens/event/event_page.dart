@@ -79,16 +79,25 @@ class EventPage extends StatelessWidget {
                           color: Colors.grey[700],
                         ),
                         SizedBox(width: 4),
-                        Text(
-                          DateFormat('yyyy-MM-dd – HH:mm').format(event.date),
-                          style: TextStyle(color: Colors.grey[700]),
+                        Flexible(
+                          // Remplace Expanded par Flexible pour meilleure compatibilité
+                          child: Text(
+                            DateFormat(
+                              'yyyy-MM-dd',
+                            ).format(event.date), // Format simplifié
+                            style: TextStyle(color: Colors.grey[700]),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        SizedBox(width: 12),
+                        SizedBox(width: 8),
                         Icon(Icons.place, size: 16, color: Colors.grey[700]),
                         SizedBox(width: 4),
-                        Text(
-                          event.location,
-                          style: TextStyle(color: Colors.grey[700]),
+                        Flexible(
+                          child: Text(
+                            event.location,
+                            style: TextStyle(color: Colors.grey[700]),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

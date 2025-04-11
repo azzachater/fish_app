@@ -6,7 +6,7 @@ import 'api_auth_service.dart';
 
 class ApiEventService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.42:8000/api';
+  final String baseUrl = 'http://10.0.2.2:8000/api';
 
   // Headers
   Map<String, String> get headers => {
@@ -22,32 +22,27 @@ class ApiEventService {
   }
 
   Future<List<Event>> getEvents() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/events'),
-        headers: await _getAuthHeaders(),
-      );
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/events'),
+      headers: await _getAuthHeaders(),
+    );
 
-      print(
-        '📥 Get Events Response: ${response.statusCode} - ${response.body}',
-      );
+    print('🔥 API Response: ${response.body}'); // Debug
 
-      if (response.statusCode == 200) {
-        final dynamic data = jsonDecode(response.body);
-        if (data is List) {
-          return data.map((e) => Event.fromJson(e)).toList();
-        } else if (data is Map && data.containsKey('data')) {
-          return (data['data'] as List).map((e) => Event.fromJson(e)).toList();
-        }
-        throw Exception('Unexpected response format');
-      } else {
-        throw Exception(_handleError(response));
-      }
-    } catch (e) {
-      print('❌ getEvents error: $e');
-      throw Exception('Failed to fetch events: ${e.toString()}');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Extraction de la liste depuis la clé 'data'
+      final eventsList = data['data'] as List; 
+      return eventsList.map((json) => Event.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load events');
     }
+  } catch (e) {
+    print('❌ getEvents error: $e');
+    throw Exception('Check your API response format');
   }
+}
 
   Future<Event> createEvent(Event event) async {
     try {

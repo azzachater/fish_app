@@ -1,4 +1,5 @@
-import 'package:fish_app/controller/add_cart_controller.dart';
+
+import 'package:fish_app/controller/cart_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
@@ -10,7 +11,7 @@ class ProductDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CartControllerX cartController = Get.find<CartControllerX>();
+    final CartController cartController = Get.find<CartController>();
     final isFavorite = false.obs; // Gérer l'état favori
 
     return Scaffold(
@@ -89,7 +90,7 @@ class ProductDetailPage extends StatelessWidget {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          cartController.addProduct(product);
+                          cartController.addToCart(product);
                           Get.snackbar(
                             "Ajouté au panier",
                             "${product.name} a été ajouté à votre panier",

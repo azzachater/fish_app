@@ -7,7 +7,7 @@ import 'package:http_parser/http_parser.dart';
 
 class ApiProductService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.42:8000:8000/api';
+  final String baseUrl = 'http://10.0.2.2:8000/api';
 
   // Headers for requests
   Map<String, String> get headers => {
@@ -76,17 +76,18 @@ class ApiProductService {
   }) async {
     try {
       final headers = await _getAuthHeaders();
-      headers.remove('Content-Type'); // Important for multipart
+      headers.remove('Content-Type');
 
       var request = http.MultipartRequest(
         'POST',
         Uri.parse('$baseUrl/products'),
       );
-
-      // Add headers
       request.headers.addAll(headers);
 
-      // Add text fields
+      // Validation des champs obligatoires
+      if (product.name.isEmpty) throw Exception('Le nom est obligatoire');
+      if (imageFile.path.isEmpty) throw Exception('L\'image est obligatoire');
+
       request.fields.addAll({
         'name': product.name,
         'description': product.description,
@@ -96,29 +97,19 @@ class ApiProductService {
         'category': product.category,
       });
 
-      // Add image file
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'image',
-          imageFile.path,
-          contentType: MediaType('image', 'jpeg'),
-        ),
-      );
-
-      // Debug print
-      print('Sending multipart request with:');
-      print('Fields: ${request.fields}');
-      print(
-        'Files: ${request.files.map((f) => '${f.field}: ${f.filename}').join(', ')}',
+        await http.MultipartFile.fromPath('image', imageFile.path),
       );
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
-      print('Create Product Response: ${response.statusCode} - $responseBody');
-
       if (response.statusCode == 201) {
-        return Product.fromJson(jsonDecode(responseBody));
+        final responseData = jsonDecode(responseBody);
+        if (responseData['data'] == null) {
+          throw Exception('Données du produit manquantes dans la réponse');
+        }
+        return Product.fromJson(responseData['data']);
       } else {
         throw Exception(
           _handleError(http.Response(responseBody, response.statusCode)),

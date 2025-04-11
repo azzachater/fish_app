@@ -62,37 +62,40 @@ class EventController extends GetxController {
   }
 
   Future<void> addEvent({
-    required String title,
-    required String location,
-    required String description,
-    required DateTime date,
-  }) async {
-    if (title.isEmpty || location.isEmpty) {
-      Get.snackbar('Erreur', 'Titre et lieu sont obligatoires');
-      return;
-    }
-
-    try {
-      isLoading(true);
-      final newEvent = Event(
-        title: title,
-        location: location,
-        description: description,
-        date: date,
-        participants: [],
-      );
-
-      final createdEvent = await _eventService.createEvent(newEvent);
-      events.add(createdEvent);
-
-      await Get.offAll(() => EventPage());
-      Get.snackbar('Succès', 'Événement créé');
-    } catch (e) {
-      Get.snackbar('Erreur', 'Échec de la création: ${e.toString()}');
-    } finally {
-      isLoading(false);
-    }
+  required String title,
+  required String location,
+  required String description,
+  required DateTime date,
+}) async {
+  if (title.isEmpty || location.isEmpty) {
+    Get.snackbar('Erreur', 'Titre et lieu sont obligatoires');
+    return;
   }
+
+  try {
+    isLoading(true);
+    final newEvent = Event(
+      title: title,
+      location: location,
+      description: description,
+      date: date,
+      participants: [],
+    );
+
+    final createdEvent = await _eventService.createEvent(newEvent);
+    events.add(createdEvent);
+
+    // Solution optimale pour la navigation
+    if (Get.isDialogOpen!) Get.back(); // Ferme le dialog si ouvert
+    Get.offAll(() => EventPage()); // Force le rafraîchissement complet
+    
+    Get.snackbar('Succès', 'Événement créé');
+  } catch (e) {
+    Get.snackbar('Erreur', 'Échec de la création: ${e.toString()}');
+  } finally {
+    isLoading(false);
+  }
+}
 
   Future<void> deleteEvent(String eventId) async {
     try {

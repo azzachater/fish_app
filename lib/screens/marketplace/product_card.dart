@@ -93,7 +93,8 @@ class ProductCard extends StatelessWidget {
               child: IconButton(
                 icon: Icon(Icons.add_shopping_cart, color: Colors.blue),
                 onPressed: () {
-                  cartController.addProduct(product);
+                  final cartController = Get.find<CartController>();
+                  cartController.addToCart(product);
                   Get.snackbar(
                     'Ajouté au panier',
                     '${product.name} a été ajouté à votre panier',

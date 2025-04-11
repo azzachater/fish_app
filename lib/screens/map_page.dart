@@ -85,6 +85,8 @@ class MapPage extends StatelessWidget {
               child: Icon(Icons.my_location),
             ),
           ),
+          if (controller.isLoading.value)
+              Center(child: CircularProgressIndicator()),
           Obx(
             () =>
                 controller.isLoading.value

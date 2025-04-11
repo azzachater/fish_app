@@ -6,7 +6,7 @@ class Spot {
   final String description;
   final String fishSpecies;
   final String recommendedTechniques;
-  final String? depth; // Optionnel
+  final double? depth;
 
   Spot({
     this.id,
@@ -20,26 +20,33 @@ class Spot {
   });
 
   factory Spot.fromJson(Map<String, dynamic> json) {
-    return Spot(
-      id: json['id'] as int?,
-      name: json['name']?.toString() ?? 'Sans nom',
-      latitude: double.tryParse(json['latitude'].toString()) ?? 0.0,
-      longitude: double.tryParse(json['longitude'].toString()) ?? 0.0,
-      description: json['description']?.toString() ?? '',
-      fishSpecies: json['fish_species']?.toString() ?? '',
-      recommendedTechniques: json['recommendedTechniques']?.toString() ?? '',
-      depth: json['depth']?.toString(),
-    );
-  }
+  return Spot(
+    id: int.tryParse(json['id']?.toString() ?? ''),
+    name: json['name']?.toString() ?? 'Sans nom',
+    latitude: _convertToDouble(json['latitude']),
+    longitude: _convertToDouble(json['longitude']),
+    description: json['description']?.toString() ?? '',
+    fishSpecies: json['fish_species']?.toString() ?? '',
+    recommendedTechniques: json['recommended_techniques']?.toString() ?? '',
+    depth: _convertToDouble(json['depth']),
+  );
+}
+
+static double _convertToDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is num) return value.toDouble();
+  return double.tryParse(value.toString()) ?? 0.0;
+}
 
   Map<String, dynamic> toJson() {
     return {
+      if (id != null) 'id': id,
       'name': name,
       'latitude': latitude,
       'longitude': longitude,
       'description': description,
       'fish_species': fishSpecies,
-      'recommendedTechniques': recommendedTechniques,
+      'recommended_techniques': recommendedTechniques,
       if (depth != null) 'depth': depth,
     };
   }

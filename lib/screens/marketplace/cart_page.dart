@@ -6,7 +6,6 @@ import 'package:fish_app/models/product.dart';
 
 class CartPage extends StatelessWidget {
   final CartController cartController = Get.find<CartController>();
-
   CartPage({super.key});
 
   @override
@@ -144,6 +143,7 @@ class CartPage extends StatelessWidget {
 
   Widget _buildCartItem(Product product, BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(10), // Ajout de padding
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -158,15 +158,30 @@ class CartPage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Image du produit
+          // Image du produit - Correction ici
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              product.image,
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
-            ),
+            child:
+                product.image.startsWith('http')
+                    ? Image.network(
+                      product.image,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      errorBuilder:
+                          (context, error, stackTrace) => Container(
+                            width: 100,
+                            height: 100,
+                            color: Colors.grey,
+                            child: const Icon(Icons.error),
+                          ),
+                    )
+                    : Image.asset(
+                      product.image,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
           ),
           const SizedBox(width: 15),
 
@@ -181,6 +196,8 @@ class CartPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
+                  maxLines: 1, // Empêche le débordement de texte
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 5),
                 Text(
@@ -195,8 +212,10 @@ class CartPage extends StatelessWidget {
             ),
           ),
 
-          // Contrôle de quantité
+          // Contrôle de quantité - Correction du débordement ici
+          // Contrôle de quantité - Version corrigée
           Container(
+            constraints: BoxConstraints(maxWidth: 120),
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(20),
@@ -206,7 +225,16 @@ class CartPage extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.remove, size: 18),
-                  onPressed: () => cartController.decreaseQuantity(product),
+                  onPressed: () async {
+                    if (product.quantity > 1) {
+                      await cartController.updateCartItem(
+                        product,
+                        product.quantity - 1,
+                      );
+                    } else {
+                      await cartController.removeFromCart(product);
+                    }
+                  },
                 ),
                 Text(
                   "${product.quantity}",
@@ -214,7 +242,12 @@ class CartPage extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.add, size: 18),
-                  onPressed: () => cartController.addProduct(product),
+                  onPressed: () async {
+                    await cartController.updateCartItem(
+                      product,
+                      product.quantity + 1,
+                    );
+                  },
                 ),
               ],
             ),
