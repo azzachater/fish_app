@@ -3,197 +3,214 @@ import 'package:get/get.dart';
 import '../../models/group_conversation_model.dart';
 import '../../constants/theme.dart';
 import '../../controllers/group_chat_controller.dart';
+import 'dart:io';
 
 class AddUserToGroupPage extends StatelessWidget {
-  final GroupConversation  group;
+  final GroupConversation group;
 
   const AddUserToGroupPage({super.key, required this.group});
 
+  ImageProvider _buildImageProvider(String avatarPath) {
+    if (avatarPath.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    } else if (avatarPath.startsWith('http')) {
+      return NetworkImage(avatarPath);
+    } else if (avatarPath.startsWith('assets/')) {
+      return AssetImage(avatarPath);
+    } else {
+      return FileImage(File(avatarPath));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final GroupChatController controller = Get.put(GroupChatController());
-
-    // Ajouter les membres existants du groupe à la sélection initiale
-    if (controller.selectedUsers.isEmpty) {
-      controller.selectedUsers.addAll(group.members);
-    }
-
-    // Assurer que l'utilisateur actuel est membre du groupe par défaut
-    if (!group.members.any((u) => u.id == controller.currentUser.id)) {
-      group.members.add(controller.currentUser);
-    }
-
-    // Ajouter aussi l'utilisateur actuel à la sélection par défaut
-    if (!controller.selectedUsers.any((u) => u.id == controller.currentUser.id)) {
-      controller.selectedUsers.add(controller.currentUser);
-    }
+    final GroupChatController controller = Get.find<GroupChatController>();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Add User to Group',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Add Members', style: TextStyle(color: Colors.white)),
         backgroundColor: AppTheme.primaryColor,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Text(
-              'Add Member',
-              style: AppTheme.heading2,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: TextField(
-              controller: controller.searchController,
-              decoration: InputDecoration(
-                hintText: 'Search users...',
-                hintStyle: TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                prefixIcon: Icon(Icons.search),
-              ),
-              onChanged: (value) {
-                controller.filterUsers(value); // Applique le filtre lors de la saisie
-              },
-            ),
-          ),
-          SizedBox(height: 10),
-          // Liste des utilisateurs filtrés avec Obx uniquement pour la liste filtrée
-          SizedBox(
-  height: 80,
-  child: Obx(() {
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: controller.filteredUsers.length,
-      itemBuilder: (context, index) {
-        final user = controller.filteredUsers[index];
-        final isGroupMember = group.members.any((u) => u.id == user.id);
-        final isSelected = controller.selectedUsers.any((u) => u.id == user.id);
+      body: Obx(() {
+        // Initialisation des sélections
+        if (controller.selectedUsers.isEmpty) {
+          controller.selectedUsers.addAll(group.members);
+          if (!controller.selectedUsers.any((u) => u.id == controller.currentUser.id)) {
+            controller.selectedUsers.add(controller.currentUser);
+          }
+        }
 
-        return GestureDetector(
-          onTap: () {
-            if (!isGroupMember) {
-              if (isSelected) {
-                controller.selectedUsers.removeWhere((u) => u.id == user.id);
-              } else {
-                controller.selectedUsers.add(user);
-              }
-              controller.selectedUsers.refresh();
-            }
-          },
-          child: Stack(
-            children: [
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 5),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? Colors.blue : Colors.transparent, // Changer la bordure si sélectionné
-                    width: 3,
+        return Column(
+          children: [
+            // Section d'ajout
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Barre de recherche
+                  TextField(
+                    controller: controller.searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search users...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onChanged: controller.filterUsers,
                   ),
-                ),
-                child: CircleAvatar(
-                  radius: 30,
-                  backgroundImage: AssetImage(user.avatar),
-                ),
+                  const SizedBox(height: 16),
+                  
+                  // Liste des utilisateurs sélectionnables
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: controller.filteredUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = controller.filteredUsers[index];
+                        final isGroupMember = group.members.any((m) => m.id == user.id);
+                        final isSelected = controller.selectedUsers.any((u) => u.id == user.id);
+                        final isCurrentUser = user.id == controller.currentUser.id;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: Column(
+                            children: [
+                              GestureDetector(
+                                onTap: isCurrentUser || isGroupMember 
+                                    ? null 
+                                    : () => controller.toggleUserSelection(user),
+                                child: Stack(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 30,
+                                      backgroundImage: _buildImageProvider(user.avatar),
+                                      child: isGroupMember
+                                          ? Container(
+                                              color: Colors.black.withOpacity(0.4),
+                                              child: const Center(
+                                                child: Icon(Icons.check, color: Colors.white),
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                    if (!isGroupMember && !isCurrentUser)
+                                      Positioned(
+                                        right: 0,
+                                        bottom: 0,
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: isSelected ? AppTheme.primaryColor : Colors.grey,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white, width: 2),
+                                          ),
+                                          child: Icon(
+                                            isSelected ? Icons.check : Icons.add,
+                                            size: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user.name.split(' ')[0],
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  
+                  // Bouton d'ajout
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Ajouter seulement les nouveaux membres sélectionnés
+                        final newMembers = controller.selectedUsers
+                            .where((user) => !group.members.any((m) => m.id == user.id))
+                            .toList();
+                        
+                        group.members.addAll(newMembers);
+                        controller.selectedUsers.clear();
+                        Get.back();
+                        
+                        Get.snackbar(
+                          'Success',
+                          '${newMembers.length} members added',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                      ),
+                      child: const Text('Add Members'),
+                    ),
+                  ),
+                ],
               ),
-              if (isSelected) 
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Icon(
-                    Icons.check_circle,
-                    color: isGroupMember ? Colors.grey : Colors.green,
+            ),
+            
+            const Divider(),
+            
+            // Liste des membres existants
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Text('Current Members', style: AppTheme.subtitleStyle),
                   ),
-                ),
-            ],
-          ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: group.members.length,
+                      itemBuilder: (context, index) {
+                        final member = group.members[index];
+                        final isAdmin = member.id == group.admin.id;
+                        final isCurrentUser = member.id == controller.currentUser.id;
+                        
+                        return ListTile(
+                          leading: CircleAvatar(
+                            radius: 25,
+                            backgroundImage: _buildImageProvider(member.avatar),
+                          ),
+                          title: Text(
+                            member.name,
+                            style: AppTheme.heading2.copyWith(
+                              fontSize: 16,
+                              color: isCurrentUser ? AppTheme.primaryColor : null,
+                            ),
+                          ),
+                          subtitle: Text(
+                            isAdmin ? 'Group Admin' : 'Member',
+                            style: AppTheme.subtitleStyle,
+                          ),
+                          trailing: isCurrentUser 
+                              ? const Text('You', style: TextStyle(color: Colors.grey))
+                              : null,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         );
-      },
-    );
-  }),
-),
-
-          SizedBox(height: 10),
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                for (var user in controller.selectedUsers) {
-                  if (!group.members.any((u) => u.id == user.id)) {
-                    group.members.add(user);
-                  }
-                }
-                controller.selectedUsers.clear(); // Réinitialiser la sélection après ajout
-                Get.back(); // Ferme la page
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-              ),
-              child: Text(
-                'Add',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          Divider(),
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Text(
-              'Group Admin',
-              style: AppTheme.heading2,
-            ),
-          ),
-          ListTile(
-            leading: CircleAvatar(
-              radius: 25,
-              backgroundImage: AssetImage(group.admin.avatar),
-            ),
-            title: Text(
-              group.admin.name,
-              style: AppTheme.heading2.copyWith(fontSize: 16),
-            ),
-          ),
-          Divider(),
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Text(
-              'Group Members',
-              style: AppTheme.heading2,
-            ),
-          ),
-          Expanded(
-            // Liste des membres sans Obx, car elle ne change pas en fonction d'une variable observable
-            child: ListView.builder(
-              itemCount: group.members.length,
-              itemBuilder: (context, index) {
-                final member = group.members[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    radius: 25,
-                    backgroundImage: AssetImage(member.avatar),
-                  ),
-                  title: Text(
-                    member.name,
-                    style: AppTheme.heading2.copyWith(fontSize: 16),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+      }),
     );
   }
 }

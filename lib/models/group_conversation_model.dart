@@ -8,6 +8,8 @@ class GroupConversation {
   final int ownerId;
   List<User> members;
   List<GroupMessage> messages;
+  GroupMessage? lastMessage;
+  int unreadCount;
 
   GroupConversation({
     required this.id,
@@ -16,8 +18,9 @@ class GroupConversation {
     required this.ownerId,
     required this.members,
     this.messages = const [],
+    this.lastMessage,
+    this.unreadCount = 0,
   });
-User get admin => members.firstWhere((u) => u.id == ownerId, orElse: () => User(id: ownerId, name: "Unknown", avatar: 'assets/images/default_avatar.png', email: '', bio: ''));
 
   factory GroupConversation.fromJson(Map<String, dynamic> json) {
     var memberList = (json['members'] as List).map((e) => User.fromJson(e)).toList();
@@ -29,9 +32,15 @@ User get admin => members.firstWhere((u) => u.id == ownerId, orElse: () => User(
       ownerId: json['owner_id'],
       members: memberList,
       messages: messageList,
+      lastMessage: json['last_message'] != null ? GroupMessage.fromJson(json['last_message']) : null,
+      unreadCount: json['unread_count'] ?? 0,
     );
   }
 
+
+User get admin => members.firstWhere((u) => u.id == ownerId, orElse: () => User(id: ownerId, name: "Unknown", avatar: 'assets/images/default_avatar.png', email: '', bio: ''));
+
+  
   Map<String, dynamic> toJson() {
     return {
       'id': id,

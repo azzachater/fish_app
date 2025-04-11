@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fish_app/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/custom_button.dart';
@@ -6,7 +7,27 @@ import '../../widgets/custom_text_field.dart';
 import '../../controllers/profile_controller.dart';
 
 class EditProfilePage extends StatelessWidget {
-  const EditProfilePage({super.key});
+  const EditProfilePage({super.key, required this.user});
+  final User user;
+
+ImageProvider _buildImageProvider(String avatarPath, String imagePath) {
+  if (imagePath.isNotEmpty) {
+    if (imagePath.startsWith('http')) {
+      return NetworkImage(imagePath);
+    } else {
+      return FileImage(File(imagePath));
+    }
+  } else if (avatarPath.isEmpty) {
+    return const AssetImage('assets/images/default_avatar.png');
+  } else if (avatarPath.startsWith('http')) {
+    return NetworkImage(avatarPath);
+  } else if (avatarPath.startsWith('assets/')) {
+    return AssetImage(avatarPath);
+  } else {
+    return FileImage(File(avatarPath));
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -68,15 +89,16 @@ class EditProfilePage extends StatelessWidget {
                         hintText: '',
                         obscureText: false,
                       ),
-                      const SizedBox(height: 20),
-                      Obx(() => controller.imagePath.value.isNotEmpty
-                        ? Image.file(
-                            File(controller.imagePath.value),
-                            height: 150,
-                            fit: BoxFit.cover,
-                          )
-                        : const SizedBox.shrink(),
-                      ),
+                     Obx(() {
+  final imageProvider = _buildImageProvider(user.avatar, controller.imagePath.value);
+
+  return Image(
+    image: imageProvider,
+    height: 150,
+    fit: BoxFit.cover,
+  );
+}),
+
                       const SizedBox(height: 20),
                       CustomButton(
                         text: 'Save',
@@ -108,24 +130,13 @@ class EditProfilePage extends StatelessWidget {
             right: 0,
             child: Center(
               child: Obx(() {
-                final imagePath = controller.imagePath.value;
-                final user = controller.user.value;
-                
-                ImageProvider avatarImage;
-                if (imagePath.isNotEmpty) {
-                  avatarImage = FileImage(File(imagePath));
-                } else if (user?.avatar != null && user!.avatar!.startsWith('http')) {
-                  avatarImage = NetworkImage(user.avatar!);
-                } else {
-                  avatarImage = const AssetImage('assets/images/default_avatar.png');
-                }
 
                 return Stack(
                   alignment: Alignment.bottomRight,
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundImage: avatarImage,
+        backgroundImage: _buildImageProvider(user.avatar, controller.imagePath.value),
                     ),
                     Positioned(
                       bottom: 5,

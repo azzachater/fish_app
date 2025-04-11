@@ -79,7 +79,7 @@ class UsersProfileHeader extends StatelessWidget {
                 const SizedBox(height: 10),
                 // Bio
                 Text(
-                  user.bio?.isNotEmpty == true ? user.bio! : 'Bio non renseignée',
+                  user.bio.isNotEmpty == true ? user.bio : 'Bio non renseignée',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[700],

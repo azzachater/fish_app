@@ -1,25 +1,40 @@
-// lib/widgets/chat/group_conversation.dart
 import 'package:flutter/material.dart';
 import '../../models/group_message_model.dart';
 import '../../models/group_conversation_model.dart';
 import '../../constants/theme.dart';
+import 'dart:io';
 
 class GroupConversationWidget extends StatelessWidget {
   final GroupConversation group;
   final List<GroupMessage> messages;
   final int currentUserId;
+  final ScrollController? scrollController;
 
   const GroupConversationWidget({
     super.key,
     required this.group,
     required this.messages,
     required this.currentUserId,
+    this.scrollController,
   });
+
+  ImageProvider _buildImageProvider(String avatarPath) {
+    if (avatarPath.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    } else if (avatarPath.startsWith('http')) {
+      return NetworkImage(avatarPath);
+    } else if (avatarPath.startsWith('assets/')) {
+      return AssetImage(avatarPath);
+    } else {
+      return FileImage(File(avatarPath));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Les messages sont déjà triés par le contrôleur
     return ListView.builder(
-      reverse: true,
+      controller: scrollController,
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
@@ -39,10 +54,7 @@ class GroupConversationWidget extends StatelessWidget {
                   if (!isMe)
                     CircleAvatar(
                       radius: 15,
-                      backgroundImage: message.sender.avatar.startsWith('http')
-                          ? NetworkImage(message.sender.avatar)
-                              as ImageProvider
-                          : AssetImage(message.sender.avatar),
+                      backgroundImage: _buildImageProvider(message.sender.avatar),
                     ),
                   const SizedBox(width: 10),
                   Container(

@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 import '../../controllers/post_controller.dart';
 import '../../controllers/user_controller.dart';
-import '../../models/post_model.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class CreatePostPage extends StatelessWidget {

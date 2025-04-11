@@ -8,6 +8,17 @@ import 'dart:io';
 
 class CreateSearchGroup extends StatelessWidget {
   CreateSearchGroup({super.key});
+  ImageProvider _buildImageProvider(String avatarPath) {
+    if (avatarPath.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    } else if (avatarPath.startsWith('http')) {
+      return NetworkImage(avatarPath);
+    } else if (avatarPath.startsWith('assets/')) {
+      return AssetImage(avatarPath);
+    } else {
+      return FileImage(File(avatarPath));
+    }
+  }
 
   final GroupChatController controller = Get.find<GroupChatController>();
   final TextEditingController searchController = TextEditingController();
@@ -22,6 +33,7 @@ class CreateSearchGroup extends StatelessWidget {
             hintText: 'Search users...',
             hintStyle: TextStyle(color: Colors.white.withAlpha(179)),
             border: InputBorder.none,
+            prefixIcon: Icon(Icons.search, color: Colors.white70),
           ),
           style: TextStyle(color: Colors.white),
           onChanged: controller.filterUsers,
@@ -29,105 +41,191 @@ class CreateSearchGroup extends StatelessWidget {
         backgroundColor: AppTheme.primaryColor,
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Create Group', style: AppTheme.heading2),
-                SizedBox(
-  height: 80,
-  child: Obx(() {
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: controller.filteredUsers.length,
-      itemBuilder: (context, index) {
-        final user = controller.filteredUsers[index];
-        final isSelected = controller.selectedUsers.contains(user);
-        return GestureDetector(
-          onTap: () => controller.toggleUserSelection(user),
-          child: Stack(
-            children: [
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 5),
-                child: CircleAvatar(
-                  radius: 30,
-                  backgroundImage: AssetImage(user.avatar),
-                ),
+      body: Obx(() {
+        // Current user is always first in selected users
+        final currentUser = controller.currentUser;
+        final otherSelectedUsers = controller.selectedUsers
+            .where((user) => user.id != currentUser.id)
+            .toList();
+
+        return Column(
+          children: [
+            // Group creation section
+            Container(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Create New Group', style: AppTheme.heading2.copyWith(fontSize: 18)),
+                  SizedBox(height: 16),
+                  
+                  // Selected members section
+                  if (otherSelectedUsers.isNotEmpty) ...[
+                    Text('Selected Members', style: AppTheme.subtitleStyle),
+                    SizedBox(height: 8),
+                    SizedBox(
+                      height: 80,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: otherSelectedUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = otherSelectedUsers[index];
+                          return Padding(
+                            padding: EdgeInsets.only(right: 12),
+                            child: Column(
+                              children: [
+                                CircleAvatar(
+                                  radius: 25,
+                                  backgroundImage: _buildImageProvider(user.avatar),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  user.name.split(' ')[0],
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                  
+                  // Available users section
+                  Text('Add Members', style: AppTheme.heading2),
+                  SizedBox(height: 8),
+                  SizedBox(
+                    height: 120,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: controller.filteredUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = controller.filteredUsers[index];
+                        final isCurrentUser = user.id == currentUser.id;
+                        final isSelected = controller.selectedUsers.contains(user);
+                        
+                        return Padding(
+                          padding: EdgeInsets.only(right: 12),
+                          child: Column(
+                            children: [
+                              Stack(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 30,
+                                    backgroundImage: _buildImageProvider(user.avatar),
+                                    child: isCurrentUser 
+                                        ? Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.4),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Center(
+                                              child: Icon(Icons.person, color: Colors.white),
+                                            ),
+                                          )
+                                        : null,
+                                  ),
+                                  if (!isCurrentUser)
+                                    Positioned(
+                                      right: 0,
+                                      bottom: 0,
+                                      child: GestureDetector(
+                                        onTap: () => controller.toggleUserSelection(user),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: isSelected ? AppTheme.primaryColor : Colors.grey,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(color: Colors.white, width: 2),
+                                          ),
+                                          padding: EdgeInsets.all(4),
+                                          child: Icon(
+                                            isSelected ? Icons.check : Icons.add,
+                                            size: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                user.name.split(' ')[0],
+                                style: TextStyle(fontSize: 12),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  
+                  SizedBox(height: 16),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: otherSelectedUsers.isNotEmpty
+                          ? () => Get.to(() => GroupDetailsPage())
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                        elevation: 2,
+                      ),
+                      child: Text('Next', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
               ),
-              if (isSelected)
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Icon(Icons.check_circle, color: Colors.green),
-                ),
-            ],
+            ),
+            
+            Divider(height: 1, thickness: 1),
+            
+            // Existing groups section
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Text('Your Groups', style: AppTheme.heading2.copyWith(fontSize: 16)),
+                  ),
+                  Expanded(
+  child: Obx(() {
+    final allGroups = controller.allGroups; // <-- utilise tous les groupes ici
+    return ListView.builder(
+      padding: EdgeInsets.only(bottom: 16),
+      itemCount: allGroups.length,
+      itemBuilder: (context, index) {
+        final group = allGroups[index];
+        return ListTile(
+          leading: CircleAvatar(
+            radius: 25,
+            backgroundImage: group.avatar.startsWith('/')
+                ? FileImage(File(group.avatar)) as ImageProvider
+                : AssetImage(group.avatar),
           ),
+          title: Text(group.name, style: AppTheme.heading2.copyWith(fontSize: 16)),
+          subtitle: Text('${group.members.length} members'),
+          onTap: () => Get.to(() => GroupChatPage(group: group)),
         );
       },
     );
   }),
 ),
-                SizedBox(height: 10),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final result = await Get.to(() => GroupDetailsPage());
-                      if (result != null && result is Map<String, dynamic>) {
-                        String name = result['name'];
-                        String avatar = result['avatar'];
-                        List<int> memberIds = result['memberIds'];
-                        await controller.addGroup(name, avatar, memberIds);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                    ),
-                    child: Text('Next', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
+
+                ],
+              ),
             ),
-          ),
-          Divider(),
-          Container(
-            padding: EdgeInsets.all(10),
-            alignment: Alignment.centerLeft,
-            child: Text('All Groups', style: AppTheme.heading2),
-          ),
-          Expanded(
-            child: Obx(() {
-              final filteredGroups = controller.filteredGroups;
-              return ListView.builder(
-                itemCount: filteredGroups.length,
-                itemBuilder: (context, index) {
-                  final group = filteredGroups[index];
-                  return ListTile(
-                    leading: CircleAvatar(
-                      radius: 25,
-                      backgroundImage: group.avatar.startsWith('/')
-                          ? FileImage(File(group.avatar)) as ImageProvider
-                          : AssetImage(group.avatar),
-                    ),
-                    title: Text(group.name, style: AppTheme.heading2.copyWith(fontSize: 16)),
-                    subtitle: Text('${group.members.length} members'),
-                    onTap: () {
-                      Get.to(() => GroupChatPage(group: group));
-                    },
-                  );
-                },
-              );
-            }),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 }

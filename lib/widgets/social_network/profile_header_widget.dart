@@ -84,7 +84,7 @@ class ProfileHeaderWidget extends StatelessWidget {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => EditProfilePage()),
+MaterialPageRoute(builder: (context) => EditProfilePage(user: controller.user.value!)),
                         );
                       },
                       style: ElevatedButton.styleFrom(

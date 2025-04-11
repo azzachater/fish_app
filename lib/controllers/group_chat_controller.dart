@@ -9,161 +9,182 @@ import '../controllers/user_controller.dart';
 class GroupChatController extends GetxController {
   final ApiGroupChatService _apiGroupChatService = ApiGroupChatService();
   final UserController _userController = Get.find<UserController>();
-  late User currentUser;
 
-  var selectedUsers = <User>[].obs;
-  var filteredUsers = <User>[].obs;
-  var allGroups = <GroupConversation>[].obs;
-  var recentGroups = <GroupConversation>[].obs;
-  var groupMessages = <GroupMessage>[].obs;
-  var searchQuery = ''.obs;
+  // Observables
+  final RxList<User> selectedUsers = <User>[].obs;
+  final RxList<User> filteredUsers = <User>[].obs;
+  final RxList<GroupConversation> allGroups = <GroupConversation>[].obs;
+  final RxList<GroupMessage> groupMessages = <GroupMessage>[].obs;
+  final RxString searchQuery = ''.obs;
 
-  TextEditingController searchController = TextEditingController();
+  // Unread counts
+  final RxMap<int, int> unreadCounts = <int, int>{}.obs;
+
+  // Controllers
+  final TextEditingController searchController = TextEditingController();
+
+  // Getters
+  User get currentUser => _userController.currentUser.value!;
+  
+  List<GroupConversation> get filteredGroups {
+    final sorted = allGroups.toList()
+      ..sort((a, b) {
+        final aLast = a.messages.isNotEmpty ? a.messages.last.createdAt : DateTime.fromMillisecondsSinceEpoch(0);
+        final bLast = b.messages.isNotEmpty ? b.messages.last.createdAt : DateTime.fromMillisecondsSinceEpoch(0);
+        return bLast.compareTo(aLast);
+      });
+    return sorted.take(3).toList();
+  }
 
   @override
   void onInit() {
     super.onInit();
-    currentUser = _userController.currentUser.value!;
-    loadGroupChats();
-    loadUsers();
-  }
-void loadUsers() {
-  // Ajoute l'utilisateur courant à la liste des utilisateurs sélectionnés par défaut
-  selectedUsers.add(currentUser);
-  filteredUsers.assignAll(_userController.allUsers);
-}
-
-  // Update the filteredGroups getter to be observable
-  List<GroupConversation> get filteredGroups {
-    if (searchQuery.isEmpty) {
-      return allGroups;
-    }
-    return allGroups.where((group) =>
-        group.name.toLowerCase().contains(searchQuery.value.toLowerCase())
-    ).toList();
+    _initializeData();
   }
 
-  // Filter users based on the search query
-  void filterUsers(String query) {
-    if (query.isEmpty) {
+  @override
+  void onClose() {
+    searchController.dispose();
+    super.onClose();
+  }
+
+  Future<void> _initializeData() async {
+    await loadAllUsers();
+    await loadGroupChats();
+  }
+
+  Future<void> loadAllUsers() async {
+    try {
+      if (_userController.allUsers.isEmpty) {
+        await _userController.fetchAllUsers();
+      }
       filteredUsers.assignAll(_userController.allUsers);
-    } else {
-      filteredUsers.assignAll(_userController.allUsers.where((user) => 
-        user.name.toLowerCase().contains(query.toLowerCase())));
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load users: ${e.toString()}');
     }
   }
-
 
   Future<void> loadGroupChats() async {
     try {
       final groups = await _apiGroupChatService.getMyGroups();
       allGroups.assignAll(groups);
-      recentGroups.assignAll(groups.take(3).toList());
-      await loadGroupMessages();
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to load groups');
-    }
-  }
 
-  Future<void> loadGroupMessages() async {
-    try {
-      for (var group in allGroups) {
-        final messages = await _apiGroupChatService.getGroupMessages(group.id);
-        groupMessages.addAll(messages);
-        _associateMessagesToGroups();
+      for (final group in groups) {
+        await _loadMessagesForGroup(group.id);
+        _associateMessagesToGroup(group.id);
+        await loadUnreadCount(group.id);
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to load messages');
+      Get.snackbar('Error', 'Failed to load groups: ${e.toString()}');
     }
   }
 
-  
-  /*List<GroupConversation> get filteredGroups {
-  if (searchQuery.isEmpty) {
-    return groups;
-  }
-  return groups.where((group) =>
-      group.name.toLowerCase().contains(searchQuery.toLowerCase())
-  ).toList();
-}
-*/
-
-  void _associateMessagesToGroups() {
-    for (var group in allGroups) {
-      group.messages = groupMessages
-          .where((message) => message.groupConversationId == group.id)
-          .toList();
-    }
-    for (var group in recentGroups) {
-      group.messages = groupMessages
-          .where((message) => message.groupConversationId == group.id)
-          .toList();
-    }
-  }
-
-  void addUsersToGroup(GroupConversation group) {
-    group.members.addAll(selectedUsers);
-  }
-
-  Future<void> sendGroupMessage(String text, int groupId) async {
-    if (text.trim().isEmpty) return;
-
+  Future<void> _loadMessagesForGroup(int groupId) async {
     try {
-      final newMessage = GroupMessage(
-        id: 0, // Temporary ID, will be replaced by server
-        content: text,
-        senderId: currentUser.id,
-        sender: currentUser,
-        groupConversationId: groupId,
-        createdAt: DateTime.now(),
-      );
-
-      await _apiGroupChatService.sendGroupMessage(groupId, text, currentUser.id);
-      groupMessages.add(newMessage);
-      _updateGroups(groupId);
+      final messages = await _apiGroupChatService.getGroupMessages(groupId);
+      // Trier les messages par date croissante
+      messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      groupMessages.removeWhere((msg) => msg.groupConversationId == groupId);
+      groupMessages.addAll(messages);
+      _associateMessagesToGroup(groupId);
     } catch (e) {
-      Get.snackbar('Error', 'Failed to send message');
+      Get.snackbar('Error', 'Failed to load messages for group $groupId');
     }
   }
 
-  void _updateGroups(int groupId) {
-    final groupIndex = allGroups.indexWhere((g) => g.id == groupId);
-    if (groupIndex != -1) {
-      allGroups[groupIndex].messages.insert(0, 
-        groupMessages.firstWhere((m) => m.groupConversationId == groupId));
-    }
+  void _associateMessagesToGroup(int groupId) {
+    final group = allGroups.firstWhere((g) => g.id == groupId);
+    final messagesForGroup = groupMessages
+        .where((m) => m.groupConversationId == groupId)
+        .toList();
+    group.messages = messagesForGroup;
+  }
 
-    final recentIndex = recentGroups.indexWhere((g) => g.id == groupId);
-    if (recentIndex == -1) {
-      final group = allGroups.firstWhere((g) => g.id == groupId);
-      recentGroups.insert(0, group);
+  Future<void> loadUnreadCount(int groupId) async {
+    try {
+      final count = await _apiGroupChatService.getGroupUnreadCount(groupId);
+      unreadCounts[groupId] = count;
+    } catch (e) {
+      print('Error loading unread count for group $groupId: $e');
+    }
+  }
+
+  int getUnreadCountForGroup(int groupId) {
+    return unreadCounts[groupId] ?? 0;
+  }
+
+  void filterUsers(String query) {
+    if (query.isEmpty) {
+      filteredUsers.assignAll(_userController.allUsers);
     } else {
-      final group = recentGroups.removeAt(recentIndex);
-      recentGroups.insert(0, group);
+      filteredUsers.assignAll(
+        _userController.allUsers.where(
+          (user) => user.name.toLowerCase().contains(query.toLowerCase())
+        ).toList()
+      );
     }
   }
 
-  void markGroupAsRead(GroupConversation group) {
-    // You'll need to implement this based on your actual GroupConversation model
-    // This is just a placeholder
-    final updatedGroup = group; // Implement your copyWith method if needed
-
-    final allIndex = allGroups.indexWhere((g) => g.id == group.id);
-    if (allIndex != -1) allGroups[allIndex] = updatedGroup;
-
-    final recentIndex = recentGroups.indexWhere((g) => g.id == group.id);
-    if (recentIndex != -1) recentGroups[recentIndex] = updatedGroup;
+  List<GroupConversation> _filterGroups() {
+    if (searchQuery.isEmpty) return allGroups;
+    return allGroups.where(
+      (group) => group.name.toLowerCase().contains(searchQuery.value.toLowerCase())
+    ).toList();
   }
 
-  Future<void> addGroup(String name, String avatar, List<int> memberIds) async {
+  Future<void> createGroup(String name, String avatar, List<int> memberIds) async {
     try {
-      final newGroup = await _apiGroupChatService.createGroup(name, avatar, memberIds);
-      allGroups.add(newGroup);
-      recentGroups.insert(0, newGroup);
+      final newGroup = await _apiGroupChatService.createGroup(
+        name,
+        avatar,
+        memberIds,
+      );
+      allGroups.insert(0, newGroup);
       selectedUsers.clear();
-      selectedUsers.add(currentUser);
+      Get.back();
     } catch (e) {
-      Get.snackbar('Error', 'Failed to create group');
+      Get.snackbar('Error', 'Failed to create group: ${e.toString()}');
+    }
+  }
+
+  Future<void> sendMessage(int groupId, String content) async {
+    if (content.trim().isEmpty) return;
+
+    try {
+      await _apiGroupChatService.sendGroupMessage(
+        groupId,
+        content,
+        currentUser.id,
+      );
+      await _loadMessagesForGroup(groupId);
+      await loadUnreadCount(groupId);
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to send message: ${e.toString()}');
+    }
+  }
+
+  Future<void> addUserToGroup(int groupId, int userId) async {
+    try {
+      await _apiGroupChatService.addUserToGroup(groupId, userId);
+      await loadGroupChats();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to add user to group: ${e.toString()}');
+    }
+  }
+
+  Future<void> markMessagesAsRead(int groupId) async {
+    try {
+      await _apiGroupChatService.markGroupMessagesAsRead(groupId);
+      final group = allGroups.firstWhere((g) => g.id == groupId);
+      for (var message in group.messages) {
+        if (!message.isReadBy.contains(currentUser.id)) {
+          message.isReadBy.add(currentUser.id);
+        }
+      }
+      unreadCounts[groupId] = 0;
+      update();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to mark messages as read: ${e.toString()}');
     }
   }
 

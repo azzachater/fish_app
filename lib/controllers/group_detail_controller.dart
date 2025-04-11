@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+/*import 'package:get/get.dart';
 import '../../models/group_model.dart';
 import '../../models/user_model.dart';
 import '../../data/user_data.dart';
@@ -30,3 +30,4 @@ class CreateSearchGroupController extends GetxController {
     selectedUsers.add(currentUser);
   }
 }
+*/

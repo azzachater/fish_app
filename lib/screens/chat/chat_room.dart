@@ -32,7 +32,7 @@ class _ChatRoomState extends State<ChatRoom> {
 
   void _loadMessages() {
     if (_conversation != null) {
-      chatController.loadMessages(_conversation!.id);
+      chatController.loadMessages(_conversation.id);
     } else {
       chatController.conversationMessages.assignAll([]);
     }
@@ -100,16 +100,11 @@ class _ChatRoomState extends State<ChatRoom> {
             ),
           ),
           ChatComposer(
-            user: widget.user,
-            onSendMessage: (text) async {
-              try {
-                await chatController.sendMessage(text, widget.user.id);
-                _loadMessages(); // Recharger après envoi
-              } catch (e) {
-                Get.snackbar('Error', 'Failed to send message');
-              }
-            },
-          ),
+              onSendMessage: (text) {
+                chatController.sendMessage(text, widget.user.id );
+              },
+              user: widget.user,
+            ),
         ],
       ),
     );

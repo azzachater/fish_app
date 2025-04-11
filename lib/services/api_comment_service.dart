@@ -109,16 +109,4 @@ if (responseData.containsKey('comment') && responseData['comment'] != null) {
   }
 
   // Gestion des erreurs
-  String _handleError(http.Response response) {
-    print('🔴 Error Response Status: ${response.statusCode}');
-    print('🔴 Error Response Headers: ${response.headers}');
-    print('🔴 Error Response Body: ${response.body}');
-    
-    try {
-      final data = jsonDecode(response.body);
-      return data['message'] ?? 'Une erreur est survenue';
-    } catch (_) {
-      return 'Erreur inconnue';
-    }
-  }
 }

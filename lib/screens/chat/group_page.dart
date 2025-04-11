@@ -13,7 +13,7 @@ class GroupPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.allGroups.isEmpty && controller.recentGroups.isEmpty) {
+      if (controller.allGroups.isEmpty ) {
         return Center(
           child: Text('No groups available', style: AppTheme.bodyText1),
         );
@@ -22,7 +22,7 @@ class GroupPage extends StatelessWidget {
       return SingleChildScrollView(
         child: Column(
           children: [
-            //RecentGroups(),
+            RecentGroups(),
             AllGroups(),
           ],
         ),

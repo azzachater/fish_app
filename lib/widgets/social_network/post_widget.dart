@@ -43,7 +43,7 @@ class PostWidget extends StatelessWidget {
       radius: 8,
       contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
       onConfirm: () {
-        postController.deletePost(post.id!); // Pass the post ID as String
+        postController.deletePost(post.id); // Pass the post ID as String
         Get.back();
       },
       onCancel: () => Get.back(),
@@ -55,9 +55,9 @@ class PostWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     print("user name: ${post.user.name} - Avatar path:${post.user.avatar}");
 
-   ImageProvider _buildAvatarImage(String avatarPath) {
+   ImageProvider buildAvatarImage(String avatarPath) {
   if (avatarPath.isEmpty) {
-    return const AssetImage('assets/images/cover_default_image.png');
+    return const AssetImage('assets/images/default_avatar.png');
   } else if (avatarPath.startsWith('http')) {
     return NetworkImage(avatarPath);
   } else if (avatarPath.startsWith('assets/')) {
@@ -84,7 +84,7 @@ class PostWidget extends StatelessWidget {
           ListTile(
             leading: CircleAvatar(
   radius: 22,
-  backgroundImage: _buildAvatarImage(post.user.avatar),
+  backgroundImage: buildAvatarImage(post.user.avatar),
 ),
 
             title: Text(

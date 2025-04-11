@@ -81,10 +81,6 @@ class ApiPostService {
 
 
   Future<Post> updatePost(Post post) async {
-  if (post.id == null) {
-    throw Exception('L\'ID du post ne peut pas être nul.');
-  }
-
   try {
     final headers = await _getAuthHeaders();
     final response = await http.put(

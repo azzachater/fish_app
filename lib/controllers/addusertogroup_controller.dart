@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+/*import 'package:get/get.dart';
 import '../../models/user_model.dart';
 import '../../data/user_data.dart';
 import '../../models/group_model.dart';
@@ -34,4 +34,4 @@ class AddUserToGroupController extends GetxController {
   void addUsersToGroup(Group group) {
     group.members.addAll(selectedUsers);
   }
-}
+}*/

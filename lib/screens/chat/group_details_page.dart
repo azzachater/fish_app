@@ -2,20 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../../models/group_model.dart';
 import '../../constants/theme.dart';
-import '../../data/user_data.dart';
 import '../../controllers/group_chat_controller.dart';
 
-// ignore: must_be_immutable
 class GroupDetailsPage extends StatelessWidget {
   GroupDetailsPage({super.key});
 
   final GroupChatController controller = Get.find();
   final TextEditingController groupNameController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  RxString groupImage = ''.obs;
+  final ValueNotifier<String> groupImage = ValueNotifier<String>('');
 
+  // Pick an image from gallery
   Future<void> pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
@@ -23,21 +21,24 @@ class GroupDetailsPage extends StatelessWidget {
     }
   }
 
-  void createGroup() {
+  // Create the group with name, image, and selected users
+  void createGroup() async {
     if (groupNameController.text.isNotEmpty && groupImage.value.isNotEmpty) {
-      final newGroup = Group(
-        name: groupNameController.text,
-        avatar: groupImage.value,
-        admin: currentUser,
-        members: {currentUser, ...controller.selectedUsers}.toList(),
-        unreadCount: 0,
-        isRead: true,
-        time: '12:00 PM',
-        id: '',
-        messages: [],
+      Get.dialog(
+        Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
       );
 
-      Get.back(result: newGroup);
+      final name = groupNameController.text;
+      final avatar = groupImage.value;
+      final memberIds = controller.selectedUsers.map((u) => u.id).toList();
+
+      await controller.createGroup(name, avatar, memberIds);
+      
+      Get.back(); // Ferme le loader
+      Get.back(); // Retour à la liste de groupes
+    } else {
+      Get.snackbar('Erreur', 'Nom du groupe ou image manquants');
     }
   }
 
@@ -54,6 +55,7 @@ class GroupDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Group name input field
             TextField(
               controller: groupNameController,
               decoration: InputDecoration(
@@ -62,18 +64,25 @@ class GroupDetailsPage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
+
+            // Image picker
             GestureDetector(
               onTap: pickImage,
-              child: Obx(() => Container(
-                height: 150,
-                width: double.infinity,
-                color: Colors.grey[200],
-                child: groupImage.value.isEmpty
-                    ? Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
-                    : Image.file(File(groupImage.value), fit: BoxFit.cover),
-              )),
+              child: ValueListenableBuilder<String>(
+                valueListenable: groupImage,
+                builder: (context, value, child) => Container(
+                  height: 150,
+                  width: double.infinity,
+                  color: Colors.grey[200],
+                  child: value.isEmpty
+                      ? Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
+                      : Image.file(File(value), fit: BoxFit.cover),
+                ),
+              ),
             ),
             SizedBox(height: 20),
+
+            // Display selected users
             Text('Selected Users', style: AppTheme.heading2),
             SizedBox(height: 10),
             Expanded(
@@ -91,6 +100,8 @@ class GroupDetailsPage extends StatelessWidget {
                 },
               ),
             ),
+
+            // Done button to create the group
             Center(
               child: ElevatedButton(
                 onPressed: createGroup,

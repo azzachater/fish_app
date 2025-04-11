@@ -1,4 +1,3 @@
-// lib/views/group_chat/group_chat_page.dart 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../models/group_conversation_model.dart';
@@ -7,16 +6,54 @@ import '../../widgets/chat/group_conversation.dart';
 import '../../widgets/chat/chat_composer.dart';
 import 'add_user_to_group_page.dart';
 import '../../controllers/group_chat_controller.dart';
+import 'dart:io';
 
-class GroupChatPage extends StatelessWidget {
+class GroupChatPage extends StatefulWidget {
   final GroupConversation group;
 
   const GroupChatPage({super.key, required this.group});
 
   @override
-  Widget build(BuildContext context) {
-    final GroupChatController groupController = Get.find<GroupChatController>();
+  State<GroupChatPage> createState() => _GroupChatPageState();
+}
 
+class _GroupChatPageState extends State<GroupChatPage> {
+  final GroupChatController groupController = Get.find<GroupChatController>();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  ImageProvider _buildImageProvider(String avatarPath) {
+    if (avatarPath.isEmpty) return const AssetImage('assets/images/default_group_avatar.png');
+    if (avatarPath.startsWith('http')) return NetworkImage(avatarPath);
+    if (avatarPath.startsWith('assets/')) return AssetImage(avatarPath);
+    return FileImage(File(avatarPath));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.primaryColor,
@@ -27,20 +64,18 @@ class GroupChatPage extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundImage: group.avatar.startsWith('http')
-                  ? NetworkImage(group.avatar)
-                  : AssetImage(group.avatar) as ImageProvider,
+              backgroundImage: _buildImageProvider(widget.group.avatar),
             ),
             const SizedBox(width: 20),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  group.name,
+                  widget.group.name,
                   style: AppTheme.chatSenderName,
                 ),
                 Text(
-                  '${group.members.length} members',
+                  '${widget.group.members.length} members',
                   style: AppTheme.bodyText1.copyWith(fontSize: 18),
                 ),
               ],
@@ -51,7 +86,7 @@ class GroupChatPage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.add, size: 28, color: Colors.white),
             onPressed: () {
-              Get.to(() => AddUserToGroupPage(group: group));
+              Get.to(() => AddUserToGroupPage(group: widget.group));
             },
           ),
         ],
@@ -74,20 +109,26 @@ class GroupChatPage extends StatelessWidget {
                 ),
                 child: Obx(() {
                   final messages = groupController.groupMessages
-                      .where((m) => m.groupConversationId == group.id)
+                      .where((m) => m.groupConversationId == widget.group.id)
                       .toList();
+                  
+                  // Scroll vers le bas quand les messages changent
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _scrollToBottom();
+                  });
 
                   return GroupConversationWidget(
-                    group: group,
+                    group: widget.group,
                     messages: messages,
                     currentUserId: groupController.currentUser.id,
+                    scrollController: _scrollController,
                   );
                 }),
               ),
             ),
             ChatComposer(
               onSendMessage: (text) {
-                groupController.sendGroupMessage(text, group.id);
+                groupController.sendMessage(widget.group.id, text);
               },
               user: groupController.currentUser,
             ),

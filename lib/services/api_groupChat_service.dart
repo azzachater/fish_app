@@ -115,4 +115,40 @@ class ApiGroupChatService {
       rethrow;
     }
   }
+  Future<int> getGroupUnreadCount(int groupId) async {
+  try {
+    final headers = await _authService.getAuthHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/group/$groupId/unread-count'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['unread_count'] ?? 0;
+    } else {
+      throw Exception('Failed to get unread count: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error in getGroupUnreadCount: $e');
+    rethrow;
+  }
+}
+Future<void> markGroupMessagesAsRead(int groupId) async {
+  try {
+    final headers = await _authService.getAuthHeaders();
+    final response = await http.post(
+      Uri.parse('$baseUrl/group/$groupId/mark-as-read'),
+      headers: headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to mark messages as read: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error in markGroupMessagesAsRead: $e');
+    rethrow;
+  }
+}
+
 }
