@@ -22,17 +22,21 @@ class _ChatRoomState extends State<ChatRoom> {
   late final Conversation? _conversation;
 
   @override
-  void initState() {
-    super.initState();
-    _conversation = chatController.conversations.firstWhereOrNull(
-      (conv) => conv.userOne.id == widget.user.id || conv.userTwo.id == widget.user.id
-    );
-    _loadMessages();
-  }
+void initState() {
+  super.initState();
+  _conversation = chatController.conversations.firstWhereOrNull(
+    (conv) => conv.userOne.id == widget.user.id || conv.userTwo.id == widget.user.id
+  );
+  _loadMessages();
+  
+}
+
 
   void _loadMessages() {
     if (_conversation != null) {
       chatController.loadMessages(_conversation.id);
+      chatController.subscribeToConversationChannel(_conversation!.id);
+
     } else {
       chatController.conversationMessages.assignAll([]);
     }

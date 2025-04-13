@@ -4,10 +4,16 @@ import '../../models/conversation_model.dart';
 import '../../models/user_model.dart';
 import '../../services/api_chat_service.dart';
 import '../../services/api_user_service.dart';
+import '../../services/api_auth_service.dart';
+import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 
 class ChatController extends GetxController {
   final ApiChatService _apiChatService = ApiChatService();
   final ApiUserService _apiUserService = ApiUserService();
+  final ApiAuthService _apiAuthService = ApiAuthService();
 
   var conversations = <Conversation>[].obs;
   var conversationMessages = <Message>[].obs;
@@ -16,6 +22,11 @@ class ChatController extends GetxController {
   var isLoading = false.obs;
   var allUsers = <User>[].obs;
   var unreadCounts = <int, int>{}.obs;
+  RxInt currentConversationId = 0.obs;
+  Map<int, String> activeChannels = {};  // Suivi des canaux actifs
+
+
+  late PusherChannelsFlutter pusher;
 
   @override
   void onInit() {
@@ -23,8 +34,147 @@ class ChatController extends GetxController {
     loadCurrentUser();
     loadAllUsers();
     loadConversations();
+    initPusher(); // <-- ici
   }
 
+   // Initialisation de Pusher
+  Future<void> initPusher() async {
+    pusher = PusherChannelsFlutter.getInstance();
+
+    await pusher.init(
+      apiKey: '2798f826b9ce70d037b5',
+      cluster: 'eu',
+      authEndpoint: 'http://10.0.2.2:8000/api/broadcasting/auth',
+      onAuthorizer: (channelName, socketId, options) async {
+        return await buildChannelAuthorizer(channelName, socketId);
+      },
+      onConnectionStateChange: (currentState, previousState) {
+        print("🔌 Connexion: $previousState => $currentState");
+      },
+      onError: (message, code, exception) {
+        print("❌ Erreur: $message");
+      },
+    );
+
+    await pusher.connect();
+  }
+
+  // Authentificateur de canal privé
+  Future<String> buildChannelAuthorizer(String channelName, String socketId) async {
+    final token = await _apiAuthService.getToken();
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:8000/api/broadcasting/auth'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode({
+        'channel_name': channelName,
+        'socket_id': socketId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      throw Exception('Erreur d’authentification : ${response.statusCode}');
+    }
+  }
+
+  // Souscrire au canal de conversation
+  Future<void> subscribeToConversationChannel(int conversationId) async {
+    String channel = 'private-chat.chat.$conversationId';
+    currentConversationId.value = conversationId;
+    await pusher.subscribe(channelName: 'private-chat.chat.$conversationId');
+
+  pusher.onEvent = (PusherEvent event) {
+  print("📡 [onEvent] ${event.channelName} - ${event.eventName}: ${event.data}");
+
+  if (event.eventName == 'new-message' && event.data != null) {
+    final data = jsonDecode(event.data!);
+
+    final newMessage = Message(
+      id: data['id'],
+      content: data['content'],
+      createdAt: DateTime.parse(data['created_at']),
+      sender: User(
+        id: data['sender_id'],
+        name: 'Unknown', // Récupère le nom si disponible
+        email: '',
+        avatar: '',
+        bio: '',
+      ),
+      isRead: false,
+    );
+
+    if (currentConversationId.value == data['conversation_id'] &&
+        !conversationMessages.any((m) => m.id == newMessage.id)) {
+      conversationMessages.insert(0, newMessage);
+    }
+  }
+};
+
+  }
+
+  // Gestion des événements Pusher
+  void _handlePusherEvent(PusherEvent event) {
+    print('📡 [onEvent] ${event.channelName} - ${event.eventName} => ${event.data}');
+
+    if (event.eventName == 'new-message' && event.data != null) {
+      final data = jsonDecode(event.data!);
+
+      final newMessage = Message(
+        id: data['id'],
+        content: data['content'],
+        createdAt: DateTime.parse(data['created_at']),
+        sender: User(
+          id: data['sender_id'],
+          name: 'Unknown', // Tu peux récupérer le nom si dispo
+          email: '',
+          avatar: '',
+          bio: '',
+        ),
+        isRead: false,
+      );
+
+      if (currentConversationId.value == data['conversation_id'] &&
+          !conversationMessages.any((m) => m.id == newMessage.id)) {
+        conversationMessages.insert(0, newMessage);
+      }
+    }
+  }
+
+  // Envoyer un message
+  Future<void> sendMessage(String content, int receiverId) async {
+    try {
+      isLoading(true);
+
+      final response = await _apiChatService.sendMessage(receiverId, content);
+
+      if (response.containsKey('data')) {
+        final messageData = response['data'];
+        final serverMessage = Message(
+          id: messageData['id'],
+          content: messageData['content'],
+          createdAt: DateTime.parse(messageData['created_at']),
+          sender: currentUser.value!,
+          isRead: false,
+        );
+
+        conversationMessages.insert(0, serverMessage);
+        await loadConversations();
+      }
+    } catch (e) {
+      print('❌ Erreur lors de l\'envoi du message: $e');
+      Get.snackbar('Erreur', 'Échec de l\'envoi du message');
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  //reste de code 
+  
   List<Conversation> get sortedConversations {
     return conversations.toList()
       ..sort((a, b) {
@@ -127,31 +277,7 @@ class ChatController extends GetxController {
     }
   }
 
-  Future<void> sendMessage(String content, int receiverId) async {
-    try {
-      isLoading(true);
-      final response = await _apiChatService.sendMessage(receiverId, content);
-      
-      if (response.containsKey('data')) {
-        final messageData = response['data'] as Map<String, dynamic>;
-        final serverMessage = Message(
-          id: messageData['id'] as int,
-          content: messageData['content'] as String,
-          createdAt: DateTime.parse(messageData['created_at']),
-          isRead: false,
-          sender: currentUser.value!,
-        );
-        
-        conversationMessages.insert(0, serverMessage);
-        await loadConversations();
-      }
-    } catch (e) {
-      print('Error sending message: $e');
-      Get.snackbar('Error', 'Failed to send message');
-    } finally {
-      isLoading(false);
-    }
-  }
+  
 
   void filterUsers(String query) {
     if (query.isEmpty) {
@@ -174,4 +300,7 @@ class ChatController extends GetxController {
   int getUnreadCountForConversation(int conversationId) {
     return unreadCounts[conversationId] ?? 0;
   }
+
+  
 }
+
