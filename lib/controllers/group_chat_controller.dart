@@ -328,7 +328,6 @@ class GroupChatController extends GetxController {
   }
 
   
-
   Future<void> addUserToGroup(int groupId, int userId) async {
     try {
       await _apiGroupChatService.addUserToGroup(groupId, userId);
@@ -361,4 +360,7 @@ class GroupChatController extends GetxController {
       selectedUsers.add(user);
     }
   }
+  void resetSelectedUsers() {
+  selectedUsers.clear();
+}
 }

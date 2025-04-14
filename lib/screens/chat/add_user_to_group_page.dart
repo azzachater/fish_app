@@ -132,14 +132,21 @@ class AddUserToGroupPage extends StatelessWidget {
                   // Bouton d'ajout
                   Center(
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         // Ajouter seulement les nouveaux membres sélectionnés
                         final newMembers = controller.selectedUsers
                             .where((user) => !group.members.any((m) => m.id == user.id))
                             .toList();
                         
+                        // Appel à l'API pour chaque nouvel utilisateur
+                        for (final user in newMembers) {
+                          await controller.addUserToGroup(group.id, user.id);
+                        }
+                        
+                        // Mise à jour locale
                         group.members.addAll(newMembers);
                         controller.selectedUsers.clear();
+                        
                         Get.back();
                         
                         Get.snackbar(
@@ -167,50 +174,73 @@ class AddUserToGroupPage extends StatelessWidget {
             
             // Liste des membres existants
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    child: Text('Current Members', style: AppTheme.subtitleStyle),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: group.members.length,
-                      itemBuilder: (context, index) {
-                        final member = group.members[index];
-                        final isAdmin = member.id == group.admin.id;
-                        final isCurrentUser = member.id == controller.currentUser.id;
-                        
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 25,
-                            backgroundImage: _buildImageProvider(member.avatar),
-                          ),
-                          title: Text(
-                            member.name,
-                            style: AppTheme.heading2.copyWith(
-                              fontSize: 16,
-                              color: isCurrentUser ? AppTheme.primaryColor : null,
-                            ),
-                          ),
-                          subtitle: Text(
-                            isAdmin ? 'Group Admin' : 'Member',
-                            style: AppTheme.subtitleStyle,
-                          ),
-                          trailing: isCurrentUser 
-                              ? const Text('You', style: TextStyle(color: Colors.grey))
-                              : null,
-                        );
-                      },
-                    ),
-                  ),
-                ],
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+        child: Text('Group Admin', style: AppTheme.subtitleStyle),
+      ),
+      // Afficher l'admin
+      ListTile(
+        leading: CircleAvatar(
+          radius: 25,
+          backgroundImage: _buildImageProvider(group.admin.avatar),
+        ),
+        title: Text(
+          group.admin.name,
+          style: AppTheme.heading2.copyWith(fontSize: 16, color: const Color.fromARGB(255, 24, 25, 26)),
+        ),
+        subtitle: Text('Admin', style: AppTheme.subtitleStyle),
+        trailing: group.admin.id == controller.currentUser.id
+            ? const Text('You', style: TextStyle(color: Colors.grey))
+            : null,
+      ),
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: Divider(thickness: 1.2),
+      ),
+      const Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+        child: Text('Group Members', style: AppTheme.subtitleStyle),
+      ),
+      // Liste des membres (sauf admin)
+      Expanded(
+        child: ListView.builder(
+          itemCount: group.members.where((m) => m.id != group.admin.id).length,
+          itemBuilder: (context, index) {
+            final otherMembers = group.members.where((m) => m.id != group.admin.id).toList();
+            final member = otherMembers[index];
+            final isCurrentUser = member.id == controller.currentUser.id;
+
+            return ListTile(
+              leading: CircleAvatar(
+                radius: 25,
+                backgroundImage: _buildImageProvider(member.avatar),
               ),
-            ),
-          ],
-        );
-      }),
+              title: Text(
+                member.name,
+                style: AppTheme.heading2.copyWith(
+                  fontSize: 16,
+                  color: isCurrentUser ? AppTheme.primaryColor : null,
+                ),
+              ),
+              subtitle: Text('Member', style: AppTheme.subtitleStyle),
+              trailing: isCurrentUser
+                  ? const Text('You', style: TextStyle(color: Colors.grey))
+                  : null,
+            );
+          },
+        ),
+      ),
+    ],
+  ),
+),
+
+
+        ],
+      );
+    }),
     );
   }
 }
