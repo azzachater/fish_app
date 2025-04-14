@@ -20,11 +20,18 @@ class GroupChatPage extends StatefulWidget {
 class _GroupChatPageState extends State<GroupChatPage> {
   final GroupChatController groupController = Get.find<GroupChatController>();
   final ScrollController _scrollController = ScrollController();
+    late int currentGroupId;
 
-  @override
+
+ @override
   void initState() {
     super.initState();
+    currentGroupId = widget.group.id;
+    groupController.currentGroupId.value = currentGroupId;
+    
+    // S'abonner une seule fois
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      groupController.subscribeToGroupChannel(currentGroupId);
       _scrollToBottom();
     });
   }
@@ -107,23 +114,28 @@ class _GroupChatPageState extends State<GroupChatPage> {
                     topRight: Radius.circular(30),
                   ),
                 ),
-                child: Obx(() {
-                  final messages = groupController.groupMessages
-                      .where((m) => m.groupConversationId == widget.group.id)
-                      .toList();
-                  
-                  // Scroll vers le bas quand les messages changent
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    _scrollToBottom();
-                  });
+                child: GetBuilder<GroupChatController>(
+  id: 'group_messages_${widget.group.id}',
+  builder: (controller) {
+    final messages = controller.groupMessages
+        .where((m) => m.groupConversationId == widget.group.id)
+        .toList()
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-                  return GroupConversationWidget(
-                    group: widget.group,
-                    messages: messages,
-                    currentUserId: groupController.currentUser.id,
-                    scrollController: _scrollController,
-                  );
-                }),
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
+
+    return GroupConversationWidget(
+      group: widget.group,
+      messages: messages,
+      currentUserId: controller.currentUser.id,
+      scrollController: _scrollController,
+    );
+  },
+),
               ),
             ),
             ChatComposer(

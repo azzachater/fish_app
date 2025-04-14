@@ -18,6 +18,7 @@ class GroupConversationWidget extends StatelessWidget {
     this.scrollController,
   });
 
+
   ImageProvider _buildImageProvider(String avatarPath) {
     if (avatarPath.isEmpty) {
       return const AssetImage('assets/images/default_avatar.png');
@@ -32,9 +33,11 @@ class GroupConversationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     // Les messages sont déjà triés par le contrôleur
     return ListView.builder(
       controller: scrollController,
+      reverse: false, // Show newest at bottom
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];

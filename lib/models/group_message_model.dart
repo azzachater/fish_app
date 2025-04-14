@@ -21,11 +21,11 @@ class GroupMessage {
 
   factory GroupMessage.fromJson(Map<String, dynamic> json) {
     return GroupMessage(
-      id: json['id'],
-      content: json['content'],
-      senderId: json['sender_id'],
-      sender: User.fromJson(json['sender']),
-      groupConversationId: json['group_conversation_id'],
+      id: json['id']??0,
+      content: json['content']??'',
+      senderId: json['sender_id']?? 0,
+      sender: User.fromJson(json['sender']?? {}),
+      groupConversationId: json['group_conversation_id']?? 0,
       createdAt: DateTime.parse(json['created_at']),
       isReadBy: List<int>.from(json['is_read_by'] ?? []), // 👈 récupérer les ID
     );
