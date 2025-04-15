@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fish_app/services/api_push_notif_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:fish_app/models/user_model.dart';
@@ -166,7 +167,8 @@ print("🔎 User Data JSON: ${data['User']}");
         user.token = token;
         await _storage.write(key: 'token', value: token);
         print("Saved Token: $token");
-
+// Après un login réussi
+        await PusherService.to.connect();
         return user;
       } else {
         throw Exception('Invalid response: User or Token data not found.');

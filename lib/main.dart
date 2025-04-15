@@ -1,3 +1,4 @@
+import 'package:fish_app/controllers/notification_controller.dart';
 import 'package:fish_app/controllers/profile_controller.dart';
 import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/screens/auth/signup_page.dart';
@@ -10,17 +11,28 @@ import 'package:fish_app/main_screen.dart';
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/event_journal_controller.dart';
 import 'package:fish_app/controller/favorite_controller.dart';
+import 'package:fish_app/services/api_push_notif_service.dart'; // ajoute cet import
 
-void main() {
-  Get.put(AuthController()); // Initialisation correcte du controller
-   Get.put(CartController());
-   Get.put(FavoriteController());
-   Get.put(() => JournalController());
-   // Important : met UserController AVANT ProfileController
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialisez d'abord PusherService
+  await Get.putAsync(() => PusherService().init());
+
+  // Puis les autres contrôleurs
+  Get.put(AuthController());
+  Get.put(CartController());
+  Get.put(FavoriteController());
+  Get.put(() => JournalController());
   Get.put(UserController());
+    Get.put(NotificationController()); // Ajoutez cette ligne
+
   Get.put(ProfileController());
+
+
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

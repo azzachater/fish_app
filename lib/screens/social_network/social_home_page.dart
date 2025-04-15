@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../../widgets/social_network/create_post_widget.dart';
 import '../../widgets/social_network/post_widget.dart';
 import 'sidebar.dart'; // Importez votre fichier sidebar.dart
-import '../chat/chat_home_page.dart';
+import '../notification/notification_page.dart';
 import 'search_profile_page.dart'; // Importer la page de recherche de profil
 import '../../controllers/post_controller.dart'; // Importer le contrôleur des posts
 import '../../models/post_model.dart'; 
@@ -53,16 +53,17 @@ class SocialHomePage extends StatelessWidget {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.facebookMessenger, color: Colors.black),
-            onPressed: () {
-              // Naviguer vers la page de messagerie
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => ChatHomePage()),
-              );
-            },
-          ),
+        IconButton(
+  icon: const Icon(FontAwesomeIcons.bell, color: Colors.black),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NotificationPage()), // Sans userToken
+    );
+  },
+),
+
+
         ],
       ),
       drawer: const SidebarPage(),

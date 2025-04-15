@@ -5,6 +5,7 @@ import 'screens/market_place.dart';
 import 'screens/diary_screen.dart';
 import 'screens/social_network/social_home_page.dart';
 import 'screens/social_network/profile_page.dart';
+import 'services/api_push_notif_service.dart'; // Ajoute ce import
 
 class MainController extends GetxController {
   var selectedIndex = 0.obs;
@@ -21,13 +22,49 @@ class MainController extends GetxController {
   }
 }
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final MainController controller = Get.put(MainController());
+  State<MainScreen> createState() => _MainScreenState();
+}
 
+class _MainScreenState extends State<MainScreen> {
+  final MainController controller = Get.put(MainController());
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initPusher();
+    });
+  }
+
+  void _initPusher() async {
+  try {
+    print('Initializing Pusher service...');
+    await PusherService.to.init();
+    
+    // Attendre un court instant avant de se connecter
+    await Future.delayed(Duration(milliseconds: 500));
+    
+    await PusherService.to.connect();
+    print('Pusher initialization completed');
+  } catch (e) {
+    print('Error initializing Pusher: $e');
+    // Réessayer après un délai
+    Future.delayed(Duration(seconds: 3), () => _initPusher());
+  }
+}
+
+@override
+void dispose() {
+  
+  super.dispose();
+}
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Obx(() => controller.pages[controller.selectedIndex.value]),
       bottomNavigationBar: Obx(
