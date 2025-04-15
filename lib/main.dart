@@ -6,6 +6,7 @@ import 'package:fish_app/controller/event_controller.dart';
 import 'package:fish_app/controller/journal_controller.dart';
 import 'package:fish_app/controller/task_controller.dart';
 import 'package:fish_app/screens/Authentification/signup_page.dart';
+import 'package:fish_app/screens/Authentification/verify_email_page.dart';
 import 'package:fish_app/screens/forecast/forecast_view.dart';
 import 'package:fish_app/screens/marketplace/product_detail_page.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,8 @@ import 'package:fish_app/main_screen.dart';
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/favorite_controller.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   Get.put(AuthController()); // Initialisation correcte du controller
   Get.put(CartController());
   Get.put(FavoriteController());
@@ -36,7 +38,11 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'fish Net',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+
       initialRoute: '/',
       getPages: [
         GetPage(name: '/', page: () => HomePage()),
@@ -48,52 +54,15 @@ class MyApp extends StatelessWidget {
           page: () => ProductDetailPage(product: Get.arguments),
         ),
         GetPage(name: '/forecast', page: () => ForecastView()),
-      ],
-    );
-  }
-}
-
-/*import 'package:fish_app/controller/add_cart_controller.dart';
-import 'package:fish_app/controller/auth_controller.dart';
-import 'package:fish_app/controller/cart_controller.dart';
-import 'package:fish_app/controller/event_controller.dart';
-import 'package:fish_app/controller/favorite_controller.dart';
-import 'package:fish_app/controller/journal_controller.dart';
-import 'package:fish_app/controller/task_controller.dart';
-import 'package:fish_app/main_screen.dart';
-import 'package:fish_app/screens/marketplace/product_detail_page.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
-void main() {
-  // Initialisation des controllers avec GetX
-  Get.put(AuthController());
-  Get.put(CartController());
-  Get.put(FavoriteController());
-  Get.put(EventController());
-  Get.put(TaskController());
-  Get.put(CartControllerX());
-  Get.put(JournalController());
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return GetMaterialApp(
-      // Remplace MaterialApp par GetMaterialApp
-      debugShowCheckedModeBanner: false,
-      home: MainScreen(),
-      getPages: [
         GetPage(
-          name: '/product',
-          page: () => ProductDetailPage(product: Get.arguments),
+          name: '/verify-code',
+          page:
+              () => VerifyCodePage(
+                email: Get.arguments['email'],
+                userId: Get.arguments['userId'],
+              ),
         ),
-        // Vos autres routes...
       ],
     );
   }
 }
-*/

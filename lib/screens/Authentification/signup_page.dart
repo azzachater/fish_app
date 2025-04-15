@@ -58,10 +58,10 @@ class SignupPage extends StatelessWidget {
     // If valid, proceed with signup
     if (isValid) {
       authController.signup(
-        usernameController.text,
-        emailController.text,
-        passwordController.text,
-        confirmPasswordController.text,
+        usernameController.text.trim(),
+        emailController.text.trim(),
+        passwordController.text.trim(),
+        confirmPasswordController.text.trim(),
       );
     }
   }

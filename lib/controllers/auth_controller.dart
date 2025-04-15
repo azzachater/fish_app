@@ -1,4 +1,5 @@
 import 'package:fish_app/service/api_auth_service.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/user_model.dart';
 
@@ -34,21 +35,21 @@ class AuthController extends GetxController {
 
   /// Validates fields and logs the user in via API
   Future<void> login(String email, String password) async {
-    emailError.value = validateEmail(email) ?? '';
-    passwordError.value = validatePassword(password) ?? '';
-
-    if (emailError.isNotEmpty || passwordError.isNotEmpty) {
-      return;
-    }
-
-    isLoading.value = true;
     try {
-      User loggedInUser = await _apiAuthService.login(email, password);
+      _resetErrors();
+      _validateLoginFields(email, password);
+      
+      if (emailError.isNotEmpty || passwordError.isNotEmpty) return;
+
+      isLoading.value = true;
+      final loggedInUser = await _apiAuthService.login(email, password);
+      
       user.value = loggedInUser;
       isLoggedIn.value = true;
       Get.offAllNamed('/MainScreen');
+      
     } catch (e) {
-      generalError.value = e.toString();
+      generalError.value = _handleAuthError(e);
     } finally {
       isLoading.value = false;
     }
@@ -56,42 +57,61 @@ class AuthController extends GetxController {
 
   /// Registers a user by calling the API
   Future<void> signup(
-    String username,
-    String email,
-    String password,
-    String confirmPassword,
-  ) async {
-    usernameError.value = validateUsername(username) ?? '';
-    emailError.value = validateEmail(email) ?? '';
-    passwordError.value = validatePassword(password) ?? '';
-    confirmPasswordError.value =
-        validateConfirmPassword(password, confirmPassword) ?? '';
-
-    if (usernameError.isNotEmpty ||
-        emailError.isNotEmpty ||
-        passwordError.isNotEmpty ||
-        confirmPasswordError.isNotEmpty) {
-      return;
-    }
+  String username,
+  String email,
+  String password,
+  String confirmPassword,
+) async {
+  try {
+    _resetErrors();
+    _validateSignupFields(username, email, password, confirmPassword);
+    
+    if (usernameError.isNotEmpty || 
+        emailError.isNotEmpty || 
+        passwordError.isNotEmpty) return;
 
     isLoading.value = true;
-    try {
-      User newUser = await _apiAuthService.register(
-        username,
-        email,
-        password,
-        confirmPassword,
-      );
-      user.value = newUser;
-      isLoggedIn.value = true;
-      Get.offAllNamed('/login');
-    } catch (e) {
-      generalError.value = e.toString();
-    } finally {
-      isLoading.value = false;
-    }
+    final newUser = await _apiAuthService.register(
+      username,
+      email,
+      password,
+      confirmPassword,
+    );
+    
+    user.value = newUser;
+    // Passer à la fois l'email et l'ID utilisateur
+    Get.offAllNamed('/verify-code', arguments: {
+      'email': email,
+      'userId': newUser.id,
+    });
+    
+  } catch (e) {
+    generalError.value = _handleAuthError(e);
+  } finally {
+    isLoading.value = false;
   }
+}
 
+Future<void> verifyCode({required int userId, required String code}) async {
+  try {
+    isLoading(true);
+    final response = await _apiAuthService.verifyCode(userId, code);
+    
+    // Après vérification réussie, obtenir le token et connecter l'utilisateur
+    if (response.containsKey('token')) {
+      await _apiAuthService.storage.write(key: 'token', value: response['token']);
+      isLoggedIn.value = true;
+      Get.offAllNamed('/MainScreen');
+    }
+    
+    Get.snackbar('Succès', response['message'] ?? 'Email vérifié avec succès');
+  } catch (e) {
+    Get.snackbar('Erreur', e.toString());
+  } finally {
+    isLoading(false);
+  }
+}
+ 
   /// Logs out the user by deleting the token and redirecting to login
   Future<void> logout() async {
     await _apiAuthService.storage.delete(key: 'token');
@@ -101,25 +121,54 @@ class AuthController extends GetxController {
   }
 
   // 🛠 Validation methods for fields
-  String? validateEmail(String email) {
-    if (email.isEmpty) return 'Email cannot be empty';
-    if (!GetUtils.isEmail(email)) return 'Enter a valid email';
-    return null;
+  
+  void _resetErrors() {
+    emailError.value = '';
+    passwordError.value = '';
+    usernameError.value = '';
+    generalError.value = '';
+  }
+  String _handleAuthError(dynamic error) {
+    if (error.toString().contains('Email not verified')) {
+      return 'Please verify your email first';
+    } else if (error.toString().contains('credentials')) {
+      return 'Invalid email or password';
+    }
+    return 'An error occurred. Please try again.';
+  }
+  void _validateLoginFields(String email, String password) {
+    if (email.isEmpty) emailError.value = 'Email is required';
+    else if (!GetUtils.isEmail(email)) emailError.value = 'Invalid email format';
+    
+    if (password.isEmpty) passwordError.value = 'Password is required';
+    else if (password.length < 6) passwordError.value = 'Password too short';
+  }
+  void _validateSignupFields(
+    String username, 
+    String email, 
+    String password,
+    String confirmPassword,
+  ) {
+    _validateLoginFields(email, password);
+    
+    if (username.isEmpty) usernameError.value = 'Username is required';
+    if (password != confirmPassword) {
+      passwordError.value = 'Passwords do not match';
+    }
   }
 
-  String? validatePassword(String password) {
-    if (password.isEmpty) return 'Password cannot be empty';
-    return null;
-  }
 
-  String? validateConfirmPassword(String password, String confirmPassword) {
-    if (confirmPassword.isEmpty) return 'Confirm password cannot be empty';
-    if (confirmPassword != password) return 'Passwords do not match';
-    return null;
-  }
 
-  String? validateUsername(String username) {
-    if (username.isEmpty) return 'Username cannot be empty';
-    return null;
+Future<void> resendCode(int userId) async {
+  try {
+    isLoading(true);
+    await _apiAuthService.resendCode(userId);
+    Get.snackbar('Succès', 'Nouveau code envoyé');
+  } catch (e) {
+    Get.snackbar('Erreur', e.toString());
+  } finally {
+    isLoading(false);
   }
+}
+
 }

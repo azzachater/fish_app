@@ -3,34 +3,38 @@ class User {
   String name;
   String avatar;
   String email;
-  String password;
-  String passwordConfirmation;
   String bio;
   String? token;
+  final bool emailVerified;
+  final DateTime? createdAt;
 
   User({
     required this.id,
     required this.name,
     required this.avatar,
     required this.email,
-    required this.password,
-    required this.passwordConfirmation,
     required this.bio,
+    this.emailVerified = false,
     this.token,
+    this.createdAt,
+
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: int.tryParse(json['id'].toString()) ?? 0, // Convertir id en int
+      id: int.tryParse(json['id'].toString()) ?? 0,
       name: json['name'] ?? '',
       avatar: json['avatar'] ?? '',
       email: json['email'] ?? '',
-      password: json['password'] ?? '',
-      passwordConfirmation: json['password_confirmation'] ?? '',
       bio: json['bio'] ?? '',
-      token: json['token'],
+      emailVerified: json['email_verified_at'] != null,
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at']) 
+          : null,
+
     );
   }
+
 
   // 🔥 **Ajout de la méthode toJson**
   Map<String, dynamic> toJson() {
@@ -39,11 +43,9 @@ class User {
       'name': name,
       'avatar': avatar,
       'email': email,
-      'password':
-          password, // Attention : éviter d'inclure le mot de passe en clair
-      'password_confirmation': passwordConfirmation,
       'bio': bio,
       'token': token,
+      'email_verified_at': emailVerified,
     };
   }
 
@@ -52,8 +54,6 @@ class User {
     String? bio,
     String? name,
     String? email,
-    String? password,
-    String? passwordConfirmation,
     String? token,
   }) {
     return User(
@@ -61,9 +61,8 @@ class User {
       name: name ?? this.name,
       avatar: avatar ?? this.avatar,
       email: email ?? this.email,
-      password: password ?? this.password,
-      passwordConfirmation: passwordConfirmation ?? this.passwordConfirmation,
       bio: bio ?? this.bio,
+      emailVerified: emailVerified ?? this.emailVerified,
       token: token ?? this.token,
     );
   }

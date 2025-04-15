@@ -18,8 +18,7 @@ class EditProfileController extends GetxController {
     super.onInit();
     usernameController.text = currentUser.name;
     emailController.text = currentUser.email;
-    passwordController.text = currentUser.password;
-    passwordConfirmationController.text = currentUser.passwordConfirmation;
+  
     bioController.text = currentUser.bio;
   }
 
@@ -35,8 +34,6 @@ class EditProfileController extends GetxController {
   void saveProfile() {
     currentUser.name = usernameController.text;
     currentUser.email = emailController.text;
-    currentUser.password = passwordController.text;
-    currentUser.passwordConfirmation = passwordConfirmationController.text;
     currentUser.bio = bioController.text;
 
     // Mettre à jour l'UI

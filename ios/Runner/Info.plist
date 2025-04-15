@@ -49,5 +49,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+    	<dict>
+    <key>CFBundleURLSchemes</key>
+    <array>
+        <string>fishapp</string>
+    </array>
+    <key>CFBundleURLName</key>
+        <string>com.yourapp.fishapp</string>
+    </dict>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
 </dict>
 </plist>

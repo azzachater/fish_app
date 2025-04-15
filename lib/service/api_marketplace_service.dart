@@ -7,7 +7,7 @@ import 'package:http_parser/http_parser.dart';
 
 class ApiProductService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://10.0.2.2:8000/api';
+  final String baseUrl = 'http://192.168.1.28:8000/api';
 
   // Headers for requests
   Map<String, String> get headers => {
