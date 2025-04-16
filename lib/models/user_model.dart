@@ -14,8 +14,8 @@ class User {
     required this.avatar,
     required this.email,
     required this.bio,
-    this.emailVerified = false,
     this.token,
+    this.emailVerified = false,
     this.createdAt,
 
   });

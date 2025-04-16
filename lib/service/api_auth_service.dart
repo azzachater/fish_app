@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:fish_app/models/user_model.dart';
+//import 'package:fish_app/services/api_push_notif_service.dart';
 
 class ApiAuthService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   FlutterSecureStorage get storage => _storage;
 
-  final String baseUrl = 'http://192.168.1.28:8000/api';
+  final String baseUrl = 'http://192.168.3.18:8000/api';
 
   Map<String, String> get _headers => {
     'Accept': 'application/json',
@@ -182,7 +183,7 @@ class ApiAuthService {
             await clearToken();
             throw Exception('EmailNotVerified');
           }
-
+        //await pusherService.to.connect();
           return user;
         } else {
           throw Exception('Invalid response: User or Token data not found.');
