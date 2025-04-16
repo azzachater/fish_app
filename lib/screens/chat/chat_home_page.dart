@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../constants/theme.dart';
-import '../social_network/social_home_page.dart';
 import 'chat_page.dart';
 import 'group_page.dart';
 import 'search_users_page.dart';
@@ -20,7 +19,7 @@ class ChatHomePage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
-          onPressed: () => Get.off(SocialHomePage()),
+          onPressed: () => Navigator.pop(context),
           icon: Icon(Icons.arrow_back_ios, color: Colors.white),
         ),
         title: Text(

@@ -1,3 +1,4 @@
+import 'package:fish_app/controllers/post_controller.dart';
 import 'package:get/get.dart';
 import '../models/user_model.dart';
 import '../services/api_user_service.dart';
@@ -22,7 +23,9 @@ class UserController extends GetxController {
     
     final user = await _apiUserService.getCurrentUser();
     currentUser.value = user;
-    
+    // ✅ Ajoute cette ligne ici :
+final postController = Get.put(PostController());
+postController.currentUserId = user.id.toString();
     print('✅ Current user fetched: ${user.toJson()}');
   } catch (e) {
     error(e.toString());

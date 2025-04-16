@@ -98,6 +98,14 @@ class PostController extends GetxController {
 /// Method to get posts for a specific user
   List<Post> getUserPosts(int userId) {
     return posts.where((post) => post.user.id == userId).toList();
-  }
-  
+  }  
+  // Ajoutez cette variable en haut de votre controller
+String currentUserId = '';
+
+// Modifiez la méthode getUserPosts
+List<Post> getCurrentUserPosts() {
+  if (currentUserId.isEmpty) return [];
+  return posts.where((post) => post.user.id.toString() == currentUserId).toList();
+}
+
 }

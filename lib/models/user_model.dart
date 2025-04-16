@@ -5,6 +5,8 @@ class User {
   String? token;
   String avatar;
   String bio;
+  final bool emailVerified;
+  final DateTime? createdAt;
 
   User({
     required this.id,
@@ -13,6 +15,8 @@ class User {
     this.token,
     required this.avatar,
     required this.bio,
+    this.emailVerified = false,
+    this.createdAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -26,6 +30,10 @@ class User {
       token: json['token']?.toString(),
       avatar: profile['avatar']?.toString() ?? 'assets/images/default_avatar.png',
       bio: profile['bio']?.toString() ?? 'je suis un pecheur et sa c est mon profile..!',
+      emailVerified: json['email_verified_at'] != null,
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at'].toString())
+          : null,
     );
   }
 
@@ -37,6 +45,8 @@ class User {
       'token': token,
       'avatar': avatar,
       'bio': bio,
+      'email_verified_at': emailVerified,
+      'created_at': createdAt?.toIso8601String(),
     };
   }
 
@@ -47,6 +57,8 @@ class User {
     String? token,
     String? avatar,
     String? bio,
+    bool? emailVerified,
+    DateTime? createdAt,
   }) {
     return User(
       id: id ?? this.id,
@@ -55,6 +67,8 @@ class User {
       token: token ?? this.token,
       avatar: avatar ?? this.avatar,
       bio: bio ?? this.bio,
+      emailVerified: emailVerified ?? this.emailVerified,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }
