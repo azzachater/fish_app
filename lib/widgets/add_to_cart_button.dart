@@ -1,4 +1,5 @@
 import 'package:fish_app/controller/add_cart_controller.dart';
+import 'package:fish_app/controller/cart_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
@@ -7,7 +8,7 @@ class AddToCartButton extends StatelessWidget {
   final Product product;
   AddToCartButton({super.key, required this.product});
 
-  final CartControllerX cartController = Get.find<CartControllerX>();
+  final CartController cartController = Get.find<CartController>();
 
   @override
   Widget build(BuildContext context) {
@@ -17,8 +18,8 @@ class AddToCartButton extends StatelessWidget {
       return IconButton(
         onPressed: () {
           isAdded
-              ? cartController.removeProduct(product)
-              : cartController.addProduct(product);
+              ? cartController.removeFromCart(product)
+              : cartController.addToCart(product);
         },
         icon: Icon(
           Icons.shopping_cart,

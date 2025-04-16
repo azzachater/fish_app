@@ -1,85 +1,116 @@
+import 'package:fish_app/models/fishingJournal.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'journal_controller.dart';
 
 class AddJournalController extends GetxController {
-  // États observables
-  final selectedDateIndex = 0.obs;
-  final showCalendar = false.obs;
-  final fromTime = Rx<TimeOfDay?>(null);
-  final toTime = Rx<TimeOfDay?>(null);
-  final selectedDate = Rx<DateTime?>(DateTime.now());
-  final descriptionController = TextEditingController();
-  final isSaving = false.obs;
+  // Contrôleurs de texte
+  final titleController = TextEditingController();
+  final locationController = TextEditingController();
+  final speciesController = TextEditingController();
+  final conditionsController = TextEditingController();
+  final notesController = TextEditingController();
 
-  // Validation du formulaire
-  RxBool get isFormValid =>
-      (fromTime.value != null &&
-              toTime.value != null &&
-              descriptionController.text.isNotEmpty &&
-              selectedDate.value != null)
-          .obs;
+  // Sélecteurs de date/heure
+  final selectedDate = DateTime.now().obs;
+  final selectedTime = TimeOfDay.now().obs;
+  final isEditing = false.obs;
+  String? editId;
 
-  // Liste des dates disponibles
-  List<Map<String, dynamic>> getDates() {
-    final now = DateTime.now();
-    return List.generate(3, (index) {
-      final date = now.add(Duration(days: index));
-      return {
-        "date": date.toIso8601String(),
-        "day": DateFormat('d').format(date),
-        "weekday": DateFormat('E').format(date),
-      };
-    });
-  }
-
-  // Sélection d'une heure
-  Future<void> selectTime(BuildContext context, bool isFrom) async {
-    final initialTime =
-        isFrom
-            ? fromTime.value ?? TimeOfDay.now()
-            : toTime.value ?? TimeOfDay.now();
-
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.blue,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      if (isFrom) {
-        fromTime.value = picked;
-      } else {
-        toTime.value = picked;
-      }
+  @override
+  void onInit() {
+    super.onInit();
+    final args = Get.arguments;
+    if (args != null) {
+      _initEditData(args as Map<String, dynamic>);
     }
   }
 
-  // Sélection d'une date personnalisée
-  void selectCustomDate(DateTime date) {
-    selectedDate.value = date;
-    toggleCalendar(); // Masquer le calendrier
+  void _initEditData(Map<String, dynamic> entry) {
+    isEditing.value = true;
+    editId = entry['id'];
+    titleController.text = entry['title'];
+    locationController.text = entry['location'];
+    speciesController.text = entry['species_caught'];
+    conditionsController.text = entry['fishing_conditions'];
+    notesController.text = entry['notes'];
+    selectedDate.value = DateFormat('yyyy-MM-dd').parse(entry['date']);
+    selectedTime.value = _parseTime(entry['time']);
   }
 
-  // Basculer l'affichage du calendrier
-  void toggleCalendar() {
-    showCalendar.value = !showCalendar.value;
+  TimeOfDay _parseTime(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
-  // Sauvegarder le journal
+  Future<void> selectDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate.value,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      selectedDate.value = picked;
+    }
+  }
+
+  Future<void> selectTime(BuildContext context) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: selectedTime.value,
+    );
+    if (picked != null) {
+      selectedTime.value = picked;
+    }
+  }
+
   void saveJournal() {
-    // Logique pour sauvegarder les informations du journal
+    if (!_validateFields()) return;
+
+    final journalData = FishingJournal(
+      id: editId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      title: titleController.text,
+      location: locationController.text,
+      speciesCaught: speciesController.text,
+      fishingConditions: conditionsController.text,
+      notes: notesController.text,
+      date: DateFormat('yyyy-MM-dd').format(selectedDate.value),
+      time: '${selectedTime.value.hour}:${selectedTime.value.minute}',
+    );
+
+    final journalController = Get.find<JournalController>();
+    if (isEditing.value) {
+      journalController.updateEntry(editId!, journalData);
+    } else {
+      journalController.addEntry(journalData);
+    }
+
+    Get.back(result: journalData);
+  }
+
+  bool _validateFields() {
+    if (titleController.text.isEmpty || locationController.text.isEmpty) {
+      Get.snackbar(
+        'Champs requis',
+        'Veuillez remplir tous les champs obligatoires',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  void onClose() {
+    titleController.dispose();
+    locationController.dispose();
+    speciesController.dispose();
+    conditionsController.dispose();
+    notesController.dispose();
+    super.onClose();
   }
 }

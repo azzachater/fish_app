@@ -8,7 +8,8 @@ import 'signup_page.dart';
 class HomePage extends StatelessWidget {
   HomePage({super.key});
 
-  final AuthController authController = Get.find<AuthController>(); // Utilisation correcte
+  final AuthController authController =
+      Get.find<AuthController>(); // Utilisation correcte
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,10 @@ class HomePage extends StatelessWidget {
             children: <Widget>[
               const Column(
                 children: [
-                  Text("Welcome", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text(
+                    "Welcome",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                   SizedBox(height: 20),
                   Text(
                     "Bienvenue sur l'application !",
@@ -30,12 +34,23 @@ class HomePage extends StatelessWidget {
                   ),
                 ],
               ),
-              Image.asset("assets/images/Authentification/welcome.png", height: 200),
+              Image.asset(
+                "assets/images/Authentification/welcome.png",
+                height: 200,
+              ),
               Column(
                 children: [
-                  CustomButton(text: "Login", onPressed: () => Get.to(() => LoginPage()), isPrimary: false),
+                  CustomButton(
+                    text: "Login",
+                    onPressed: () => Get.to(() => LoginPage()),
+                    isPrimary: false,
+                  ),
                   const SizedBox(height: 20),
-                 CustomButton(text: "Sign up", onPressed: () => Get.to(() => SignupPage()), isPrimary: true),
+                  CustomButton(
+                    text: "Sign up",
+                    onPressed: () => Get.to(() => SignupPage()),
+                    isPrimary: true,
+                  ),
                 ],
               ),
             ],

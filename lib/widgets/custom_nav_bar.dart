@@ -5,30 +5,66 @@ class CustomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTabChange;
 
-  const CustomNavBar({super.key, required this.currentIndex, required this.onTabChange});
+  const CustomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTabChange,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 20),
-        child: GNav(
-          backgroundColor: Colors.white,
-          color: Colors.blue,
-          activeColor: Colors.blue,
-          tabBackgroundColor: const Color.fromARGB(255, 142, 200, 248),
-          gap: 8,
-          selectedIndex: currentIndex, // Garde la sélection correcte
-          onTabChange: onTabChange, // Change de page lors d'un clic
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Ajustement dynamique en fonction de la largeur disponible
+              final isSmallScreen = constraints.maxWidth < 400;
 
-          padding: EdgeInsets.all(16),
-          tabs: const [
-            GButton(icon: Icons.home, text: 'Home'),
-            GButton(icon: Icons.storefront_sharp, text: 'Marketplace'),
-            GButton(icon: Icons.library_books, text: 'Diary'),
-            GButton(icon: Icons.account_circle, text: 'Profile'),
-          ],
+              return GNav(
+                backgroundColor: Colors.white,
+                color: Colors.blue,
+                activeColor: Colors.blue,
+                tabBackgroundColor: const Color.fromARGB(255, 142, 200, 248),
+                gap: isSmallScreen ? 4 : 8,
+                selectedIndex: currentIndex,
+                onTabChange: onTabChange,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 8 : 12,
+                  vertical: isSmallScreen ? 10 : 12,
+                ),
+                tabs: [
+                  GButton(
+                    icon: Icons.home,
+                    text: 'Home',
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                  GButton(
+                    icon: Icons.storefront_sharp,
+                    text: 'Marketplace',
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                  GButton(
+                    icon: Icons.library_books,
+                    text: 'Diary',
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                  GButton(
+                    icon: Icons.analytics,
+                    text: isSmallScreen ? 'Stats' : 'Prévisions',
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                  GButton(
+                    icon: Icons.account_circle,
+                    text: 'Profile',
+                    iconSize: isSmallScreen ? 20 : 24,
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

@@ -1,61 +1,62 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:get/get.dart';
 
 class ImageSelector extends StatelessWidget {
-  final RxString imageUrl;
-  final Function(String) onImageSelected;
+  final String imageUrl;
+  final VoidCallback onImageSelected;
 
   const ImageSelector({
-    super.key,
+    Key? key,
     required this.imageUrl,
     required this.onImageSelected,
-  });
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      onImageSelected(pickedFile.path); // Met à jour l'URL de l'image
-    }
-  }
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Obx(
-          () =>
-              imageUrl.value.isNotEmpty
-                  ? ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child:
-                        imageUrl.value.startsWith('http')
-                            ? Image.network(
-                              imageUrl.value,
-                              height: 100,
-                              width: 100,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (context, error, stackTrace) =>
-                                      const Icon(Icons.error),
-                            )
-                            : Image.file(
-                              File(imageUrl.value),
-                              height: 100,
-                              width: 100,
-                              fit: BoxFit.cover,
-                            ),
-                  )
-                  : const Icon(Icons.image, size: 100, color: Colors.grey),
+        const Text(
+          "Image du produit",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        const SizedBox(height: 10),
-        FloatingActionButton(
-          onPressed: _pickImage,
-          backgroundColor: Colors.blue,
-          child: const Icon(Icons.add_a_photo),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: onImageSelected,
+          child: Container(
+            height: 150,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child:
+                imageUrl.isEmpty
+                    ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.camera_alt,
+                          size: 40,
+                          color: Colors.grey[500],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Cliquez pour ajouter une image',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    )
+                    : ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(imageUrl),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
+                    ),
+          ),
         ),
       ],
     );

@@ -1,33 +1,134 @@
+import 'dart:io';
+
+import 'package:fish_app/service/api_marketplace_service.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
+import 'package:fish_app/controller/cart_controller.dart';
 
 class ProductController extends GetxController {
-  var products = Product.products().obs;
+  var products = <Product>[].obs;
   var filteredProducts = <Product>[].obs;
-  var isHovered = false.obs; // Utilisation correcte d'un état réactif
+  var isLoading = false.obs;
+  var error = RxString('');
+  final RxList<String> favoriteIds = <String>[].obs;
+
+  final ApiProductService apiService = ApiProductService();
 
   @override
   void onInit() {
     super.onInit();
-    filteredProducts.assignAll(products);
+    fetchProducts();
   }
 
+  // Méthode pour récupérer les produits
+  Future<void> fetchProducts() async {
+    try {
+      isLoading(true);
+      error('');
+
+      final List<Product> fetchedProducts = await apiService.getProduct();
+
+      if (fetchedProducts.isEmpty) {
+        Get.snackbar('Info', 'Aucun produit trouvé');
+      }
+
+      products.assignAll(fetchedProducts);
+      filteredProducts.assignAll(products);
+
+      print('✅ ${products.length} produits chargés');
+    } catch (e) {
+      error(e.toString());
+      Get.snackbar(
+        'Erreur',
+        'Impossible de charger les produits: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading(false);
+    }
+  }
+  /*Future<List<Product>> fetchProducts() async {
+    try {
+      final response = await apiService.getProduct();
+      return response;
+    } catch (e) {
+      print('Error fetching products: $e');
+      Get.snackbar('Erreur', 'Impossible de charger les produits');
+      return [];
+    }
+  }*/
+
+  // Méthode pour ajouter un produit
+  Future<void> createProduct(Product product, {required File imageFile}) async {
+    try {
+      isLoading(true);
+      final newProduct = await apiService.createProduct(
+        product.copyWith(id: ''), // Reset ID pour la création
+        imageFile: imageFile,
+      );
+
+      products.add(newProduct);
+      filteredProducts.assignAll(products);
+
+      Get.back();
+      Get.snackbar('Succès', 'Produit créé avec ID: ${newProduct.id}');
+    } catch (e) {
+      Get.snackbar(
+        'Erreur',
+        'Échec de création: ${e.toString().replaceAll('Exception: ', '')}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  // Méthode pour rechercher un produit
   void searchProduct(String query) {
     if (query.isEmpty) {
       filteredProducts.assignAll(products);
     } else {
       filteredProducts.assignAll(
-        products
-            .where(
-              (product) =>
-                  product.name.toLowerCase().contains(query.toLowerCase()),
-            )
-            .toList(),
+        products.where(
+          (product) =>
+              product.name.toLowerCase().contains(query.toLowerCase()) ||
+              product.description.toLowerCase().contains(query.toLowerCase()),
+        ),
       );
     }
   }
 
-  void setHover(bool value) {
-    isHovered.value = value; // Met à jour l'état de survol
+  // Méthode pour ajouter/retirer un favori
+  void toggleFavorite(String productId) {
+    try {
+      if (favoriteIds.contains(productId)) {
+        favoriteIds.remove(productId);
+      } else {
+        favoriteIds.add(productId);
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Erreur',
+        'Impossible de mettre à jour les favoris',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  // Récupérer le nombre de favoris
+  int get favoriteCount => favoriteIds.length;
+
+  // Vérifier si un produit est favori
+  bool isFavorite(String productId) => favoriteIds.contains(productId);
+
+  // Récupérer le nombre d'articles dans le panier
+  int get cartCount {
+    final cartController = Get.find<CartController>();
+    return cartController.cartItems.fold(0, (sum, item) => sum + item.quantity);
+  }
+
+  // Filtrer les produits par catégorie
+  List<Product> getProductsByCategory(String category) {
+    return products.where((p) => p.category == category).toList();
   }
 }

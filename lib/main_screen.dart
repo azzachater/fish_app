@@ -1,3 +1,6 @@
+import 'package:fish_app/screens/forecast/forecast_view.dart';
+import 'package:fish_app/screens/journal/diary_screen.dart';
+import 'package:fish_app/screens/marketplace/market_place.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/widgets/custom_nav_bar.dart';
@@ -21,7 +24,13 @@ class MainController extends GetxController {
     selectedIndex.value = index;
   }
 }
+import 'package:get/get.dart';
+import 'package:fish_app/widgets/custom_nav_bar.dart';
+import 'screens/social_network/social_home_page.dart';
+import 'screens/social_network/profile_page.dart';
 
+class MainController extends GetxController {
+  var selectedIndex = 0.obs;
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -29,9 +38,18 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
+  List<Widget> get pages => [
+    SocialHomePage(),
+    Marketplace(),
+    JournalScreen(),
+    ForecastView(),
+    ProfilePage(),
+  ];
 class _MainScreenState extends State<MainScreen> {
   final MainController controller = Get.put(MainController());
 
+  void changeTab(int index) {
+    selectedIndex.value = index;
   @override
   void initState() {
     super.initState();
@@ -39,15 +57,19 @@ class _MainScreenState extends State<MainScreen> {
       _initPusher();
     });
   }
+}
+
+class MainScreen extends StatelessWidget {
+  const MainScreen({super.key});
 
   void _initPusher() async {
   try {
     print('Initializing Pusher service...');
     await PusherService.to.init();
-    
+
     // Attendre un court instant avant de se connecter
     await Future.delayed(Duration(milliseconds: 500));
-    
+
     await PusherService.to.connect();
     print('Pusher initialization completed');
   } catch (e) {
@@ -59,12 +81,14 @@ class _MainScreenState extends State<MainScreen> {
 
 @override
 void dispose() {
-  
+
   super.dispose();
 }
 
   @override
   Widget build(BuildContext context) {
+    final MainController controller = Get.put(MainController());
+
     return Scaffold(
       body: Obx(() => controller.pages[controller.selectedIndex.value]),
       bottomNavigationBar: Obx(

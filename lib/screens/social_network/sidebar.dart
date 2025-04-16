@@ -1,5 +1,9 @@
 import 'package:fish_app/controllers/auth_controller.dart';
 import 'package:fish_app/controllers/user_controller.dart';
+import 'package:fish_app/controllers/auth_controller.dart';
+import 'package:fish_app/screens/event/event_page.dart';
+import 'package:fish_app/screens/journal/diary_screen.dart';
+import 'package:fish_app/screens/marketplace/market_place.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -7,6 +11,10 @@ import '../../screens/chat/chat_home_page.dart';
 import '../../screens/diary_screen.dart';
 import '../../screens/map_page.dart';
 import '../../screens/market_place.dart';
+import 'package:get/get.dart';
+import '../../data/user_data.dart'; // Assurez-vous que ce fichier contient `currentUser`
+import '../../screens/chat/chat_home_page.dart';
+import '../../screens/map_page.dart';
 import '../../screens/social_network/profile_page.dart';
 import '../../screens/tips_and_tricks/tip_page.dart';
 
@@ -28,15 +36,13 @@ class SidebarPageState extends State<SidebarPage> {
     _userController.fetchCurrentUser(); // Charge les données de l'utilisateur
   }
 
+
   void _onItemTapped(int index, Widget? page) {
     setState(() {
       selectedIndex = index;
     });
     if (page != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => page),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => page));
     }
   }
 

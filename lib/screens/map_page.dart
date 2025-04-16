@@ -1,7 +1,7 @@
-import 'package:fish_app/controller/map_controller_X.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:get/get.dart';
+import 'package:fish_app/controller/map_controller_X.dart';
 
 class MapPage extends StatelessWidget {
   final MapControllerX controller = Get.put(MapControllerX());
@@ -9,7 +9,7 @@ class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Carte de Pêche")),
+      appBar: AppBar(title: Text("Carte des Spots de Pêche")),
       body: Stack(
         children: [
           OSMFlutter(
@@ -39,6 +39,43 @@ class MapPage extends StatelessWidget {
               ),
               roadConfiguration: RoadOption(roadColor: Colors.yellowAccent),
             ),
+            onMapIsReady: (isReady) async {
+              if (isReady) {
+                controller.fetchFishingSpots();
+              }
+            },
+            onGeoPointClicked: (geoPoint) {
+              // Afficher les détails du spot quand on clique dessus
+              final spotInfo = controller.fishingSpots[geoPoint];
+              if (spotInfo != null) {
+                Get.dialog(
+                  AlertDialog(
+                    title: Text("Détails du Spot"),
+                    content: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("Description: ${spotInfo['description']}"),
+                        SizedBox(height: 8),
+                        Text("Espèces: ${spotInfo['fish_species']}"),
+                        SizedBox(height: 8),
+                        Text(
+                          "Techniques: ${spotInfo['recommended_techniques']}",
+                        ),
+                        SizedBox(height: 8),
+                        Text("Profondeur: ${spotInfo['depth']}m"),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        child: Text("Fermer"),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
           ),
           Positioned(
             bottom: 20,
@@ -48,13 +85,13 @@ class MapPage extends StatelessWidget {
               child: Icon(Icons.my_location),
             ),
           ),
-          Positioned(
-            bottom: 80,
-            right: 20,
-            child: FloatingActionButton(
-              onPressed: controller.addMarkerAtLocation,
-              child: Icon(Icons.add_location),
-            ),
+          if (controller.isLoading.value)
+              Center(child: CircularProgressIndicator()),
+          Obx(
+            () =>
+                controller.isLoading.value
+                    ? Center(child: CircularProgressIndicator())
+                    : Container(),
           ),
         ],
       ),

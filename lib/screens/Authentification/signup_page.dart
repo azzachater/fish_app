@@ -13,7 +13,8 @@ class SignupPage extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   final RxString usernameError = ''.obs;
   final RxString emailError = ''.obs;
@@ -36,7 +37,8 @@ class SignupPage extends StatelessWidget {
     }
 
     // Validate Email
-    if (emailController.text.isEmpty || !GetUtils.isEmail(emailController.text)) {
+    if (emailController.text.isEmpty ||
+        !GetUtils.isEmail(emailController.text)) {
       emailError.value = 'Please enter a valid email';
       isValid = false;
     }
@@ -56,10 +58,10 @@ class SignupPage extends StatelessWidget {
     // If valid, proceed with signup
     if (isValid) {
       authController.signup(
-        usernameController.text,
-        emailController.text,
-        passwordController.text,
-        confirmPasswordController.text,
+        usernameController.text.trim(),
+        emailController.text.trim(),
+        passwordController.text.trim(),
+        confirmPasswordController.text.trim(),
       );
     }
   }
@@ -84,24 +86,72 @@ class SignupPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 30),
-              const Text("Sign up", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const Text(
+                "Sign up",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 10),
-              CustomTextField(label: "Username", controller: usernameController, hintText: 'enter your Username'),
-              Obx(() => usernameError.value.isNotEmpty
-                  ? Text(usernameError.value, style: TextStyle(color: Colors.red))
-                  : Container()),
-              CustomTextField(label: "Email", controller: emailController, keyboardType: TextInputType.emailAddress, hintText: 'enter your email'),
-              Obx(() => emailError.value.isNotEmpty
-                  ? Text(emailError.value, style: TextStyle(color: Colors.red))
-                  : Container()),
-              CustomTextField(label: "Password", controller: passwordController, obscureText: true, hintText: 'enter your Password'),
-              Obx(() => passwordError.value.isNotEmpty
-                  ? Text(passwordError.value, style: TextStyle(color: Colors.red))
-                  : Container()),
-              CustomTextField(label: "Confirm Password", controller: confirmPasswordController, obscureText: true, hintText: 'enter Confirm Password'),
-              Obx(() => confirmPasswordError.value.isNotEmpty
-                  ? Text(confirmPasswordError.value, style: TextStyle(color: Colors.red))
-                  : Container()),
+              CustomTextField(
+                label: "Username",
+                controller: usernameController,
+                hintText: 'enter your Username',
+                obscureText: false,
+              ),
+              Obx(
+                () =>
+                    usernameError.value.isNotEmpty
+                        ? Text(
+                          usernameError.value,
+                          style: TextStyle(color: Colors.red),
+                        )
+                        : Container(),
+              ),
+              CustomTextField(
+                label: "Email",
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                hintText: 'enter your email',
+                obscureText: false,
+              ),
+              Obx(
+                () =>
+                    emailError.value.isNotEmpty
+                        ? Text(
+                          emailError.value,
+                          style: TextStyle(color: Colors.red),
+                        )
+                        : Container(),
+              ),
+              CustomTextField(
+                label: "Password",
+                controller: passwordController,
+                obscureText: true,
+                hintText: 'enter your Password',
+              ),
+              Obx(
+                () =>
+                    passwordError.value.isNotEmpty
+                        ? Text(
+                          passwordError.value,
+                          style: TextStyle(color: Colors.red),
+                        )
+                        : Container(),
+              ),
+              CustomTextField(
+                label: "Confirm Password",
+                controller: confirmPasswordController,
+                obscureText: true,
+                hintText: 'enter Confirm Password',
+              ),
+              Obx(
+                () =>
+                    confirmPasswordError.value.isNotEmpty
+                        ? Text(
+                          confirmPasswordError.value,
+                          style: TextStyle(color: Colors.red),
+                        )
+                        : Container(),
+              ),
               const SizedBox(height: 20),
               CustomButton(
                 text: "Sign up",
@@ -115,7 +165,13 @@ class SignupPage extends StatelessWidget {
                   const Text("Already have an account?"),
                   GestureDetector(
                     onTap: () => Get.to(() => LoginPage()),
-                    child: const Text(" Login", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
+                    child: const Text(
+                      " Login",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                      ),
+                    ),
                   ),
                 ],
               ),

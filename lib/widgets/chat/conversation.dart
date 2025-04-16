@@ -11,7 +11,7 @@ class Conversation extends StatelessWidget {
   final User user;
   final ChatController chatController = Get.find();
 
-   Conversation({super.key, required this.user});
+  Conversation({super.key, required this.user});
 
   ImageProvider _buildImageProvider(String avatarPath) {
     if (avatarPath.isEmpty) {
@@ -45,8 +45,8 @@ class Conversation extends StatelessWidget {
             child: Column(
               children: [
                 Row(
-                  mainAxisAlignment: isMe 
-                      ? MainAxisAlignment.end 
+                  mainAxisAlignment: isMe
+                      ? MainAxisAlignment.end
                       : MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -82,8 +82,8 @@ class Conversation extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 5),
                   child: Row(
-                    mainAxisAlignment: isMe 
-                        ? MainAxisAlignment.end 
+                    mainAxisAlignment: isMe
+                        ? MainAxisAlignment.end
                         : MainAxisAlignment.start,
                     children: [
                       if (!isMe) const SizedBox(width: 40),
@@ -94,7 +94,7 @@ class Conversation extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        DateFormat('HH:mm').format(message.createdAt), 
+                        DateFormat('HH:mm').format(message.createdAt),
                         style: AppTheme.bodyTextTime,
                       ),
                     ],
