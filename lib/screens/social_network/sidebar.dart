@@ -1,22 +1,16 @@
 import 'package:fish_app/controllers/auth_controller.dart';
 import 'package:fish_app/controllers/user_controller.dart';
-import 'package:fish_app/controllers/auth_controller.dart';
-import 'package:fish_app/screens/event/event_page.dart';
-import 'package:fish_app/screens/journal/diary_screen.dart';
 import 'package:fish_app/screens/marketplace/market_place.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../screens/chat/chat_home_page.dart';
-import '../../screens/diary_screen.dart';
 import '../../screens/map_page.dart';
-import '../../screens/market_place.dart';
-import 'package:get/get.dart';
-import '../../data/user_data.dart'; // Assurez-vous que ce fichier contient `currentUser`
-import '../../screens/chat/chat_home_page.dart';
-import '../../screens/map_page.dart';
+
+
 import '../../screens/social_network/profile_page.dart';
 import '../../screens/tips_and_tricks/tip_page.dart';
+import '../journal/diary_screen.dart';
 
 class SidebarPage extends StatefulWidget {
   const SidebarPage({super.key});
@@ -66,7 +60,7 @@ class SidebarPageState extends State<SidebarPage> {
                 _buildDrawerItem(FontAwesomeIcons.facebookMessenger, "Messages", ChatHomePage(), hasNotification: true, iconColor: Colors.blue),
                 _buildDrawerItem(Icons.lightbulb, "Tips & Tricks", TipsPage(), iconColor: Colors.orange),
                 _buildDrawerItem(Icons.event, "Event", null, iconColor: Colors.red),
-                _buildDrawerItem(Icons.book, "Journal", DiaryScreen(), iconColor: Colors.indigo),
+                _buildDrawerItem(Icons.book, "Journal", JournalScreen(), iconColor: Colors.indigo),
                 _buildDrawerItem(Icons.location_on, "Spot", MapPage(), iconColor: Colors.teal),
                 _buildDrawerItem(Icons.storefront, "Marketplace", Marketplace(), iconColor: Colors.amber),
               ],
