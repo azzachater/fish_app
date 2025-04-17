@@ -1,10 +1,11 @@
+import 'package:fish_app/service/api_auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/notification_model.dart';
-import 'api_auth_service.dart';
+
 
 class NotificationApiService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  static const String baseUrl = 'http://192.168.1.23:8000/api';
   static final ApiAuthService _authService = ApiAuthService();
 
   static Future<List<NotificationModel>> fetchNotifications() async {

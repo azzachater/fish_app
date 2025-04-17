@@ -1,10 +1,11 @@
+import 'package:fish_app/service/api_auth_service.dart';
 import 'package:get/get.dart';
 import '../../models/message_model.dart';
 import '../../models/conversation_model.dart';
 import '../../models/user_model.dart';
 import '../../services/api_chat_service.dart';
 import '../../services/api_user_service.dart';
-import '../../services/api_auth_service.dart';
+
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;

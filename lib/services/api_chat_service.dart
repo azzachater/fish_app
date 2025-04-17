@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:fish_app/services/api_auth_service.dart';
+import 'package:fish_app/service/api_auth_service.dart';
 
 class ApiChatService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://10.0.2.2:8000/api';
+  final String baseUrl = 'http://192.168.1.23:8000/api';
 
   Future<List<dynamic>> getMyConversations() async {
     try {

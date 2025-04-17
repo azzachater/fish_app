@@ -1,10 +1,11 @@
 import 'dart:convert';
+import 'package:fish_app/service/api_auth_service.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
-import 'api_auth_service.dart';
+
 
 class ApiUserService {
-  final String baseUrl = 'http://10.0.2.2:8000/api';
+  final String baseUrl = 'http://192.168.1.23:8000/api';
   final ApiAuthService _authService;
 
   ApiUserService({ApiAuthService? authService}) 

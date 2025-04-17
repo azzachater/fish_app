@@ -8,7 +8,7 @@ class ApiAuthService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   FlutterSecureStorage get storage => _storage;
 
-  final String baseUrl = 'http://192.168.3.18:8000/api';
+  final String baseUrl = 'http://192.168.1.23:8000/api';
 
   Map<String, String> get _headers => {
     'Accept': 'application/json',
@@ -145,63 +145,42 @@ class ApiAuthService {
   Future<String> getToken() async {
     return await _storage.read(key: 'token') ?? '';
   }
+Future<User> login(String email, String password) async {
+  try {
+    final headers = await getAuthHeaders();
+    // Récupérer et utiliser systématiquement le CSRF token
+    final csrfToken = await getCsrfToken();
+    headers['X-XSRF-TOKEN'] = csrfToken ?? '';
 
-  Future<User> login(String email, String password) async {
-    try {
-      final headers = await getAuthHeaders();
-      final csrfToken = await getCsrfToken();
-      if (csrfToken != null) {
-        headers['X-XSRF-TOKEN'] = csrfToken;
-      }
+    final response = await http.post(
+      Uri.parse('$baseUrl/login'),
+      headers: headers,
+      body: jsonEncode({'email': email, 'password': password}),
+    );
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/login'),
-        headers: headers,
-        body: jsonEncode({'email': email, 'password': password}),
-      );
+    final data = jsonDecode(response.body);
 
-      print("Login Response Status: ${response.statusCode}");
-      print("Login Response Body: ${response.body}");
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (data != null &&
-            data.containsKey('User') &&
-            data.containsKey('Token')) {
-          final user = User.fromJson(data['User']);
-          final token = data['Token'].toString();
-
-          // Vérifier si l'email est vérifié avant de stocker le token
-          if (user.emailVerified) {
-            user.token = token;
-            await _storage.write(key: 'token', value: token);
-            print("Saved Token: $token");
-          } else {
-            // Si l'email n'est pas vérifié, on ne stocke pas le token
-            user.token = null;
-            await clearToken();
-            throw Exception('EmailNotVerified');
-          }
-        //await pusherService.to.connect();
-          return user;
-        } else {
-          throw Exception('Invalid response: User or Token data not found.');
-        }
-      } else {
-        // Gérer spécifiquement les erreurs de validation d'email
-        if (response.statusCode == 403 &&
-            data['message'] == 'Email not verified') {
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      if (data.containsKey('User') && data.containsKey('Token')) {
+        final user = User.fromJson(data['User']);
+        
+        // Vérification de l'email AVANT de stocker le token
+        if (!user.emailVerified) {
+          await clearToken();
           throw Exception('EmailNotVerified');
         }
-        throw _handleError(response);
+        
+        await _storage.write(key: 'token', value: data['Token']);
+        return user;
       }
-    } catch (e) {
-      print('Error logging in user: $e');
-      throw _handleErrorDynamic(e);
+      throw Exception('Invalid response format');
+    } else {
+      throw _handleError(response);
     }
+  } catch (e) {
+    throw _handleErrorDynamic(e);
   }
-
+}
   Future<void> logout() async {
     try {
       final response = await http.post(
