@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/post_model.dart';
-import 'api_auth_service.dart';
+import '../service/api_auth_service.dart';
 
 class ApiPostService {
   final ApiAuthService _authService = ApiAuthService();

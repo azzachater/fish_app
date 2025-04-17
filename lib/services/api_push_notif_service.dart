@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import '../models/notification_model.dart';
 import '../controllers/notification_controller.dart';
 import '../controllers/user_controller.dart';
-import '../services/api_auth_service.dart';
+import '../service/api_auth_service.dart';
 
 class PusherService extends GetxService {
   static PusherService get to => Get.find();

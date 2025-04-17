@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:fish_app/services/api_auth_service.dart';
+import 'package:fish_app/service/api_auth_service.dart';
 
 class ApiChatService {
   final ApiAuthService _authService = ApiAuthService();

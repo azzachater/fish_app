@@ -1,4 +1,4 @@
-import 'package:fish_app/services/api_auth_service.dart';
+import 'package:fish_app/service/api_auth_service.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../models/user_model.dart';

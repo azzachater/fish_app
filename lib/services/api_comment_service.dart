@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/comment_model.dart';
-import '../services/api_auth_service.dart'; // Pour récupérer le token d'auth
+import '../service/api_auth_service.dart'; // Pour récupérer le token d'auth
 
 class ApiCommentService {
   final ApiAuthService _authService = ApiAuthService();

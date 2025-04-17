@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
-import 'api_auth_service.dart';
+import '../service/api_auth_service.dart';
 
 class ApiProfileService {
   final ApiAuthService _authService = ApiAuthService();

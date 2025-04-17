@@ -35,25 +35,27 @@ class AuthController extends GetxController {
 
   /// Validates fields and logs the user in via API
   Future<void> login(String email, String password) async {
-    try {
-      _resetErrors();
-      _validateLoginFields(email, password);
+  try {
+    _resetErrors();
+    _validateLoginFields(email, password);
+    if (emailError.isNotEmpty || passwordError.isNotEmpty) return;
 
-      if (emailError.isNotEmpty || passwordError.isNotEmpty) return;
+    isLoading.value = true;
+    final loggedInUser = await _apiAuthService.login(email, password);
+    
+    user.value = loggedInUser;
+    isLoggedIn.value = true;
+    Get.offAllNamed('/MainScreen');
 
-      isLoading.value = true;
-      final loggedInUser = await _apiAuthService.login(email, password);
-
-      user.value = loggedInUser;
-      isLoggedIn.value = true;
-      Get.offAllNamed('/MainScreen');
-
-    } catch (e) {
-      generalError.value = _handleAuthError(e);
-    } finally {
-      isLoading.value = false;
+  } on Exception catch (e) {
+    if (e.toString().contains('EmailNotVerified')) {
+      Get.offAllNamed('/verify-email', arguments: {'email': email});
     }
+    generalError.value = _handleAuthError(e);
+  } finally {
+    isLoading.value = false;
   }
+}
 
   /// Registers a user by calling the API
   Future<void> signup(

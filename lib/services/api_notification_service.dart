@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/notification_model.dart';
-import 'api_auth_service.dart';
+import '../service/api_auth_service.dart';
 
 class NotificationApiService {
   static const String baseUrl = 'http://10.0.2.2:8000/api';
