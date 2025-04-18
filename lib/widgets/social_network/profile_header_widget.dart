@@ -1,55 +1,53 @@
 import 'dart:io';
-import '../../screens/social_network/edit_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/profile_controller.dart';
+import '../../controllers/user_controller.dart';
+import '../../screens/social_network/edit_profile_page.dart';
 
 class ProfileHeaderWidget extends StatelessWidget {
   ProfileHeaderWidget({super.key});
 
-  final ProfileController controller = Get.find<ProfileController>();
+  final UserController userController = Get.find<UserController>();
+
+  ImageProvider _buildImageProvider(String? avatarPath) {
+    if (avatarPath == null || avatarPath.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    } else if (avatarPath.startsWith('http')) {
+      return NetworkImage(avatarPath);
+    } else if (avatarPath.startsWith('assets/')) {
+      return AssetImage(avatarPath);
+    } else {
+      return FileImage(File(avatarPath));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    ImageProvider _buildImageProvider(String avatarPath) {
-      if (avatarPath.isEmpty) {
-        return AssetImage('assets/images/default_avatar.png');
-      } else if (avatarPath.startsWith('http')) {
-        return NetworkImage(avatarPath);
-      } else if (avatarPath.startsWith('assets/')) {
-        return AssetImage(avatarPath);
-      } else {
-        return FileImage(File(avatarPath));
+    return Obx(() {
+      final user = userController.currentUser.value;
+
+      if (user == null) {
+        return const Center(child: CircularProgressIndicator());
       }
-    }
 
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-      margin: EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Obx(() {
-        if (controller.isLoading.value) {
-          return Center(child: CircularProgressIndicator());
-        }
-
-        if (controller.user.value == null) {
-          return Center(child: Text('Aucun profil disponible'));
-        }
-
-        return Column(
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cover Photo
+            // Cover photo
             Container(
               height: 200,
               decoration: const BoxDecoration(
@@ -60,31 +58,35 @@ class ProfileHeaderWidget extends StatelessWidget {
               ),
             ),
             Transform.translate(
-              offset: Offset(0, -50),
+              offset: const Offset(0, -50),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, // Aligné à gauche
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Profile Picture (aligné à gauche)
+                    // Avatar
                     CircleAvatar(
                       radius: 55,
-                      backgroundImage: _buildImageProvider(controller.user.value!.avatar),
+                      backgroundImage: _buildImageProvider(user.avatar),
                     ),
                     const SizedBox(height: 10),
                     // Name
                     Text(
-                      controller.user.value!.name,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.left,
+                      user.name,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 10),
-                    // Edit Profile Button (aligné à gauche)
+                    // Edit button
                     ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
                           context,
-MaterialPageRoute(builder: (context) => EditProfilePage(user: controller.user.value!)),
+                          MaterialPageRoute(
+                            builder: (context) => EditProfilePage(),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -104,8 +106,9 @@ MaterialPageRoute(builder: (context) => EditProfilePage(user: controller.user.va
                     Padding(
                       padding: const EdgeInsets.only(right: 16.0),
                       child: Text(
-                        controller.user.value!.bio,
-                        textAlign: TextAlign.left,
+                        user.bio.isNotEmpty == true
+                            ? user.bio
+                            : "Aucune bio disponible",
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[700],
@@ -119,8 +122,8 @@ MaterialPageRoute(builder: (context) => EditProfilePage(user: controller.user.va
               ),
             ),
           ],
-        );
-      }),
-    );
+        ),
+      );
+    });
   }
 }
