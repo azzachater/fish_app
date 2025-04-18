@@ -64,6 +64,8 @@ dependencies:
   shared_preferences: ^2.5.3
   intl: ^0.20.2  # Met à jour à la version requise par table_calendar
   pusher_channels_flutter: ^2.1.1
+  geolocator: ^14.0.0
+  
 
 
 

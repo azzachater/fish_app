@@ -1,3 +1,4 @@
+import 'package:fish_app/screens/ai_weather.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -58,7 +59,7 @@ class SocialHomePage extends StatelessWidget {
   onPressed: () {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => NotificationPage()), // Sans userToken
+      MaterialPageRoute(builder: (context) => WeatherPredictForm()), // Sans userToken
     );
   },
 ),
