@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Ajout d’icônes météo
 import '../services/api_weather_service.dart';
 
 class WeatherPredictForm extends StatefulWidget {
@@ -13,10 +12,12 @@ class WeatherPredictForm extends StatefulWidget {
 }
 
 class _WeatherPredictFormState extends State<WeatherPredictForm> {
+  List<Map<String, dynamic>> daysData = [];
+  String selectedDayCategory = 'Weekday';
+  String? selectedFullDate;
   String? windSpeed;
   String? waveHeight;
   String? weather;
-  String? dayOfWeek;
   String boatCondition = 'Poor';
   String? prediction;
   bool isLoading = true;
@@ -25,22 +26,50 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
   @override
   void initState() {
     super.initState();
-    _loadWeatherData();
+    _loadWeatherDays();
   }
 
-  Future<void> _loadWeatherData() async {
+  Future<void> _loadWeatherDays() async {
     setState(() {
       isLoading = true;
       error = null;
     });
 
     try {
-      final weatherData = await widget._weatherService.fetchWeatherData();
+      final data = await widget._weatherService.fetchWeatherDataFor7Days();
+      final today = DateTime.now();
+      final todayCategory = (today.weekday >= 6) ? 'Weekend' : 'Weekday';
+      final todayFormatted = "${_weekdayName(today.weekday)}, ${_formatDate(today)}";
+
+      setState(() {
+        daysData = data;
+        selectedDayCategory = todayCategory;
+        selectedFullDate = todayFormatted;
+      });
+
+      _loadWeatherDataForSelectedDate(todayFormatted);
+    } catch (e) {
+      setState(() {
+        error = 'Erreur de chargement météo : $e';
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadWeatherDataForSelectedDate(String fullDate) async {
+    setState(() {
+      isLoading = true;
+      prediction = null;
+    });
+
+    try {
+      final weatherData = daysData.firstWhere((day) => day['Full Date'] == fullDate);
       setState(() {
         windSpeed = weatherData["Wind Speed"];
         waveHeight = weatherData["Wave Height"];
         weather = weatherData["Weather"];
-        dayOfWeek = weatherData["Day of the Week"];
+        selectedDayCategory = weatherData["Day of the Week"];
+        selectedFullDate = fullDate;
         isLoading = false;
       });
     } catch (e) {
@@ -52,7 +81,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
   }
 
   Future<void> predictWeather() async {
-    if (windSpeed == null || waveHeight == null || weather == null || dayOfWeek == null) {
+    if (windSpeed == null || waveHeight == null || weather == null) {
       setState(() {
         prediction = 'Veuillez d’abord charger les données météo.';
       });
@@ -65,7 +94,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
       "Wind Speed": windSpeed,
       "Wave Height": waveHeight,
       "Weather": weather,
-      "Day of the Week": dayOfWeek,
+      "Day of the Week": selectedDayCategory,
       "Boat Technical Condition": boatCondition
     });
 
@@ -90,99 +119,140 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('🌤️ Weather Predictor'),
-        backgroundColor: Colors.blue[700],
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : error != null
-                ? Center(
-                    child: Text(
-                      error!,
-                      style: const TextStyle(color: Colors.red),
+Widget build(BuildContext context) {
+  final theme = Theme.of(context);
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('🌤️ Weather Predictor'),
+      backgroundColor: Colors.blue[700],
+      foregroundColor: Colors.white,
+      elevation: 5, // Ajout d'une ombre subtile
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : error != null
+              ? Center(child: Text(error!, style: const TextStyle(color: Colors.red)))
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Affichage de la localisation
+                    Text(
+                      'Localisation: ${daysData.isNotEmpty ? daysData[0]['Location'] : 'Chargement...'}',
+                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                  )
-                : ListView(
-                    children: [
+                    const SizedBox(height: 16),
+                    
+                    // Liste des jours avec un meilleur design
+                    SizedBox(
+                      height: 50,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: daysData.length,
+                        itemBuilder: (context, index) {
+                          final day = daysData[index];
+                          final isSelected = day['Full Date'] == selectedFullDate;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: ChoiceChip(
+                              label: Text(day['Full Date']),
+                              selected: isSelected,
+                              selectedColor: Colors.blue[600],
+                              onSelected: (selected) {
+                                if (selected) {
+                                  _loadWeatherDataForSelectedDate(day['Full Date']);
+                                }
+                              },
+                              labelStyle: TextStyle(
+                                color: isSelected ? Colors.white : Colors.black,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Carte de données météo
+                    Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
+                      color: Colors.blue[50], // Fond clair
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Text("Données Météo - $selectedFullDate", style: theme.textTheme.titleLarge),
+                            const SizedBox(height: 16),
+                            weatherTile("🌬️ Vent", "$windSpeed km/h"),
+                            weatherTile("🌊 Vagues", "$waveHeight m"),
+                            weatherTile("⛅ Temps", weather ?? ""),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Dropdown avec icône et meilleur espacement
+                    DropdownButtonFormField<String>(
+                      value: boatCondition,
+                      decoration: InputDecoration(
+                        labelText: 'État technique du bateau',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        icon: Icon(Icons.directions_boat), // Icône ajoutée
+                      ),
+                      items: ['Good', 'Average', 'Poor']
+                          .map((opt) => DropdownMenuItem(value: opt, child: Text(opt)))
+                          .toList(),
+                      onChanged: (val) => setState(() => boatCondition = val!),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Bouton de prédiction amélioré avec animation
+                    Center(
+  child: ElevatedButton.icon(
+    onPressed: predictWeather,
+    icon: const Icon(Icons.waves_rounded),
+    label: const Text('Prédire la navigabilité'),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.blue[700],
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+      textStyle: const TextStyle(fontSize: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+  ),
+),
+
+                    const SizedBox(height: 24),
+
+                    // Affichage de la prédiction avec un fond coloré
+                    if (prediction != null)
                       Card(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 4,
+                        color: Colors.blue[50],
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              Text("Données Météo", style: theme.textTheme.titleLarge),
-                              const SizedBox(height: 16),
-                              weatherTile("🌬️ Vent", "$windSpeed km/h"),
-                              weatherTile("🌊 Vagues", "$waveHeight m"),
-                              weatherTile("⛅ Temps", weather ?? ""),
-                              weatherTile("📅 Jour", dayOfWeek ?? ""),
-                            ],
+                          child: Text(
+                            '🔮 Prédiction: $prediction',
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      DropdownButtonFormField<String>(
-                        value: boatCondition,
-                        decoration: InputDecoration(
-                          labelText: 'État technique du bateau',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        items: ['Good', 'Average', 'Poor']
-                            .map((opt) => DropdownMenuItem(value: opt, child: Text(opt)))
-                            .toList(),
-                        onChanged: (val) => setState(() => boatCondition = val!),
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton.icon(
-                        onPressed: predictWeather,
-                        icon: const Icon(Icons.waves_rounded),
-                        label: const Text('Prédire la navigabilité'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[700],
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          textStyle: const TextStyle(fontSize: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: prediction != null
-                            ? Card(
-                                key: ValueKey(prediction),
-                                color: Colors.blue[50],
-                                elevation: 3,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Text(
-                                    '🔮 Prédiction: $prediction',
-                                    style: const TextStyle(
-                                        fontSize: 18, fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              )
-                            : const SizedBox.shrink(),
-                      )
-                    ],
-                  ),
-      ),
-    );
-  }
-
+                  ],
+                ),
+    ),
+  );
+}
   Widget weatherTile(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
@@ -194,5 +264,18 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
         ],
       ),
     );
+  }
+
+  String _weekdayName(int weekday) {
+    const names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    return names[weekday - 1];
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return "${months[date.month - 1]} ${date.day}";
   }
 }

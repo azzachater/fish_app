@@ -1,4 +1,4 @@
-import 'package:fish_app/screens/forecast/forecast_view.dart';
+import 'package:fish_app/screens/ai_weather.dart';
 import 'package:fish_app/screens/journal/diary_screen.dart';
 import 'package:fish_app/screens/marketplace/market_place.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ class MainController extends GetxController {
     SocialHomePage(),
     Marketplace(),
     JournalScreen(),
-    ForecastView(),
+    WeatherPredictForm(),
     ProfilePage(),
   ];
 
