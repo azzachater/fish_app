@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:fish_app/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/custom_button.dart';

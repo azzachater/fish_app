@@ -204,7 +204,9 @@ class PusherService extends GetxService {
           : DateTime.now(),
     );
 
-    notifController.notifications.insert(0, notification);
+    //notifController.notifications.insert(0, notification);
+    notifController.addNotification(notification);
+
 
     Future.delayed(Duration(milliseconds: 500), () {
   Get.rawSnackbar(

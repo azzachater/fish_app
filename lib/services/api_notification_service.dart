@@ -7,36 +7,39 @@ class NotificationApiService {
   static const String baseUrl = 'http://10.0.2.2:8000/api';
   static final ApiAuthService _authService = ApiAuthService();
 
-  static Future<List<NotificationModel>> fetchNotifications() async {
+  static Future<Map<String, dynamic>> fetchNotifications() async {
   try {
     final headers = await _authService.getAuthHeaders();
-    print('Headers: $headers'); // Debug
     final response = await http.get(
       Uri.parse('$baseUrl/notifications'),
       headers: headers,
     );
-    
-    print('Response status: ${response.statusCode}'); // Debug
-    print('Response body: ${response.body}'); // Debug
-    
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode == 200) {
-      final List jsonList = json.decode(response.body);
-      return jsonList.map((json) => NotificationModel.fromJson(json)).toList();
+      final Map<String, dynamic> jsonData = json.decode(response.body);
+
+      final bool unread = jsonData['unread'];
+      final List<dynamic> notifList = jsonData['notifications'];
+
+      final List<NotificationModel> notifications =
+          notifList.map((json) => NotificationModel.fromJson(json)).toList();
+
+      return {
+        'unread': unread,
+        'notifications': notifications,
+      };
     } else {
       throw Exception('Erreur ${response.statusCode}: ${response.body}');
     }
   } catch (e) {
-    print('Error in fetchNotifications: $e'); // Debug
+    print('Erreur dans fetchNotifications: $e');
     throw Exception('Erreur réseau: $e');
   }
 }
-  static Future<void> markAsRead(int id) async {
-    final headers = await _authService.getAuthHeaders();
-    await http.put(
-      Uri.parse('$baseUrl/notifications/$id/read'),
-      headers: headers,
-    );
-  }
+
   static Future<void> deleteNotification(int id) async {
   try {
     final headers = await _authService.getAuthHeaders();
