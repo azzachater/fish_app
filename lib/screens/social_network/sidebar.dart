@@ -6,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import '../../screens/chat/chat_home_page.dart';
 import '../../screens/map_page.dart';
-
+import '../predict_page.dart';
 
 import '../../screens/social_network/profile_page.dart';
 import '../../screens/tips_and_tricks/tip_page.dart';
@@ -58,6 +58,7 @@ class SidebarPageState extends State<SidebarPage> {
                 _buildDrawerItem(Icons.list, "Lists", null, selected: true, iconColor: Colors.blue),
                 _buildDrawerItem(Icons.person, "Profile", ProfilePage(), iconColor: Colors.green),
                 _buildDrawerItem(FontAwesomeIcons.facebookMessenger, "Messages", ChatHomePage(), hasNotification: true, iconColor: Colors.blue),
+                _buildDrawerItem(Icons.assessment, "Predict Species", PredictPage(), iconColor: Colors.pink),
                 _buildDrawerItem(Icons.lightbulb, "Tips & Tricks", TipsPage(), iconColor: Colors.orange),
                 _buildDrawerItem(Icons.event, "Event", null, iconColor: Colors.red),
                 _buildDrawerItem(Icons.book, "Journal", JournalScreen(), iconColor: Colors.indigo),
