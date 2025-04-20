@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart'; // Importation de GetX
-import '../../models/post_model.dart'; // Importation du modèle Post
-import '../../controllers/comment_controller.dart'; // Importation du CommentController
+import 'package:get/get.dart';
+import '../../models/post_model.dart';
+import '../../controllers/comment_controller.dart';
+import '../../controllers/user_controller.dart'; // Importez le UserController
 import 'dart:io';
 
-
 class CommentPage extends StatelessWidget {
-  final Post post; // Référence au Post
+  final Post post;
 
   const CommentPage({super.key, required this.post});
 
   ImageProvider buildAvatarImage(String avatarPath) {
-  if (avatarPath.isEmpty) {
-    return const AssetImage('assets/images/default_avatar.png');
-  } else if (avatarPath.startsWith('http')) {
-    return NetworkImage(avatarPath);
-  } else if (avatarPath.startsWith('assets/')) {
-    return AssetImage(avatarPath);
-  } else {
-    return FileImage(File(avatarPath));
+    if (avatarPath.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    } else if (avatarPath.startsWith('http')) {
+      return NetworkImage(avatarPath);
+    } else if (avatarPath.startsWith('assets/')) {
+      return AssetImage(avatarPath);
+    } else {
+      return FileImage(File(avatarPath));
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
-  final CommentController commentController = Get.put(CommentController()); // Instanciation ici
-    final TextEditingController commentControllerText = TextEditingController(); // Correct initialisation
+    final CommentController commentController = Get.put(CommentController());
+    final UserController userController = Get.find<UserController>(); // Obtenez le UserController
+    final TextEditingController commentControllerText = TextEditingController();
 
-    // Charger les commentaires au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       commentController.loadComments(post.id);
     });
@@ -40,7 +40,6 @@ class CommentPage extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            // Liste des commentaires
             Expanded(
               child: Obx(() {
                 if (commentController.comments.isEmpty) {
@@ -50,18 +49,42 @@ class CommentPage extends StatelessWidget {
                   itemCount: commentController.comments.length,
                   itemBuilder: (context, index) {
                     final comment = commentController.comments[index];
+                    final isCurrentUserOwner = userController.currentUser.value?.id == comment.user.id;
+                    
                     return ListTile(
                       leading: CircleAvatar(
-  backgroundImage: buildAvatarImage(comment.user.avatar),),
+                        backgroundImage: buildAvatarImage(comment.user.avatar),
+                      ),
                       title: Text(comment.user.name),
                       subtitle: Text(comment.content),
-                      trailing: Text( comment.formattedTime),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(comment.formattedTime),
+                          if (isCurrentUserOwner) // Affiche les 3 points seulement si l'utilisateur est le propriétaire
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert),
+                              onSelected: (value) {
+                                if (value == 'delete') {
+                                  commentController.deleteComment(post.id, comment.id);
+                                }
+                              },
+                              itemBuilder: (BuildContext context) {
+                                return [
+                                  const PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Text('Supprimer'),
+                                  ),
+                                ];
+                              },
+                            ),
+                        ],
+                      ),
                     );
                   },
                 );
               }),
             ),
-            // Champ de texte pour ajouter un nouveau commentaire
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(
@@ -81,7 +104,7 @@ class CommentPage extends StatelessWidget {
                       final text = commentControllerText.text.trim();
                       if (text.isNotEmpty) {
                         commentController.addComment(post.id, text);
-                        commentControllerText.clear(); // Effacer le champ après envoi
+                        commentControllerText.clear();
                       } else {
                         Get.snackbar("Erreur", "Le commentaire ne peut pas être vide.");
                       }
