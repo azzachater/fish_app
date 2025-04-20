@@ -122,6 +122,26 @@ class ApiPostService {
       throw Exception(e.toString());
     }
   }
+  Future<Post> likePost(String postId) async {
+  try {
+    final headers = await _getAuthHeaders();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/posts/$postId/like'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> json = jsonDecode(response.body);
+      return Post.fromJson(json);
+    } else {
+      throw Exception(_handleError(response));
+    }
+  } catch (e) {
+    print('❌ Error liking post: $e');
+    rethrow;
+  }
+}
 
   Future<void> clearToken() async {
     await _authService.clearToken();
