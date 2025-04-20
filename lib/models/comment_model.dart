@@ -16,24 +16,33 @@ class Comment {
   }) : createdAt = createdAt ?? DateTime.now(); // Valeur par défaut si null
 
   factory Comment.fromJson(Map<String, dynamic> json) {
-    print("🟢 Parsing Comment JSON: $json");
+  try {
+    // Extrait les données de l'utilisateur
+    final userJson = json['user'] is Map ? json['user'] : {};
+    final avatar = userJson['avatar']?.toString() ?? ''; // Prend directement 'avatar' depuis user
 
     return Comment(
       id: json['id'].toString(),
-      user: json.containsKey('user') && json['user'] != null
-          ? User.fromJson(json['user'])
-          : User(id: 0, 
-          name: "Unknown", 
-          email: '', 
-          avatar: '', 
-          bio: ''),
+      user: User(
+        id: int.tryParse(userJson['id']?.toString() ?? '0') ?? 0,
+        name: userJson['name']?.toString() ?? 'Inconnu',
+        email: '', // Non fourni par l'API dans les posts
+        token: null,
+        avatar: avatar, // Utilise le champ 'avatar' de l'API
+        bio: '', // Non fourni par l'API dans les posts
+      ),
       content: json['content'] ?? '',
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at']) 
           : null,
       postId: json['post_id'].toString(),
     );
+  } catch (e) {
+    print("🚨 Error parsing Post: $e");
+    print("🛑 JSON: $json");
+    rethrow;
   }
+}
 
   // Méthode pour formater le temps comme Facebook
   String get formattedTime {

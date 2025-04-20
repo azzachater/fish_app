@@ -2,11 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // Importation de GetX
 import '../../models/post_model.dart'; // Importation du modèle Post
 import '../../controllers/comment_controller.dart'; // Importation du CommentController
+import 'dart:io';
+
 
 class CommentPage extends StatelessWidget {
   final Post post; // Référence au Post
 
   const CommentPage({super.key, required this.post});
+
+  ImageProvider buildAvatarImage(String avatarPath) {
+  if (avatarPath.isEmpty) {
+    return const AssetImage('assets/images/default_avatar.png');
+  } else if (avatarPath.startsWith('http')) {
+    return NetworkImage(avatarPath);
+  } else if (avatarPath.startsWith('assets/')) {
+    return AssetImage(avatarPath);
+  } else {
+    return FileImage(File(avatarPath));
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +52,7 @@ class CommentPage extends StatelessWidget {
                     final comment = commentController.comments[index];
                     return ListTile(
                       leading: CircleAvatar(
-  backgroundImage: comment.user.avatar.startsWith('http')
-      ? NetworkImage(comment.user.avatar)
-      : AssetImage(comment.user.avatar) as ImageProvider,
-),
+  backgroundImage: buildAvatarImage(comment.user.avatar),),
                       title: Text(comment.user.name),
                       subtitle: Text(comment.content),
                       trailing: Text( comment.formattedTime),
