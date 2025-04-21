@@ -84,7 +84,7 @@ class ChatController extends GetxController {
 
   // Souscrire au canal de conversation
   Future<void> subscribeToConversationChannel(int conversationId) async {
-    String channel = 'private-chat.chat.$conversationId';
+    //String channel = 'private-chat.chat.$conversationId';
     currentConversationId.value = conversationId;
     await pusher.subscribe(channelName: 'private-chat.chat.$conversationId');
 
@@ -117,7 +117,7 @@ class ChatController extends GetxController {
 
   }
 
-  // Gestion des événements Pusher
+ /* // Gestion des événements Pusher
   void _handlePusherEvent(PusherEvent event) {
     print('📡 [onEvent] ${event.channelName} - ${event.eventName} => ${event.data}');
 
@@ -144,7 +144,7 @@ class ChatController extends GetxController {
       }
     }
   }
-
+*/
   // Envoyer un message
   Future<void> sendMessage(String content, int receiverId) async {
     try {
@@ -218,22 +218,37 @@ class ChatController extends GetxController {
   }
 
   Future<void> loadConversations() async {
-    try {
-      isLoading(true);
-      final data = await _apiChatService.getMyConversations();
-      conversations.assignAll(data.map((json) => Conversation.fromJson(json)));
-      
-      for (var conv in conversations) {
-        unreadCounts[conv.id] = conv.unreadCount;
-      }
-    } catch (e) {
-      print('Error loading conversations: $e');
-      Get.snackbar('Error', 'Failed to load conversations');
-    } finally {
-      isLoading(false);
-    }
-  }
+  try {
+    isLoading(true);
+    final data = await _apiChatService.getMyConversations();
 
+    print("✅ Raw data type: ${data.runtimeType}");
+    print("✅ Data content: $data");
+
+    conversations.assignAll(data.map((json) {
+      try {
+        return Conversation.fromJson(json is Map ? Map<String, dynamic>.from(json) : {});
+      } catch (e) {
+        print('❌ Error parsing individual conversation: $e');
+        return Conversation(
+          id: 0,
+          userOne: User.empty(),
+          userTwo: User.empty(),
+        );
+      }
+    }).where((conv) => conv.id != 0).toList());
+
+    for (var conv in conversations) {
+      unreadCounts[conv.id] = conv.unreadCount;
+    }
+    } catch (e) {
+    print('❌ Detailed error: $e');
+    print('❌ Stack trace: ${e is Error ? e.stackTrace : ''}');
+    Get.snackbar('Error', 'Failed to load conversations: ${e.toString()}');
+  } finally {
+    isLoading(false);
+  }
+}
   Future<void> loadMessages(int conversationId) async {
     try {
       isLoading(true);

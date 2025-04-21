@@ -71,4 +71,8 @@ class User {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+  // Define the empty static method to return an empty user object
+  static User empty() {
+    return User(id: 0, name: '', email: '', avatar: '', bio: '');
+  }
 }

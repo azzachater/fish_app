@@ -67,7 +67,6 @@ class PusherService extends GetxService {
   Future<Map<String, String>> _onAuthorizer(String channelName, String socketId, dynamic options) async {
     try {
       final token = await _authService.getToken();
-      if (token == null) throw Exception('Token manquant');
 
       print('🔑 Authentification pour le canal: $channelName');
       

@@ -16,12 +16,13 @@ class Message {
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
-    return Message(
-      id: json['id'] ?? 0,
-      content: json['content'] ?? '',
-      createdAt: DateTime.parse(json['created_at']),
-      isRead: (json['is_read'] as int?)?.toInt() == 1 ?? false, // Correction ici
-      sender: User.fromJson(json['sender'] ?? {}),
-    );
-  }
+  print("🔍 Message JSON: $json");
+  return Message(
+    id: json['id'] ?? 0,
+    content: json['content'] ?? '',
+    createdAt: DateTime.parse(json['created_at']),
+    isRead: json['is_read'].toString() == '1',
+    sender: User.fromJson(json['sender'] ?? {}),
+  );
+}
 }
