@@ -153,16 +153,7 @@ class ChatController extends GetxController {
       final response = await _apiChatService.sendMessage(receiverId, content);
 
       if (response.containsKey('data')) {
-        final messageData = response['data'];
-        final serverMessage = Message(
-          id: messageData['id'],
-          content: messageData['content'],
-          createdAt: DateTime.parse(messageData['created_at']),
-          sender: currentUser.value!,
-          isRead: false,
-        );
-
-        conversationMessages.insert(0, serverMessage);
+        //conversationMessages.insert(0, serverMessage);
         await loadConversations();
       }
     } catch (e) {

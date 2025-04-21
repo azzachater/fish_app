@@ -35,7 +35,7 @@ void initState() {
   void _loadMessages() {
     if (_conversation != null) {
       chatController.loadMessages(_conversation.id);
-      chatController.subscribeToConversationChannel(_conversation!.id);
+      chatController.subscribeToConversationChannel(_conversation.id);
 
     } else {
       chatController.conversationMessages.assignAll([]);
