@@ -8,6 +8,7 @@ import 'create_search_group.dart';
 import '../../widgets/chat/my_tab_bar.dart';
 import '../../controllers/tab_bar_controller.dart'; // Import du contrôleur
 
+
 class ChatHomePage extends StatelessWidget {
   ChatHomePage({super.key});
 
@@ -19,9 +20,12 @@ class ChatHomePage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
-        ),
+  onPressed: () async {
+    //await PusherService.to.connect(); // si nécessaire
+    Get.back(); // reviens sans détruire MainScreen
+  },
+  icon: Icon(Icons.arrow_back, color:Colors.white),
+),
         title: Text(
           'Messages',
           style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, color: Colors.white),
