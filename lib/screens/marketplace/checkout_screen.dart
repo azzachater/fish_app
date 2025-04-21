@@ -1,16 +1,26 @@
+import 'package:fish_app/controller/cart_controller.dart';
+import 'package:fish_app/screens/marketplace/payment_success_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:fish_app/controller/cart_controller.dart';
-import 'payment_success_screen.dart';
+import 'package:fish_app/controllers/user_controller.dart';
+
 
 class CheckoutScreen extends StatelessWidget {
   final CartController cartController = Get.find<CartController>();
+  final UserController userController = Get.find<UserController>();
+  final phoneController = TextEditingController();
+  final addressController = TextEditingController();
 
-  CheckoutScreen({super.key});
+  CheckoutScreen({super.key}) {
+    // Initialiser les contrôleurs avec les valeurs existantes
+    phoneController.text = cartController.checkoutPhone.value;
+    addressController.text = cartController.checkoutAddress.value;
+  }
 
   @override
   Widget build(BuildContext context) {
     final total = cartController.totalPrice + 60.20;
+    final user = userController.currentUser.value;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -31,107 +41,154 @@ class CheckoutScreen extends StatelessWidget {
         ),
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Contact Information',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 15),
-            _buildInfoCard(
-              icon: Icons.email,
-              title: 'emmanueloyiboke@gmail.com',
-              subtitle: 'Email',
-            ),
-            const SizedBox(height: 10),
-            _buildInfoCard(
-              icon: Icons.phone,
-              title: '+234-811-732-5298',
-              subtitle: 'Phone',
-            ),
-            const SizedBox(height: 25),
-            const Text(
-              'Address',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 15),
-            _buildInfoCard(
-              icon: Icons.location_on,
-              title: '1082 Airport Road, Nigeria',
-              subtitle: 'View Map',
-              isAddress: true,
-            ),
-            const SizedBox(height: 25),
-            const Text(
-              'Payment Method',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 15),
-            _buildInfoCard(
-              icon: Icons.credit_card,
-              title: 'DbL Card',
-              subtitle: '***** 0896.4829',
-            ),
-            const SizedBox(height: 30),
-            const Divider(thickness: 1),
-            const SizedBox(height: 15),
-            _buildPriceRow("Subtotal", cartController.totalPrice),
-            const SizedBox(height: 10),
-            _buildPriceRow("Delivery", 60.20),
-            const SizedBox(height: 15),
-            const Divider(thickness: 1),
-            const SizedBox(height: 10),
-            _buildPriceRow("Total Cost", total, isTotal: true),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  Get.to(() => PaymentSuccessScreen(totalCost: total));
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+      body: user == null
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Section Contact Information
+                  const Text(
+                    'Contact Information',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
-                child: const Text(
-                  "Complete Payment",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  const SizedBox(height: 15),
+                  
+                  // Email (non éditable)
+                  _buildInfoCard(
+                    icon: Icons.email,
+                    title: user.email,
+                    subtitle: 'Email',
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  
+                  // Phone (éditable)
+                  _buildEditableField(
+                    icon: Icons.phone,
+                    controller: phoneController,
+                    label: 'Phone Number',
+                    hint: 'Enter your phone number',
+                    onChanged: (value) => cartController.checkoutPhone.value = value,
+                  ),
+                  
+                  // Section Shipping Address
+                  const SizedBox(height: 25),
+                  const Text(
+                    'Shipping Address',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  
+                  // Address (éditable)
+                  _buildEditableField(
+                    icon: Icons.location_on,
+                    controller: addressController,
+                    label: 'Full Address',
+                    hint: 'Enter your shipping address',
+                    onChanged: (value) => cartController.checkoutAddress.value = value,
+                    isAddress: true,
+                  ),
+                  
+                  // Section Payment Method
+                  const SizedBox(height: 25),
+                  const Text(
+                    'Payment Method',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  
+                  // Méthode de paiement (sélection)
+                  Obx(() => _buildPaymentMethodCard(
+                    method: cartController.paymentMethod.value,
+                    onTap: () => _showPaymentMethodDialog(context),
+                  )),
+                  
+                  // Section Order Summary
+                  const SizedBox(height: 30),
+                  const Divider(thickness: 1),
+                  const SizedBox(height: 15),
+                  
+                  _buildPriceRow("Subtotal", cartController.totalPrice),
+                  const SizedBox(height: 10),
+                  
+                  _buildPriceRow("Delivery", 60.20),
+                  const SizedBox(height: 15),
+                  
+                  const Divider(thickness: 1),
+                  const SizedBox(height: 10),
+                  
+                  _buildPriceRow("Total Cost", total, isTotal: true),
+                  const SizedBox(height: 30),
+                  
+                  // Bouton de paiement
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Valider les champs requis avant paiement
+                        if (_validateCheckoutFields()) {
+                          Get.to(() => PaymentSuccessScreen(totalCost: total));
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Complete Payment",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
+  }
+
+  bool _validateCheckoutFields() {
+    if (phoneController.text.isEmpty) {
+      Get.snackbar('Error', 'Please enter your phone number');
+      return false;
+    }
+    
+    if (addressController.text.isEmpty) {
+      Get.snackbar('Error', 'Please enter your shipping address');
+      return false;
+    }
+    
+    if (cartController.paymentMethod.isEmpty) {
+      Get.snackbar('Error', 'Please select a payment method');
+      return false;
+    }
+    
+    return true;
   }
 
   Widget _buildInfoCard({
     required IconData icon,
     required String title,
     required String subtitle,
-    bool isAddress = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -165,17 +222,121 @@ class CheckoutScreen extends StatelessWidget {
                 const SizedBox(height: 5),
                 Text(
                   subtitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
-                    color: isAddress ? Colors.blue : Colors.grey,
-                    fontWeight: isAddress ? FontWeight.bold : FontWeight.normal,
+                    color: Colors.grey,
                   ),
                 ),
               ],
             ),
           ),
-          if (isAddress) const Icon(Icons.chevron_right, color: Colors.grey),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEditableField({
+    required IconData icon,
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required Function(String) onChanged,
+    bool isAddress = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          prefixIcon: Icon(icon, color: Colors.blue),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          suffixIcon: const Icon(Icons.edit, color: Colors.grey),
+        ),
+        onChanged: onChanged,
+        maxLines: isAddress ? 3 : 1,
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodCard({
+    required String method,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.credit_card, color: Colors.blue),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Text(
+                method.isEmpty ? 'Select payment method' : method,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: method.isEmpty ? Colors.grey : Colors.black,
+                ),
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPaymentMethodDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Payment Method'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.credit_card),
+              title: const Text('Credit Card'),
+              onTap: () {
+                cartController.paymentMethod.value = 'Credit Card';
+                Get.back();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.paypal),
+              title: const Text('PayPal'),
+              onTap: () {
+                cartController.paymentMethod.value = 'PayPal';
+                Get.back();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.money),
+              title: const Text('Cash on Delivery'),
+              onTap: () {
+                cartController.paymentMethod.value = 'Cash on Delivery';
+                Get.back();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -10,11 +10,14 @@ import '../../controllers/post_controller.dart';
 class PostWidget extends StatelessWidget {
   final Post post;
   final PostController postController = Get.find();
+final RxBool isLiked = false.obs;
+final RxInt likeCount = 0.obs;
 
-  PostWidget({super.key, required this.post}) {
-    postController.isLiked.value = post.isLiked;
-    postController.likeCount.value = post.likeCount;
-  }
+PostWidget({super.key, required this.post}) {
+  isLiked.value = post.isLiked;
+  likeCount.value = post.likeCount;
+}
+
 
   void navigateToComments() {
     Get.to(() => CommentPage(post: post));
@@ -96,37 +99,40 @@ class PostWidget extends StatelessWidget {
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
             contentPadding: const EdgeInsets.all(10),
-            trailing: PopupMenuButton<String>( // Menu pour supprimer ou modifier le post
-              onSelected: (value) {
-                if (value == 'update') {
-                  openUpdatePostPage();
-                } else if (value == 'delete') {
-                  _showDeleteConfirmationDialog(context);
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem<String>(
-                  value: 'update',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit, color: Colors.blue),
-                      SizedBox(width: 8),
-                      Text("Update"),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text("Delete"),
-                    ],
-                  ),
-                ),
+            trailing: postController.currentUserId == post.user.id.toString()
+    ? PopupMenuButton<String>(
+        onSelected: (value) {
+          if (value == 'update') {
+            openUpdatePostPage();
+          } else if (value == 'delete') {
+            _showDeleteConfirmationDialog(context);
+          }
+        },
+        itemBuilder: (context) => [
+          const PopupMenuItem<String>(
+            value: 'update',
+            child: Row(
+              children: [
+                Icon(Icons.edit, color: Colors.blue),
+                SizedBox(width: 8),
+                Text("Update"),
               ],
             ),
+          ),
+          const PopupMenuItem<String>(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete, color: Colors.red),
+                SizedBox(width: 8),
+                Text("Delete"),
+              ],
+            ),
+          ),
+        ],
+      )
+    : null,
+
           ),
           if (post.postText != null && post.postText!.isNotEmpty)
             Padding(
@@ -160,21 +166,26 @@ class PostWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Obx(() => Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            FontAwesomeIcons.thumbsUp,
-                            color: postController.isLiked.value ? Colors.blue : Colors.grey,
-                          ),
-                          onPressed: postController.toggleLike,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${postController.likeCount.value} Likes',
-                          style: TextStyle(color: postController.isLiked.value ? Colors.blue : Colors.grey),
-                        ),
-                      ],
-                    )),
+  children: [
+    IconButton(
+      icon: Icon(
+        FontAwesomeIcons.thumbsUp,
+        color: isLiked.value ? Colors.blue : Colors.grey,
+      ),
+      onPressed: () {
+        isLiked.toggle();
+        likeCount.value += isLiked.value ? 1 : -1;
+        postController.toggleLike(); // appel API
+      },
+    ),
+    const SizedBox(width: 4),
+    Text(
+      '${likeCount.value} Likes',
+      style: TextStyle(color: isLiked.value ? Colors.blue : Colors.grey),
+    ),
+  ],
+)),
+
                 Row(
                   children: [
                     IconButton(

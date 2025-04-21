@@ -4,7 +4,7 @@ import 'package:fish_app/service/api_auth_service.dart';
 
 class ApiChatService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.23:8000/api';
+  final String baseUrl = 'http://192.168.1.34:8000/api';
 
   Future<List<dynamic>> getMyConversations() async {
     try {

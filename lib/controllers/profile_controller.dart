@@ -1,3 +1,4 @@
+import 'package:fish_app/controllers/post_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,6 +15,8 @@ class ProfileController extends GetxController {
   var user = Rxn<User>();
   var isLoading = false.obs;
   var errorMessage = ''.obs;
+  var selectedImagePath = ''.obs;
+
 
   final usernameController = TextEditingController();
   final emailController = TextEditingController();
@@ -24,9 +27,17 @@ class ProfileController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadUserProfile();
+    //loadUserProfile();
   }
-
+ // Add this method
+  void resetProfile() {
+    user.value = null;
+    usernameController.clear();
+    emailController.clear();
+    bioController.clear();
+    imagePath.value = '';
+    errorMessage.value = '';
+  }
   @override
   void onClose() {
     usernameController.dispose();
@@ -35,33 +46,35 @@ class ProfileController extends GetxController {
     super.onClose();
   }
 
-  Future<void> loadUserProfile() async {
-  try {
-    isLoading(true);
-    errorMessage('');
-    
-    // Forcer un rafraîchissement depuis le serveur
-    await userController.fetchCurrentUser();
-    
-    final currentUser = userController.currentUser.value;
-    if (currentUser != null) {
-      user.value = currentUser.copyWith(); // Crée une nouvelle instance
-      usernameController.text = currentUser.name;
-      emailController.text = currentUser.email;
-      bioController.text = currentUser.bio ?? '';
-      imagePath.value = currentUser.avatar ?? '';
+   Future<void> loadUserProfile() async {
+    try {
+      isLoading(true);
+      errorMessage('');
+      resetProfile(); // Clear old data first
       
-      print('User profile loaded: ${currentUser.toJson()}');
+      // Forcer un rafraîchissement depuis le serveur
+      await userController.fetchCurrentUser();
+      
+      final currentUser = userController.currentUser.value;
+      if (currentUser != null) {
+        user.value = currentUser.copyWith(); // Crée une nouvelle instance
+        usernameController.text = currentUser.name;
+        emailController.text = currentUser.email;
+        bioController.text = currentUser.bio ?? '';
+        imagePath.value = currentUser.avatar ?? '';
+        
+        print('User profile loaded: ${currentUser.toJson()}');
+      }
+    } catch (e) {
+      errorMessage('Erreur lors du chargement du profil: ${e.toString()}');
+      print('Error loading profile: $e');
+      Get.snackbar('Erreur', errorMessage.value,
+          snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      isLoading(false);
     }
-  } catch (e) {
-    errorMessage('Erreur lors du chargement du profil: ${e.toString()}');
-    print('Error loading profile: $e');
-    Get.snackbar('Erreur', errorMessage.value,
-        snackPosition: SnackPosition.BOTTOM);
-  } finally {
-    isLoading(false);
   }
-}
+
 
   Future<void> pickImage() async {
     try {
@@ -106,6 +119,10 @@ class ProfileController extends GetxController {
     bioController.text = updatedUser.bio ?? '';
     imagePath.value = updatedUser.avatar ?? '';
 
+    // ✅ ➕ Ajoute ceci pour recharger les posts
+    final postController = Get.put(PostController());
+    await postController.fetchPosts();
+
     Get.back();
     Get.snackbar('Succès', 'Profil mis à jour avec succès',
         snackPosition: SnackPosition.BOTTOM);
@@ -118,5 +135,4 @@ class ProfileController extends GetxController {
     isLoading(false);
   }
 }
-
 }

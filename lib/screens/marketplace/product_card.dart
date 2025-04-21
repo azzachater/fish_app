@@ -1,7 +1,9 @@
-import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/product_card_controller.dart';
+import 'package:fish_app/controllers/user_controller.dart';
+import 'package:fish_app/screens/marketplace/add_product_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/models/product.dart';
 
 class ProductCard extends StatelessWidget {
@@ -13,6 +15,12 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final productController = Get.find<ProductController>();
     final cartController = Get.find<CartController>();
+    final userController = Get.find<UserController>();
+    final currentUser = userController.currentUser.value;
+
+    // Vérifie si l'utilisateur actuel est le propriétaire du produit
+    final isOwner =
+        currentUser != null && currentUser.id.toString() == product.userId;
 
     return GestureDetector(
       onTap: () => Get.toNamed('/product', arguments: product),
@@ -49,7 +57,10 @@ class ProductCard extends StatelessWidget {
                       Text(
                         product.name,
                         style: TextStyle(fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      SizedBox(height: 4),
                       Text(
                         '${product.price} ${product.unit}',
                         style: TextStyle(
@@ -57,13 +68,26 @@ class ProductCard extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      if (product.stock > 0) ...[
+                        SizedBox(height: 4),
+                        Text(
+                          'En stock: ${product.stock}',
+                          style: TextStyle(fontSize: 12, color: Colors.green),
+                        ),
+                      ] else ...[
+                        SizedBox(height: 4),
+                        Text(
+                          'Rupture de stock',
+                          style: TextStyle(fontSize: 12, color: Colors.red),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ],
             ),
-            // Nouveau Bouton Favori plus visible
-            // Dans le Positioned pour l'icône favori
+
+            // Bouton Favori
             Positioned(
               top: 12,
               left: 12,
@@ -86,38 +110,131 @@ class ProductCard extends StatelessWidget {
                 );
               }),
             ),
-            // Bouton Panier
-            Positioned(
-              bottom: 8,
-              right: 8,
-              child: IconButton(
-                icon: Icon(Icons.add_shopping_cart, color: Colors.blue),
-                onPressed: () {
-                  final cartController = Get.find<CartController>();
-                  cartController.addToCart(product);
-                  Get.snackbar(
-                    'Ajouté au panier',
-                    '${product.name} a été ajouté à votre panier',
-                    snackPosition: SnackPosition.BOTTOM,
-                    duration: Duration(seconds: 2),
-                  );
-                },
+
+            // Bouton Panier (seulement si en stock)
+            if (product.stock > 0)
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: IconButton(
+                  icon: Icon(Icons.add_shopping_cart, color: Colors.blue),
+                  onPressed: () {
+                    cartController.addToCart(product);
+                    Get.snackbar(
+                      'Ajouté au panier',
+                      '${product.name} a été ajouté à votre panier',
+                      snackPosition: SnackPosition.BOTTOM,
+                      duration: Duration(seconds: 2),
+                    );
+                  },
+                ),
               ),
-            ),
+
+            // Menu des trois points (seulement pour le propriétaire)
+            if (isOwner)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: PopupMenuButton<String>(
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.more_vert,
+                      color: Colors.grey,
+                      size: 24,
+                    ),
+                  ),
+                  onSelected: (value) async {
+                    if (value == 'edit') {
+                      Get.to(
+                        () => AddProductPage(
+                          productToEdit: product,
+                        ), // Passez le produit à éditer
+                        transition: Transition.rightToLeft,
+                      );
+                    } else if (value == 'delete') {
+                      final confirm = await Get.dialog(
+                        AlertDialog(
+                          title: const Text('Confirmer la suppression'),
+                          content: Text(
+                            'Supprimer "${product.name}" définitivement?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Get.back(result: false),
+                              child: const Text('Annuler'),
+                            ),
+                            TextButton(
+                              onPressed: () => Get.back(result: true),
+                              child: const Text(
+                                'Supprimer',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        try {
+                          await productController.deleteProduct(product.id);
+                          Get.snackbar(
+                            'Succès',
+                            'Produit supprimé',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        } catch (e) {
+                          Get.snackbar(
+                            'Erreur',
+                            'Échec de la suppression: ${e.toString()}',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        }
+                      }
+                    }
+                  },
+                  itemBuilder:
+                      (BuildContext context) => [
+                        const PopupMenuItem<String>(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, color: Colors.blue),
+                              SizedBox(width: 8),
+                              Text('Modifier'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text('Supprimer'),
+                            ],
+                          ),
+                        ),
+                      ],
+                ),
+              ),
           ],
         ),
       ),
     );
   }
-}
 
-ImageProvider _getImageProvider(String imagePath) {
-  if (imagePath.startsWith('http')) {
-    return NetworkImage(imagePath);
-  } else if (imagePath.startsWith('assets/')) {
-    return AssetImage(imagePath);
-  } else {
-    // Pour les chemins relatifs du backend
-    return NetworkImage('http://192.168.1.36:8000/storage/$imagePath');
+  ImageProvider _getImageProvider(String imagePath) {
+    if (imagePath.startsWith('http')) {
+      return NetworkImage(imagePath);
+    } else if (imagePath.startsWith('assets/')) {
+      return AssetImage(imagePath);
+    } else {
+      return NetworkImage('http://192.168.1.34:8000/storage/$imagePath');
+    }
   }
 }

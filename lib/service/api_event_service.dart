@@ -6,7 +6,7 @@ import 'api_auth_service.dart';
 
 class ApiEventService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.23:8000/api';
+  final String baseUrl = 'http://192.168.1.34:8000/api';
 
   // Headers
   Map<String, String> get headers => {
@@ -22,27 +22,40 @@ class ApiEventService {
   }
 
   Future<List<Event>> getEvents() async {
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/events'),
-      headers: await _getAuthHeaders(),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/events'),
+        headers: await _getAuthHeaders(),
+      );
 
-    print('🔥 API Response: ${response.body}'); // Debug
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final eventsList = data['data'] as List;
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      // Extraction de la liste depuis la clé 'data'
-      final eventsList = data['data'] as List; 
-      return eventsList.map((json) => Event.fromJson(json)).toList();
-    } else {
+        return eventsList.map((json) {
+          // Normalisation des participants si nécessaire
+          if (json['participants'] is List &&
+              json['participants'].isNotEmpty &&
+              json['participants'][0] is int) {
+            json['participants'] =
+                json['participants']
+                    .map(
+                      (id) => {
+                        'user_id': id,
+                        'user': {'id': id, 'name': 'Participant', 'avatar': ''},
+                      },
+                    )
+                    .toList();
+          }
+          return Event.fromJson(json);
+        }).toList();
+      }
       throw Exception('Failed to load events');
+    } catch (e) {
+      print('❌ getEvents error: $e');
+      throw Exception('Check your API response format');
     }
-  } catch (e) {
-    print('❌ getEvents error: $e');
-    throw Exception('Check your API response format');
   }
-}
 
   Future<Event> createEvent(Event event) async {
     try {
@@ -114,6 +127,62 @@ class ApiEventService {
       throw Exception(e.toString());
     }
   }
+
+  Future<Event> addParticipant(String eventId, String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+          '$baseUrl/events/$eventId/participants',
+        ), // Vérifiez cette URL
+        headers: await _getAuthHeaders(),
+        body: jsonEncode({
+          'user_id': userId, // Le backend attend seulement user_id
+        }),
+      );
+
+      print(
+        '🎫 Add Participant Response: ${response.statusCode} - ${response.body}',
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        // Vérifiez la structure de réponse de votre backend
+        if (responseData['event'] != null) {
+          return Event.fromJson(responseData['event']);
+        } else {
+          // Si la réponse ne contient pas l'événement complet, rafraîchissez la liste
+          final events = await getEvents();
+          return events.firstWhere((e) => e.id == eventId);
+        }
+      } else {
+        throw Exception(_handleError(response));
+      }
+    } catch (e) {
+      print('❌ addParticipant error: $e');
+      rethrow;
+    }
+  }
+
+
+  Future<Event> joinEvent(String eventId, String userId) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/events/$eventId/join'),
+      headers: await _getAuthHeaders(),
+      body: jsonEncode({}),
+    );
+
+    if (response.statusCode == 201) {
+      final responseData = jsonDecode(response.body);
+      return Event.fromJson(responseData['event']);
+    } else {
+      throw Exception(_handleError(response));
+    }
+  } catch (e) {
+    print('❌ joinEvent error: $e');
+    rethrow;
+  }
+}
 
   Future<void> clearToken() async {
     await _authService.clearToken();

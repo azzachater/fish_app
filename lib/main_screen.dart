@@ -1,6 +1,6 @@
-import 'package:fish_app/screens/forecast/forecast_view.dart';
 import 'package:fish_app/screens/journal/diary_screen.dart';
 import 'package:fish_app/screens/marketplace/market_place.dart';
+import 'package:fish_app/screens/prediction_ia/weather_predict_form.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/widgets/custom_nav_bar.dart';
@@ -16,7 +16,7 @@ class MainController extends GetxController {
     SocialHomePage(),
     Marketplace(),
     JournalScreen(),
-    ForecastView(),
+    WeatherPredictForm(),
     ProfilePage(),
   ];
 
@@ -32,7 +32,6 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-
 class _MainScreenState extends State<MainScreen> {
   final MainController controller = Get.put(MainController());
 
@@ -46,18 +45,19 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    body: Obx(() => controller.pages[controller.selectedIndex.value]),
-    bottomNavigationBar: Obx(
-            () => CustomNavBar(
+    return Scaffold(
+      body: Obx(() => controller.pages[controller.selectedIndex.value]),
+      bottomNavigationBar: Obx(
+        () => CustomNavBar(
           currentIndex: controller.selectedIndex.value,
           onTabChange: controller.changeTab,
-        )),
-  );
+        ),
+      ),
+    );
   }
 }
 
-  void _initPusher() async {
+void _initPusher() async {
   try {
     print('Initializing Pusher service...');
     await PusherService.to.init();
@@ -73,7 +73,3 @@ class _MainScreenState extends State<MainScreen> {
     Future.delayed(Duration(seconds: 3), () => _initPusher());
   }
 }
-
-
-
-

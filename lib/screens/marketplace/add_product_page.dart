@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/models/product.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -10,13 +11,21 @@ import 'package:image_picker/image_picker.dart';
 class AddProductPage extends StatelessWidget {
   final AddProductController controller = Get.put(AddProductController());
   final ProductController productController = Get.find<ProductController>();
+  final UserController userController = Get.find<UserController>();
+  final Product? productToEdit;
+
+  AddProductPage({Key? key, this.productToEdit}) : super(key: key) {
+    if (productToEdit != null) {
+      controller.initializeForEdit(productToEdit!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Ajouter un produit',
+          productToEdit == null ? 'Ajouter un produit' : 'Modifier le produit',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -56,32 +65,27 @@ class AddProductPage extends StatelessWidget {
                     ],
                   ),
                   child:
-                      controller.imageUrl.value.isEmpty
-                          ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_photo_alternate_outlined,
-                                size: 40,
-                                color: Colors.grey.shade400,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Ajouter une image',
-                                style: TextStyle(
-                                  color: Colors.grey.shade500,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          )
-                          : ClipRRect(
+                      controller.imageUrl.value.isNotEmpty
+                          ? ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: Image.file(
                               File(controller.imageUrl.value),
                               fit: BoxFit.cover,
                             ),
-                          ),
+                          )
+                          : productToEdit?.image != null &&
+                              productToEdit!.image.isNotEmpty
+                          ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              productToEdit!.image,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (context, error, stackTrace) =>
+                                      _buildPlaceholderImage(),
+                            ),
+                          )
+                          : _buildPlaceholderImage(),
                 ),
               ),
             ),
@@ -94,12 +98,11 @@ class AddProductPage extends StatelessWidget {
                 controller: controller.nameController,
                 label: 'Nom du produit*',
                 hintText: 'Ex: Canne à pêche',
-                obscureText: false,
               ),
             ),
             const SizedBox(height: 16),
 
-            // Prix et Stock en ligne
+            // Prix et Stock
             Row(
               children: [
                 // Prix
@@ -113,7 +116,6 @@ class AddProductPage extends StatelessWidget {
                       keyboardType: TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      obscureText: false,
                     ),
                   ),
                 ),
@@ -127,7 +129,6 @@ class AddProductPage extends StatelessWidget {
                       label: 'Stock*',
                       hintText: 'Quantité',
                       keyboardType: TextInputType.number,
-                      obscureText: false,
                     ),
                   ),
                 ),
@@ -142,7 +143,6 @@ class AddProductPage extends StatelessWidget {
                 controller: controller.unitController,
                 label: 'Unité*',
                 hintText: 'Ex: pièce',
-                obscureText: false,
               ),
             ),
             const SizedBox(height: 16),
@@ -155,7 +155,6 @@ class AddProductPage extends StatelessWidget {
                 label: 'Description*',
                 hintText: 'Décrivez votre produit...',
                 maxLines: 3,
-                obscureText: false,
               ),
             ),
             const SizedBox(height: 16),
@@ -203,8 +202,9 @@ class AddProductPage extends StatelessWidget {
                       : ElevatedButton(
                         onPressed: () async {
                           if (controller.validateForm()) {
-                            final newProduct = Product(
+                            final product = Product(
                               id:
+                                  productToEdit?.id ??
                                   DateTime.now().millisecondsSinceEpoch
                                       .toString(),
                               name: controller.nameController.text,
@@ -215,16 +215,48 @@ class AddProductPage extends StatelessWidget {
                               ),
                               stock: int.parse(controller.stockController.text),
                               unit: controller.unitController.text,
-                              image: controller.imageUrl.value,
+                              image:
+                                  controller.imageUrl.value.isNotEmpty
+                                      ? controller.imageUrl.value
+                                      : productToEdit?.image ?? '',
                               category: controller.selectedCategory.value,
+                              userId:
+                                  productToEdit?.userId ??
+                                  userController.currentUser.value!.id
+                                      .toString(),
                             );
-                            await productController.createProduct(
-                              newProduct,
-                              imageFile: File(
-                                controller.imageUrl.value,
-                              ), // Ajout du paramètre imageFile obligatoire
-                            );
-                            Get.back();
+
+                            try {
+                              if (productToEdit == null) {
+                                // Création - l'image est obligatoire
+                                if (controller.imageUrl.value.isEmpty) {
+                                  throw Exception(
+                                    'Veuillez sélectionner une image',
+                                  );
+                                }
+                                await productController.createProduct(
+                                  product,
+                                  imageFile: File(controller.imageUrl.value),
+                                );
+                                Get.snackbar(
+                                  'Succès',
+                                  'Produit créé avec succès',
+                                );
+                              } else {
+                                // Mise à jour - l'image est optionnelle
+                                await productController.updateProduct(
+                                  product,
+                                  imageFile:
+                                      controller.imageUrl.value.isNotEmpty
+                                          ? File(controller.imageUrl.value)
+                                          : null,
+                                );
+                                Get.snackbar('Succès', 'Produit mis à jour');
+                              }
+                              Get.back();
+                            } catch (e) {
+                              Get.snackbar('Erreur', e.toString());
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -237,7 +269,9 @@ class AddProductPage extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                         child: Text(
-                          'PUBLIER LE PRODUIT',
+                          productToEdit == null
+                              ? 'PUBLIER LE PRODUIT'
+                              : 'METTRE À JOUR',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -248,6 +282,24 @@ class AddProductPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPlaceholderImage() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.add_photo_alternate_outlined,
+          size: 40,
+          color: Colors.grey.shade400,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Ajouter une image',
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+        ),
+      ],
     );
   }
 

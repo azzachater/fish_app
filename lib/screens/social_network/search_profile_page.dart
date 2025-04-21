@@ -2,6 +2,7 @@ import 'package:fish_app/controllers/search_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'user_profile_page.dart';
+import '../../controllers/user_controller.dart'; // <- pour currentUser
 
 class SearchProfilePage extends StatelessWidget {
   const SearchProfilePage({super.key});
@@ -9,6 +10,7 @@ class SearchProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final SearchProfileController controller = Get.put(SearchProfileController());
+    final UserController userController = Get.find<UserController>();
 
     return Scaffold(
       appBar: AppBar(
@@ -38,7 +40,13 @@ class SearchProfilePage extends StatelessWidget {
         ],
       ),
       body: Obx(() {
-        if (controller.filteredUsers.isEmpty) {
+        // 🔥 Exclusion de l’utilisateur courant
+        final currentUserId = userController.currentUser.value?.id;
+        final usersToShow = controller.filteredUsers
+            .where((user) => user.id != currentUserId)
+            .toList();
+
+        if (usersToShow.isEmpty) {
           return const Center(
             child: Text(
               'Aucun utilisateur trouvé',
@@ -48,9 +56,9 @@ class SearchProfilePage extends StatelessWidget {
         }
 
         return ListView.builder(
-          itemCount: controller.filteredUsers.length,
+          itemCount: usersToShow.length,
           itemBuilder: (context, index) {
-            final user = controller.filteredUsers[index];
+            final user = usersToShow[index];
             return ListTile(
               leading: CircleAvatar(
                 radius: 25,
@@ -74,9 +82,7 @@ class SearchProfilePage extends StatelessWidget {
   }
 
   ImageProvider _getAvatarImage(String? avatarUrl) {
-    if (avatarUrl != null && 
-        avatarUrl.isNotEmpty && 
-        avatarUrl.startsWith('http')) {
+    if (avatarUrl != null && avatarUrl.isNotEmpty && avatarUrl.startsWith('http')) {
       return NetworkImage(avatarUrl);
     }
     return const AssetImage('assets/images/default_avatar.png');

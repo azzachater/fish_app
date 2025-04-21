@@ -5,7 +5,7 @@ import '../models/notification_model.dart';
 
 
 class NotificationApiService {
-  static const String baseUrl = 'http://192.168.1.23:8000/api';
+  static const String baseUrl = 'http://192.168.1.34:8000/api';
   static final ApiAuthService _authService = ApiAuthService();
 
   static Future<List<NotificationModel>> fetchNotifications() async {

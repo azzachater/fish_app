@@ -7,7 +7,7 @@ import '../models/user_model.dart';
 
 class ApiProfileService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.23:8000/api';
+  final String baseUrl = 'http://192.168.1.34:8000/api';
 
   Future<Map<String, String>> _getAuthHeaders() async {
     final headers = await _authService.getAuthHeaders();

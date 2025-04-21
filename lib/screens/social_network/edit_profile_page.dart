@@ -7,37 +7,40 @@ import '../../widgets/custom_text_field.dart';
 import '../../controllers/profile_controller.dart';
 
 class EditProfilePage extends StatelessWidget {
-  const EditProfilePage({super.key, required this.user});
-  final User user;
+  const EditProfilePage({super.key});
 
-ImageProvider _buildImageProvider(String avatarPath, String imagePath) {
-  if (imagePath.isNotEmpty) {
-    if (imagePath.startsWith('http')) {
-      return NetworkImage(imagePath);
+  ImageProvider _buildImageProvider(String avatarPath, String imagePath) {
+    if (imagePath.isNotEmpty) {
+      if (imagePath.startsWith('http')) {
+        return NetworkImage(imagePath);
+      } else {
+        return FileImage(File(imagePath));
+      }
+    } else if (avatarPath.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    } else if (avatarPath.startsWith('http')) {
+      return NetworkImage(avatarPath);
+    } else if (avatarPath.startsWith('assets/')) {
+      return AssetImage(avatarPath);
     } else {
-      return FileImage(File(imagePath));
+      return FileImage(File(avatarPath));
     }
-  } else if (avatarPath.isEmpty) {
-    return const AssetImage('assets/images/default_avatar.png');
-  } else if (avatarPath.startsWith('http')) {
-    return NetworkImage(avatarPath);
-  } else if (avatarPath.startsWith('assets/')) {
-    return AssetImage(avatarPath);
-  } else {
-    return FileImage(File(avatarPath));
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     final ProfileController controller = Get.find<ProfileController>();
-    
+
+    // This ensures the user profile is loaded
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.loadUserProfile();
+    });
+
     return Scaffold(
       backgroundColor: Colors.blue,
       body: Stack(
         children: [
-          // Zone blanche scrollable
+          // Scrollable white zone
           Positioned(
             top: 150,
             left: 0,
@@ -66,7 +69,7 @@ ImageProvider _buildImageProvider(String avatarPath, String imagePath) {
                       const Text(
                         'Edit Profile',
                         style: TextStyle(
-                          fontSize: 22, 
+                          fontSize: 22,
                           fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 20),
@@ -89,16 +92,18 @@ ImageProvider _buildImageProvider(String avatarPath, String imagePath) {
                         hintText: '',
                         obscureText: false,
                       ),
-                     Obx(() {
-  final imageProvider = _buildImageProvider(user.avatar, controller.imagePath.value);
+                      Obx(() {
+                        final imageProvider = _buildImageProvider(
+                          controller.user.value?.avatar ?? '',
+                          controller.imagePath.value,
+                        );
 
-  return Image(
-    image: imageProvider,
-    height: 150,
-    fit: BoxFit.cover,
-  );
-}),
-
+                        return Image(
+                          image: imageProvider,
+                          height: 150,
+                          fit: BoxFit.cover,
+                        );
+                      }),
                       const SizedBox(height: 20),
                       CustomButton(
                         text: 'Save',
@@ -113,7 +118,7 @@ ImageProvider _buildImageProvider(String avatarPath, String imagePath) {
             ),
           ),
 
-          // Bouton retour
+          // Back button
           Positioned(
             top: 40,
             left: 15,
@@ -130,13 +135,15 @@ ImageProvider _buildImageProvider(String avatarPath, String imagePath) {
             right: 0,
             child: Center(
               child: Obx(() {
-
                 return Stack(
                   alignment: Alignment.bottomRight,
                   children: [
                     CircleAvatar(
                       radius: 50,
-        backgroundImage: _buildImageProvider(user.avatar, controller.imagePath.value),
+                      backgroundImage: _buildImageProvider(
+                        controller.user.value?.avatar ?? '',
+                        controller.imagePath.value,
+                      ),
                     ),
                     Positioned(
                       bottom: 5,
@@ -146,14 +153,12 @@ ImageProvider _buildImageProvider(String avatarPath, String imagePath) {
                         child: const CircleAvatar(
                           radius: 15,
                           backgroundColor: Colors.white,
-                          child: Icon(Icons.edit,
-                              color: Colors.black, size: 15),
+                          child: Icon(Icons.edit, color: Colors.black, size: 15),
                         ),
                       ),
                     ),
                   ],
                 );
-
               }),
             ),
           ),

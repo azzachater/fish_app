@@ -18,6 +18,8 @@ class AddProductController extends GetxController {
   var selectedCategory = "Cannes".obs;
   var isLoading = false.obs;
   var isImageUploading = false.obs;
+  var isEditMode = false.obs;
+  var currentProductId = "".obs;
 
   // Liste des catégories disponibles
   final List<String> categories = [
@@ -27,66 +29,20 @@ class AddProductController extends GetxController {
     "Accessoires",
   ];
 
-  /*Future<void> submitProduct() async {
-    if (!validateForm()) return;
-
-    try {
-      isLoading(true);
-
-      final product = Product(
-        id: '', // L'ID sera généré par le backend
-        name: nameController.text,
-        description: descriptionController.text,
-        price: double.parse(priceController.text),
-        unit: unitController.text,
-        stock: int.parse(stockController.text),
-        image: '', // L'image sera gérée par le multipart
-        category: selectedCategory.value,
-      );
-
-      File? imageFile;
-      if (imageUrl.value.isNotEmpty) {
-        imageFile = File(imageUrl.value);
-      }
-
-      await Get.find<ProductController>().createProduct(
-        product,
-        imageFile: imageFile,
-      );
-
-      resetForm();
-      Get.back();
-      Get.snackbar('Succès', 'Produit ajouté avec succès');
-    } catch (e) {
-      Get.snackbar('Erreur', e.toString());
-    } finally {
-      isLoading(false);
-    }
+  // Initialisation pour le mode édition
+  void initializeForEdit(Product product) {
+    isEditMode.value = true;
+    currentProductId.value = product.id;
+    nameController.text = product.name;
+    priceController.text = product.price.toString();
+    descriptionController.text = product.description;
+    unitController.text = product.unit;
+    stockController.text = product.stock.toString();
+    selectedCategory.value = product.category;
+    // Note: On ne charge pas imageUrl ici car c'est une URL distante
   }
 
-  // Méthode pour sélectionner une image
-  Future<void> pickImage(ImageSource source) async {
-    try {
-      isImageUploading(true);
-      final pickedFile = await ImagePicker().pickImage(
-        source: source,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        imageUrl.value = pickedFile.path;
-      }
-    } catch (e) {
-      _showErrorSnackbar(
-        "Erreur d'image",
-        "Impossible de sélectionner l'image: ${e.toString()}",
-      );
-    } finally {
-      isImageUploading(false);
-    }
-  }*/
+  // Sélection d'image
   Future<void> pickImage(ImageSource source) async {
     try {
       isImageUploading(true);
@@ -120,21 +76,15 @@ class AddProductController extends GetxController {
     }
   }
 
+  // Soumission du formulaire (création ou édition)
   Future<void> submitProduct() async {
     if (!validateForm()) return;
 
     try {
       isLoading(true);
 
-      // Vérification obligatoire de l'image
-      if (imageUrl.value.isEmpty) {
-        throw Exception('Veuillez sélectionner une image');
-      }
-
-      final imageFile = File(imageUrl.value);
-
       final product = Product(
-        id: '',
+        id: isEditMode.value ? currentProductId.value : '',
         name: nameController.text,
         description: descriptionController.text,
         price: double.parse(priceController.text),
@@ -142,18 +92,37 @@ class AddProductController extends GetxController {
         stock: int.parse(stockController.text),
         image: '', // Sera remplacé par l'URL du serveur
         category: selectedCategory.value,
+        userId: '', // Remplacé par le vrai userId dans le ProductController
       );
 
-      await Get.find<ProductController>().createProduct(
-        product,
-        imageFile: imageFile,
-      );
+      File? imageFile;
+      if (imageUrl.value.isNotEmpty) {
+        imageFile = File(imageUrl.value);
+      }
+
+      final productController = Get.find<ProductController>();
+
+      if (isEditMode.value) {
+        await productController.updateProduct(
+          product,
+          imageFile: imageFile,
+        );
+      } else {
+        // Vérification obligatoire de l'image pour la création
+        if (imageFile == null) {
+          throw Exception('Veuillez sélectionner une image');
+        }
+        await productController.createProduct(
+          product,
+          imageFile: imageFile!,
+        );
+      }
 
       resetForm();
       Get.back();
       Get.snackbar(
         'Succès',
-        'Produit créé avec succès',
+        isEditMode.value ? 'Produit mis à jour' : 'Produit créé avec succès',
         duration: Duration(seconds: 3),
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -176,8 +145,7 @@ class AddProductController extends GetxController {
         priceController.text.isEmpty ||
         descriptionController.text.isEmpty ||
         unitController.text.isEmpty ||
-        stockController.text.isEmpty ||
-        imageUrl.value.isEmpty) {
+        stockController.text.isEmpty) {
       _showErrorSnackbar(
         "Formulaire incomplet",
         "Veuillez remplir tous les champs obligatoires",
@@ -215,6 +183,8 @@ class AddProductController extends GetxController {
     stockController.clear();
     imageUrl.value = "";
     selectedCategory.value = "Cannes";
+    isEditMode.value = false;
+    currentProductId.value = "";
   }
 
   // Affichage des erreurs

@@ -1,16 +1,18 @@
+import 'package:fish_app/controllers/profile_controller.dart';
 import 'package:fish_app/service/api_auth_service.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/user_model.dart';
+import 'user_controller.dart'; // Ajouté
 
 class AuthController extends GetxController {
   final ApiAuthService _apiAuthService = ApiAuthService();
+  final UserController userController = Get.put(UserController()); // Ajouté
 
   var isLoading = false.obs;
   var isLoggedIn = false.obs;
   var user = Rxn<User>();
 
-  // Variables for error messages
+  // Error messages
   var emailError = ''.obs;
   var passwordError = ''.obs;
   var usernameError = ''.obs;
@@ -23,17 +25,15 @@ class AuthController extends GetxController {
     checkLoginStatus();
   }
 
-  /// Checks if a valid token exists to maintain session
   Future<void> checkLoginStatus() async {
     bool hasToken = await _apiAuthService.hasValidToken();
     isLoggedIn.value = hasToken;
     if (hasToken) {
-      // Redirect to the main screen
+      await userController.fetchCurrentUser(); // 🆕
       Get.offAllNamed('/MainScreen');
     }
   }
 
-  /// Validates fields and logs the user in via API
   Future<void> login(String email, String password) async {
   try {
     _resetErrors();
@@ -42,11 +42,13 @@ class AuthController extends GetxController {
 
     isLoading.value = true;
     final loggedInUser = await _apiAuthService.login(email, password);
-    
     user.value = loggedInUser;
     isLoggedIn.value = true;
-    Get.offAllNamed('/MainScreen');
 
+    userController.currentUser.value = null; // ✅ Vide les données précédentes
+    await userController.fetchCurrentUser(); // ✅ Charge les vraies données
+
+    Get.offAllNamed('/MainScreen');
   } on Exception catch (e) {
     if (e.toString().contains('EmailNotVerified')) {
       Get.offAllNamed('/verify-email', arguments: {'email': email});
@@ -57,36 +59,20 @@ class AuthController extends GetxController {
   }
 }
 
-  /// Registers a user by calling the API
-  Future<void> signup(
-      String username,
-      String email,
-      String password,
-      String confirmPassword,
-      ) async {
+  Future<void> signup(String username, String email, String password, String confirmPassword) async {
     try {
       _resetErrors();
       _validateSignupFields(username, email, password, confirmPassword);
-
-      if (usernameError.isNotEmpty ||
-          emailError.isNotEmpty ||
-          passwordError.isNotEmpty) return;
+      if (usernameError.isNotEmpty || emailError.isNotEmpty || passwordError.isNotEmpty) return;
 
       isLoading.value = true;
-      final newUser = await _apiAuthService.register(
-        username,
-        email,
-        password,
-        confirmPassword,
-      );
-
+      final newUser = await _apiAuthService.register(username, email, password, confirmPassword);
       user.value = newUser;
-      // Passer à la fois l'email et l'ID utilisateur
+
       Get.offAllNamed('/verify-code', arguments: {
         'email': email,
         'userId': newUser.id,
       });
-
     } catch (e) {
       generalError.value = _handleAuthError(e);
     } finally {
@@ -99,10 +85,10 @@ class AuthController extends GetxController {
       isLoading(true);
       final response = await _apiAuthService.verifyCode(userId, code);
 
-      // Après vérification réussie, obtenir le token et connecter l'utilisateur
       if (response.containsKey('token')) {
         await _apiAuthService.storage.write(key: 'token', value: response['token']);
         isLoggedIn.value = true;
+        await userController.fetchCurrentUser(); // ✅ charger après vérification
         Get.offAllNamed('/MainScreen');
       }
 
@@ -114,15 +100,15 @@ class AuthController extends GetxController {
     }
   }
 
-  /// Logs out the user by deleting the token and redirecting to login
   Future<void> logout() async {
     await _apiAuthService.storage.delete(key: 'token');
     isLoggedIn.value = false;
     user.value = null;
+    userController.currentUser.value = null; // ✅ vider currentUser aussi
+    await Future.delayed(Duration(milliseconds: 100)); // Small delay
+    Get.find<ProfileController>().resetProfile();
     Get.offAllNamed('/login');
   }
-
-  // 🛠 Validation methods for fields
 
   void _resetErrors() {
     emailError.value = '';
@@ -130,6 +116,7 @@ class AuthController extends GetxController {
     usernameError.value = '';
     generalError.value = '';
   }
+
   String _handleAuthError(dynamic error) {
     if (error.toString().contains('Email not verified')) {
       return 'Please verify your email first';
@@ -138,6 +125,7 @@ class AuthController extends GetxController {
     }
     return 'An error occurred. Please try again.';
   }
+
   void _validateLoginFields(String email, String password) {
     if (email.isEmpty) emailError.value = 'Email is required';
     else if (!GetUtils.isEmail(email)) emailError.value = 'Invalid email format';
@@ -145,12 +133,8 @@ class AuthController extends GetxController {
     if (password.isEmpty) passwordError.value = 'Password is required';
     else if (password.length < 6) passwordError.value = 'Password too short';
   }
-  void _validateSignupFields(
-      String username,
-      String email,
-      String password,
-      String confirmPassword,
-      ) {
+
+  void _validateSignupFields(String username, String email, String password, String confirmPassword) {
     _validateLoginFields(email, password);
 
     if (username.isEmpty) usernameError.value = 'Username is required';
@@ -158,8 +142,6 @@ class AuthController extends GetxController {
       passwordError.value = 'Passwords do not match';
     }
   }
-
-
 
   Future<void> resendCode(int userId) async {
     try {
@@ -172,5 +154,4 @@ class AuthController extends GetxController {
       isLoading(false);
     }
   }
-
 }

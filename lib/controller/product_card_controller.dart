@@ -131,4 +131,49 @@ class ProductController extends GetxController {
   List<Product> getProductsByCategory(String category) {
     return products.where((p) => p.category == category).toList();
   }
+  // Dans ProductController
+Future<void> deleteProduct(String productId) async {
+  try {
+    isLoading(true);
+    await apiService.deleteProduct(productId);
+    
+    // Retirer le produit des listes locales
+    products.removeWhere((p) => p.id == productId);
+    filteredProducts.removeWhere((p) => p.id == productId);
+    
+    // Retirer des favoris si nécessaire
+    if (favoriteIds.contains(productId)) {
+      favoriteIds.remove(productId);
+    }
+  } catch (e) {
+    error(e.toString());
+    rethrow;
+  } finally {
+    isLoading(false);
+  }
+}
+Future<void> updateProduct(Product product, {File? imageFile}) async {
+  try {
+    isLoading(true);
+    final updatedProduct = await apiService.updateProduct(
+      product,
+      imageFile: imageFile,
+    );
+
+    // Mettre à jour la liste
+    final index = products.indexWhere((p) => p.id == product.id);
+    if (index != -1) {
+      products[index] = updatedProduct;
+      filteredProducts.assignAll(products);
+    }
+
+    Get.back();
+    Get.snackbar('Succès', 'Produit mis à jour');
+  } catch (e) {
+    Get.snackbar('Erreur', 'Échec de la mise à jour: ${e.toString()}');
+    throw e;
+  } finally {
+    isLoading(false);
+  }
+}
 }
