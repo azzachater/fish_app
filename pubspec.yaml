@@ -103,7 +103,6 @@ flutter:
     - assets/images/default_avatar.png
     - assets/images/cover_default_image.png
     - assets/images/default_group_avatar.png
-
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

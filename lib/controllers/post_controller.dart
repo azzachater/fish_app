@@ -17,45 +17,44 @@ class PostController extends GetxController {
   }
 
   Future<void> fetchPosts() async {
-  try {
-    isLoading.value = true;
-    final fetchedPosts = await _apiPostService.getPosts();
-    print("✅ Posts reçus : ${fetchedPosts.length}");
-    
-    for (var post in fetchedPosts) {
-      print("📌 Post ID: ${post.id}");
-      print("👤 User: ${post.user.name}");
-      print("🖼️ Avatar: ${post.user.avatar}");
+    try {
+      isLoading.value = true;
+      final fetchedPosts = await _apiPostService.getPosts();
+      print("✅ Posts received: ${fetchedPosts.length}");
+      
+      for (var post in fetchedPosts) {
+        print("📌 Post ID: ${post.id}");
+        print("👤 User: ${post.user.name}");
+        print("🖼️ Avatar: ${post.user.avatar}");
+      }
+      
+      posts.value = fetchedPosts;
+    } catch (e) {
+      print("❌ Error: $e");
+      error.value = "Unable to load posts";
+    } finally {
+      isLoading.value = false;
     }
-    
-    posts.value = fetchedPosts;
-  } catch (e) {
-    print("❌ Erreur: $e");
-    error.value = "Impossible de charger les posts";
-  } finally {
-    isLoading.value = false;
   }
-}
 
   Future<void> createPost(String postText, String postImage) async {
-  try {
-    isLoading.value = true;
-    error.value = "";
-    final newPost = await _apiPostService.createPost(postText, postImage);
+    try {
+      isLoading.value = true;
+      error.value = "";
+      final newPost = await _apiPostService.createPost(postText, postImage);
 
-    if (newPost.id.isNotEmpty) {
-      posts.insert(0, newPost);
-      posts.refresh();
-      await fetchPosts(); // Récupérer la liste des posts mise à jour
-    } else {
-      throw Exception("Post créé mais ID vide.");
+      if (newPost.id.isNotEmpty) {
+        posts.insert(0, newPost);
+        posts.refresh();
+        await fetchPosts(); // Fetch updated posts
+      } else {
+        throw Exception("Post created, but ID is empty.");
+      }
+    } catch (e) {
+      print("Error creating post: $e");
+      error.value = e.toString();
     }
-  } catch (e) {
-    print("error creating post: $e");
-    error.value = e.toString();
   }
-}
-
 
   Future<void> updatePost(Post post) async {
     try {
@@ -69,12 +68,12 @@ class PostController extends GetxController {
       if (index != -1) {
         posts[index] = updatedPost;
         posts.refresh();
-        await fetchPosts(); // Récupérer la liste des posts mise à jour
+        await fetchPosts(); // Fetch updated posts
       }
     } catch (e) {
-      print("error updating post: $e");
+      print("Error updating post: $e");
       error.value = e.toString();
-    } 
+    }
   }
 
   Future<void> deletePost(String id) async {
@@ -84,28 +83,38 @@ class PostController extends GetxController {
       await _apiPostService.deletePost(id);
       posts.removeWhere((post) => post.id == id);
     } catch (e) {
-      print("error deleting post: $e");
+      print("Error deleting post: $e");
       error.value = e.toString();
     }
   }
 
-  void toggleLike() {
-    isLiked.value = !isLiked.value;
-    likeCount.value = isLiked.value ? likeCount.value + 1 : likeCount.value - 1;
-  }
-
-
-/// Method to get posts for a specific user
+  // Method to get posts for a specific user
   List<Post> getUserPosts(int userId) {
     return posts.where((post) => post.user.id == userId).toList();
-  }  
-  // Ajoutez cette variable en haut de votre controller
-String currentUserId = '';
+  }
 
-// Modifiez la méthode getUserPosts
-List<Post> getCurrentUserPosts() {
-  if (currentUserId.isEmpty) return [];
-  return posts.where((post) => post.user.id.toString() == currentUserId).toList();
+  String currentUserId = ''; // Current user ID to filter posts
+
+  List<Post> getCurrentUserPosts() {
+    if (currentUserId.isEmpty) return [];
+    return posts.where((post) => post.user.id.toString() == currentUserId).toList();
+  }
+
+  Future<void> likePost(String postId) async {
+    try {
+  final updatedPost = await _apiPostService.likePost(postId);
+  if (updatedPost != null) {
+    final index = posts.indexWhere((p) => p.id == postId);
+    if (index != -1) {
+      posts[index] = updatedPost;
+      posts.refresh();
+    }
+  } else {
+    throw Exception("Post not found on server");
+  }
+} catch (e) {
+  print("❌ Error liking post: $e");
+  error.value = e.toString();
 }
-
+  }
 }

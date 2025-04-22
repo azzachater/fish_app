@@ -1,4 +1,3 @@
-import 'package:fish_app/service/api_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
@@ -8,7 +7,7 @@ import 'package:flutter/services.dart';
 import '../models/notification_model.dart';
 import '../controllers/notification_controller.dart';
 import '../controllers/user_controller.dart';
-
+import '../service/api_auth_service.dart';
 
 class PusherService extends GetxService {
   static PusherService get to => Get.find();
@@ -68,7 +67,6 @@ class PusherService extends GetxService {
   Future<Map<String, String>> _onAuthorizer(String channelName, String socketId, dynamic options) async {
     try {
       final token = await _authService.getToken();
-      if (token == null) throw Exception('Token manquant');
 
       print('🔑 Authentification pour le canal: $channelName');
       
@@ -205,7 +203,9 @@ class PusherService extends GetxService {
           : DateTime.now(),
     );
 
-    notifController.notifications.insert(0, notification);
+    //notifController.notifications.insert(0, notification);
+    notifController.addNotification(notification);
+
 
     Future.delayed(Duration(milliseconds: 500), () {
   Get.rawSnackbar(

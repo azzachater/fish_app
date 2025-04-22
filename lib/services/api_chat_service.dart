@@ -7,25 +7,32 @@ class ApiChatService {
   final String baseUrl = 'http://192.168.1.34:8000/api';
 
   Future<List<dynamic>> getMyConversations() async {
-    try {
-      final headers = await _authService.getAuthHeaders();
+  try {
+    final token = await _authService.getToken();
 
-      final response = await http.get(
-        Uri.parse('$baseUrl/conversations'),
-        headers: headers,
-      );
+    final response = await http.get(
+      Uri.parse("http://192.168.1.34:8000/api/conversations"),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
 
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Failed to load conversations. Status: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('getMyConversations error: $e');
-      rethrow;
+    print("🔁 Response status: ${response.statusCode}");
+    print("📦 Response body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      // Return the direct array instead of json['conversations']
+      return json is List ? json : [];
+    } else {
+      throw Exception('Erreur API: ${response.statusCode}');
     }
+  } catch (e) {
+    print("❌ getMyConversations failed: $e");
+    rethrow;
   }
-
+}
   Future<Map<String, dynamic>> getMessages(int conversationId) async {
     try {
       final headers = await _authService.getAuthHeaders();

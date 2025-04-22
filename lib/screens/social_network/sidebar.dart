@@ -2,6 +2,7 @@ import 'package:fish_app/controllers/auth_controller.dart';
 import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/screens/event/event_page.dart';
 import 'package:fish_app/screens/marketplace/market_place.dart';
+import 'package:fish_app/screens/predict_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -63,6 +64,7 @@ class SidebarPageState extends State<SidebarPage> {
                 _buildDrawerItem(Icons.person, "Profile", ProfilePage(), iconColor: Colors.green),
                 _buildDrawerItem(FontAwesomeIcons.facebookMessenger, "Messages", ChatHomePage(), 
                     hasNotification: true, iconColor: Colors.blue),
+                _buildDrawerItem(Icons.assessment, "Predict Species", PredictPage(), iconColor: Colors.pink),
                 _buildDrawerItem(Icons.lightbulb, "Tips & Tricks", TipsPage(), iconColor: Colors.orange),
                 _buildDrawerItem(Icons.event, "Events", EventPage(), iconColor: Colors.red), // Corrigé ici
                 _buildDrawerItem(Icons.book, "Journal", JournalScreen(), iconColor: Colors.indigo),

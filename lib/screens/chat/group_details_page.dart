@@ -93,7 +93,7 @@ class GroupDetailsPage extends StatelessWidget {
                   return ListTile(
                     leading: CircleAvatar(
                       radius: 25,
-                      backgroundImage: AssetImage(user.avatar),
+                      backgroundImage: _getAvatarImage(user.avatar),
                     ),
                     title: Text(user.name, style: AppTheme.heading2.copyWith(fontSize: 16)),
                   );
@@ -120,5 +120,11 @@ class GroupDetailsPage extends StatelessWidget {
         ),
       ),
     );
+  }
+  ImageProvider _getAvatarImage(String? avatarUrl) {
+    if (avatarUrl != null && avatarUrl.isNotEmpty && avatarUrl.startsWith('http')) {
+      return NetworkImage(avatarUrl);
+    }
+    return const AssetImage('assets/images/default_avatar.png');
   }
 }

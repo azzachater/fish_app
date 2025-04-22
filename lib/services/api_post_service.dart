@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'package:fish_app/service/api_auth_service.dart';
 import 'package:http/http.dart' as http;
 import '../models/post_model.dart';
-
+import '../service/api_auth_service.dart';
 
 class ApiPostService {
   final ApiAuthService _authService = ApiAuthService();
@@ -123,6 +122,26 @@ class ApiPostService {
       throw Exception(e.toString());
     }
   }
+  Future<Post> likePost(String postId) async {
+  try {
+    final headers = await _getAuthHeaders();
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/posts/$postId/like'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> json = jsonDecode(response.body);
+      return Post.fromJson(json);
+    } else {
+      throw Exception(_handleError(response));
+    }
+  } catch (e) {
+    print('❌ Error liking post: $e');
+    rethrow;
+  }
+}
 
   Future<void> clearToken() async {
     await _authService.clearToken();

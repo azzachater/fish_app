@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/data_selector_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,18 +28,21 @@ class DateSelector extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 5),
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.blue : Colors.white,
+                  color: isSelected ? AppTheme.primaryColor : Colors.white,
                   borderRadius: BorderRadius.circular(10),
-                  boxShadow:
-                      isSelected
-                          ? [
-                            BoxShadow(
-                              color: Colors.blueAccent.withOpacity(0.5),
-                              blurRadius: 5,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                          : [],
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppTheme.darkPrimary.withOpacity(0.4),
+                            blurRadius: 6,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 3),
+                          ),
+                        ]
+                      : [],
+                  border: isSelected
+                      ? null
+                      : Border.all(color: AppTheme.lightPrimary, width: 1),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -48,14 +52,18 @@ class DateSelector extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : Colors.black,
+                        color: isSelected
+                            ? Colors.white
+                            : AppTheme.darkPrimary.withOpacity(0.8),
                       ),
                     ),
                     Text(
                       DateFormat('E').format(date), // Ex: Mon
                       style: TextStyle(
                         fontSize: 12,
-                        color: isSelected ? Colors.white : Colors.black54,
+                        color: isSelected
+                            ? Colors.white70
+                            : AppTheme.darkPrimary.withOpacity(0.6),
                       ),
                     ),
                   ],

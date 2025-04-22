@@ -122,7 +122,7 @@ class GroupChatController extends GetxController {
   debugPrint('Data received: ${event.data}'); // Ajouté pour le débogage
   
   if (event.eventName == 'new-group-message' &&
-      event.channelName?.startsWith('private-group.group.') == true &&
+      event.channelName.startsWith('private-group.group.') == true &&
       event.data != null) {
     try {
       final data = jsonDecode(event.data!);

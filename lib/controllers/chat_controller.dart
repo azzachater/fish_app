@@ -1,11 +1,10 @@
-import 'package:fish_app/service/api_auth_service.dart';
 import 'package:get/get.dart';
 import '../../models/message_model.dart';
 import '../../models/conversation_model.dart';
 import '../../models/user_model.dart';
 import '../../services/api_chat_service.dart';
 import '../../services/api_user_service.dart';
-
+import '../../service/api_auth_service.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -85,7 +84,7 @@ class ChatController extends GetxController {
 
   // Souscrire au canal de conversation
   Future<void> subscribeToConversationChannel(int conversationId) async {
-    String channel = 'private-chat.chat.$conversationId';
+    //String channel = 'private-chat.chat.$conversationId';
     currentConversationId.value = conversationId;
     await pusher.subscribe(channelName: 'private-chat.chat.$conversationId');
 
@@ -118,7 +117,7 @@ class ChatController extends GetxController {
 
   }
 
-  // Gestion des événements Pusher
+ /* // Gestion des événements Pusher
   void _handlePusherEvent(PusherEvent event) {
     print('📡 [onEvent] ${event.channelName} - ${event.eventName} => ${event.data}');
 
@@ -145,7 +144,7 @@ class ChatController extends GetxController {
       }
     }
   }
-
+*/
   // Envoyer un message
   Future<void> sendMessage(String content, int receiverId) async {
     try {
@@ -154,16 +153,7 @@ class ChatController extends GetxController {
       final response = await _apiChatService.sendMessage(receiverId, content);
 
       if (response.containsKey('data')) {
-        final messageData = response['data'];
-        final serverMessage = Message(
-          id: messageData['id'],
-          content: messageData['content'],
-          createdAt: DateTime.parse(messageData['created_at']),
-          sender: currentUser.value!,
-          isRead: false,
-        );
-
-        conversationMessages.insert(0, serverMessage);
+        //conversationMessages.insert(0, serverMessage);
         await loadConversations();
       }
     } catch (e) {
@@ -219,22 +209,37 @@ class ChatController extends GetxController {
   }
 
   Future<void> loadConversations() async {
-    try {
-      isLoading(true);
-      final data = await _apiChatService.getMyConversations();
-      conversations.assignAll(data.map((json) => Conversation.fromJson(json)));
-      
-      for (var conv in conversations) {
-        unreadCounts[conv.id] = conv.unreadCount;
-      }
-    } catch (e) {
-      print('Error loading conversations: $e');
-      Get.snackbar('Error', 'Failed to load conversations');
-    } finally {
-      isLoading(false);
-    }
-  }
+  try {
+    isLoading(true);
+    final data = await _apiChatService.getMyConversations();
 
+    print("✅ Raw data type: ${data.runtimeType}");
+    print("✅ Data content: $data");
+
+    conversations.assignAll(data.map((json) {
+      try {
+        return Conversation.fromJson(json is Map ? Map<String, dynamic>.from(json) : {});
+      } catch (e) {
+        print('❌ Error parsing individual conversation: $e');
+        return Conversation(
+          id: 0,
+          userOne: User.empty(),
+          userTwo: User.empty(),
+        );
+      }
+    }).where((conv) => conv.id != 0).toList());
+
+    for (var conv in conversations) {
+      unreadCounts[conv.id] = conv.unreadCount;
+    }
+    } catch (e) {
+    print('❌ Detailed error: $e');
+    print('❌ Stack trace: ${e is Error ? e.stackTrace : ''}');
+    Get.snackbar('Error', 'Failed to load conversations: ${e.toString()}');
+  } finally {
+    isLoading(false);
+  }
+}
   Future<void> loadMessages(int conversationId) async {
     try {
       isLoading(true);
@@ -304,4 +309,3 @@ class ChatController extends GetxController {
 
   
 }
-

@@ -1,5 +1,8 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/journal_controller.dart';
+import 'package:fish_app/controller/data_selector_controller.dart';
 import 'package:fish_app/models/fishingJournal.dart';
+import 'package:fish_app/screens/journal/data_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -20,7 +23,9 @@ class _AddJournalPageState extends State<AddJournalPage>
   final TextEditingController _conditionsController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  DateTime _selectedDate = DateTime.now();
+  final DateSelectorController _dateSelectorController = Get.put(
+    DateSelectorController(),
+  );
   TimeOfDay _selectedTime = TimeOfDay.now();
 
   late AnimationController _animationController;
@@ -60,20 +65,6 @@ class _AddJournalPageState extends State<AddJournalPage>
     super.dispose();
   }
 
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
   Future<void> _selectTime() async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -101,9 +92,11 @@ class _AddJournalPageState extends State<AddJournalPage>
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        prefixIcon: icon != null ? Icon(icon, color: Colors.blue[700]) : null,
+        labelStyle: TextStyle(color: AppTheme.textDark),
+        prefixIcon:
+            icon != null ? Icon(icon, color: AppTheme.primaryColor) : null,
         filled: true,
-        fillColor: Colors.blue[50],
+        fillColor: AppTheme.primaryLight,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -112,12 +105,12 @@ class _AddJournalPageState extends State<AddJournalPage>
     );
   }
 
-  // Remplacez la méthode _saveJournal() par :
-  // Modifiez la méthode _saveJournal pour utiliser la date exacte
   void _saveJournal() {
-    // Formattez la date sélectionnée en yyyy-MM-dd
-    final formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate);
-    print("Enregistrement pour la date: $formattedDate"); // Debug
+    final selectedDate =
+        _dateSelectorController.dates[_dateSelectorController
+            .selectedIndex
+            .value];
+    final formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
 
     final journal = FishingJournal(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -126,14 +119,13 @@ class _AddJournalPageState extends State<AddJournalPage>
       speciesCaught: _speciesController.text,
       fishingConditions: _conditionsController.text,
       notes: _notesController.text,
-      date: formattedDate, // Utilisez la date formatée
+      date: formattedDate,
       time: '${_selectedTime.hour}:${_selectedTime.minute}',
     );
 
     final controller = Get.find<JournalController>();
     controller.addEntry(journal).then((_) {
-      // Filtre à nouveau pour la date actuelle
-      controller.filterByDate(_selectedDate);
+      controller.filterByDate(selectedDate);
       Get.back();
       Get.snackbar("Succès", "Journal enregistré !");
     });
@@ -144,7 +136,13 @@ class _AddJournalPageState extends State<AddJournalPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text("Ajouter un Journal de Pêche"),
-        backgroundColor: Colors.blue[700],
+        backgroundColor: AppTheme.primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       body: FadeTransition(
         opacity: _fadeAnimation,
@@ -154,59 +152,37 @@ class _AddJournalPageState extends State<AddJournalPage>
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _selectDate,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.blue[50],
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.calendar_today,
-                                color: Colors.blue[700],
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ],
+                const SizedBox(height: 10),
+                const Text(
+                  "Choisir une date",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 10),
+                DateSelector(),
+                const SizedBox(height: 20),
+                GestureDetector(
+                  onTap: _selectTime,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryLight,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.access_time, color: AppTheme.primaryColor),
+                        const SizedBox(width: 8),
+                        Text(
+                          _selectedTime.format(context),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppTheme.textDark,
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _selectTime,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.blue[50],
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.access_time, color: Colors.blue[700]),
-                              const SizedBox(width: 8),
-                              Text(
-                                _selectedTime.format(context),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 20),
                 _buildStyledTextField(
@@ -225,7 +201,7 @@ class _AddJournalPageState extends State<AddJournalPage>
                 _buildStyledTextField(
                   controller: _speciesController,
                   label: 'Espèces pêchées',
-                  icon: Icons.water, // more intuitive than iso
+                  icon: Icons.water,
                 ),
                 const SizedBox(height: 16),
                 _buildStyledTextField(
@@ -242,22 +218,22 @@ class _AddJournalPageState extends State<AddJournalPage>
                 ),
                 const SizedBox(height: 30),
                 ElevatedButton(
+                  onPressed: _saveJournal,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[700],
+                    backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    elevation: 4,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 40,
                       vertical: 14,
                     ),
+                    elevation: 4,
                   ),
-                  onPressed: _saveJournal,
                   child: const Text(
-                    'Enregistrer',
-                    style: TextStyle(fontSize: 18),
+                    "Enregistrer le journal",
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
               ],

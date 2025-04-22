@@ -30,6 +30,7 @@ class UserProfilePage extends StatelessWidget {
             Obx(() {
               // Récupérer et filtrer les posts en fonction de l'utilisateur de manière réactive
               List<Post> userPosts = postController.getUserPosts(user.id);
+              userPosts.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Tri décroissant
               return Column(
                 children: userPosts.map((post) => PostWidget(post: post)).toList(),
               );

@@ -14,7 +14,9 @@ class CommentController extends GetxController {
       // Log des commentaires récupérés
       print("📥 Commentaires reçus (${fetchedComments.length}):");
       for (var comment in fetchedComments) {
-        _logCommentDetails(comment);
+      print("📌 Post ID: ${comment.id}");
+      print("👤 User: ${comment.user.name}");
+      print("🖼️ Avatar: ${comment.user.avatar}");
       }
       
       comments.assignAll(fetchedComments);

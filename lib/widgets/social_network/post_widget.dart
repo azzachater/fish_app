@@ -10,14 +10,13 @@ import '../../controllers/post_controller.dart';
 class PostWidget extends StatelessWidget {
   final Post post;
   final PostController postController = Get.find();
-final RxBool isLiked = false.obs;
-final RxInt likeCount = 0.obs;
+  final RxBool isLiked = false.obs;
+  final RxInt likeCount = 0.obs;
 
-PostWidget({super.key, required this.post}) {
-  isLiked.value = post.isLiked;
-  likeCount.value = post.likeCount;
-}
-
+  PostWidget({super.key, required this.post}) {
+    isLiked.value = post.isLiked;
+    likeCount.value = post.likeCount;
+  }
 
   void navigateToComments() {
     Get.to(() => CommentPage(post: post));
@@ -56,19 +55,20 @@ PostWidget({super.key, required this.post}) {
 
   @override
   Widget build(BuildContext context) {
-    print("user name: ${post.user.name} - Avatar path:${post.user.avatar}");
+    print("User name: ${post.user.name} - Avatar path: ${post.user.avatar}");
 
-   ImageProvider buildAvatarImage(String avatarPath) {
-  if (avatarPath.isEmpty) {
-    return const AssetImage('assets/images/default_avatar.png');
-  } else if (avatarPath.startsWith('http')) {
-    return NetworkImage(avatarPath);
-  } else if (avatarPath.startsWith('assets/')) {
-    return AssetImage(avatarPath);
-  } else {
-    return FileImage(File(avatarPath));
-  }
-}
+    ImageProvider buildAvatarImage(String avatarPath) {
+      if (avatarPath.isEmpty) {
+        return const AssetImage('assets/images/default_avatar.png');
+      } else if (avatarPath.startsWith('http')) {
+        return NetworkImage(avatarPath);
+      } else if (avatarPath.startsWith('assets/')) {
+        return AssetImage(avatarPath);
+      } else {
+        return FileImage(File(avatarPath));
+      }
+    }
+
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -86,12 +86,11 @@ PostWidget({super.key, required this.post}) {
         children: [
           ListTile(
             leading: CircleAvatar(
-  radius: 22,
-  backgroundImage: buildAvatarImage(post.user.avatar),
-),
-
+              radius: 22,
+              backgroundImage: buildAvatarImage(post.user.avatar),
+            ),
             title: Text(
-              post.user.name, // Affichage du nom de l'utilisateur
+              post.user.name, // Display the user's name
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text(
@@ -100,39 +99,38 @@ PostWidget({super.key, required this.post}) {
             ),
             contentPadding: const EdgeInsets.all(10),
             trailing: postController.currentUserId == post.user.id.toString()
-    ? PopupMenuButton<String>(
-        onSelected: (value) {
-          if (value == 'update') {
-            openUpdatePostPage();
-          } else if (value == 'delete') {
-            _showDeleteConfirmationDialog(context);
-          }
-        },
-        itemBuilder: (context) => [
-          const PopupMenuItem<String>(
-            value: 'update',
-            child: Row(
-              children: [
-                Icon(Icons.edit, color: Colors.blue),
-                SizedBox(width: 8),
-                Text("Update"),
-              ],
-            ),
-          ),
-          const PopupMenuItem<String>(
-            value: 'delete',
-            child: Row(
-              children: [
-                Icon(Icons.delete, color: Colors.red),
-                SizedBox(width: 8),
-                Text("Delete"),
-              ],
-            ),
-          ),
-        ],
-      )
-    : null,
-
+                ? PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'update') {
+                        openUpdatePostPage();
+                      } else if (value == 'delete') {
+                        _showDeleteConfirmationDialog(context);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem<String>(
+                        value: 'update',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, color: Colors.blue),
+                            SizedBox(width: 8),
+                            Text("Update"),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text("Delete"),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                : null,
           ),
           if (post.postText != null && post.postText!.isNotEmpty)
             Padding(
@@ -166,26 +164,25 @@ PostWidget({super.key, required this.post}) {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Obx(() => Row(
-  children: [
-    IconButton(
-      icon: Icon(
-        FontAwesomeIcons.thumbsUp,
-        color: isLiked.value ? Colors.blue : Colors.grey,
-      ),
-      onPressed: () {
-        isLiked.toggle();
-        likeCount.value += isLiked.value ? 1 : -1;
-        postController.toggleLike(); // appel API
-      },
-    ),
-    const SizedBox(width: 4),
-    Text(
-      '${likeCount.value} Likes',
-      style: TextStyle(color: isLiked.value ? Colors.blue : Colors.grey),
-    ),
-  ],
-)),
-
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        FontAwesomeIcons.thumbsUp,
+                        color: isLiked.value ? Colors.blue : Colors.grey,
+                      ),
+                      onPressed: () {
+                        isLiked.toggle();
+                        likeCount.value += isLiked.value ? 1 : -1;
+                        postController.likePost(post.id); // API call to like post
+                      },
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${likeCount.value} Likes',
+                      style: TextStyle(color: isLiked.value ? Colors.blue : Colors.grey),
+                    ),
+                  ],
+                )),
                 Row(
                   children: [
                     IconButton(
@@ -196,16 +193,6 @@ PostWidget({super.key, required this.post}) {
                     const Text('Comment', style: TextStyle(color: Colors.grey)),
                   ],
                 ),
-                /*Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(FontAwesomeIcons.share, color: Colors.grey),
-                      onPressed: () {},
-                    ),
-                    const SizedBox(width: 4),
-                    const Text('Share', style: TextStyle(color: Colors.grey)),
-                  ],
-                ),*/
               ],
             ),
           ),
