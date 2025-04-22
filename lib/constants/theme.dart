@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   AppTheme._();
-  static const Color primaryColor = Color(0xff0095FF);
+  static const Color primaryColor = Color(0xff044ab1);
   static const TextStyle titleStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static const TextStyle subtitleStyle = TextStyle(fontSize: 15, color: Color.fromARGB(255, 186, 150, 150));
   static const Color unreadChatBG = Color(0xffEE1D1D); // Rouge Notifications
