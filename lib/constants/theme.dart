@@ -4,6 +4,21 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._();
   static const Color primaryColor = Color(0xff044ab1);
+  static const Color lightPrimary = Color(0xffe2ebf9);
+  static const Color darkPrimary = Color(0xff03378a);
+
+   static const Color primaryLight = Color(0xFFE1F5FE); // bleu très clair
+  static const Color accent = Color(0xFF00BCD4); // bleu turquoise
+  static const Color textDark = Color(0xFF0D47A1);
+
+  
+  static const LinearGradient lightGradient = LinearGradient(
+    colors: [lightPrimary, Colors.white],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  //hedhom mafhemtch wa9tech sta3mlnehom
   static const TextStyle titleStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static const TextStyle subtitleStyle = TextStyle(fontSize: 15, color: Color.fromARGB(255, 186, 150, 150));
   static const Color unreadChatBG = Color(0xffEE1D1D); // Rouge Notifications

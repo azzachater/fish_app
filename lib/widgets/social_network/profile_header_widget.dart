@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/user_controller.dart';
@@ -90,7 +91,9 @@ class ProfileHeaderWidget extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor:
+                            AppTheme
+                                .primaryColor, // 🎨 utilise ta couleur personnalisée
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),

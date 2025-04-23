@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:fish_app/models/fishingJournal.dart';
@@ -22,11 +23,7 @@ class FishJournalCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade50, Colors.white],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: AppTheme.lightGradient,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Padding(
@@ -44,7 +41,7 @@ class FishJournalCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: AppTheme.primaryColor,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -56,13 +53,13 @@ class FishJournalCard extends StatelessWidget {
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
+                      color: AppTheme.lightPrimary,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       entry.time,
-                      style: TextStyle(
-                        color: Colors.blue.shade900,
+                      style: const TextStyle(
+                        color: AppTheme.darkPrimary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -77,7 +74,7 @@ class FishJournalCard extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.location_on,
-                    color: Colors.blue.shade700,
+                    color: AppTheme.primaryColor,
                     size: 18,
                   ),
                   const SizedBox(width: 6),
@@ -87,7 +84,7 @@ class FishJournalCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Colors.blue,
+                        color: AppTheme.primaryColor,
                       ),
                     ),
                   ),
@@ -102,9 +99,8 @@ class FishJournalCard extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
+                    color: AppTheme.lightPrimary,
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     entry.notes,
@@ -123,21 +119,21 @@ class FishJournalCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
+                      color: AppTheme.lightPrimary,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       children: [
                         Icon(
                           Icons.emoji_nature,
-                          color: Colors.blue.shade800,
+                          color: AppTheme.primaryColor,
                           size: 16,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           entry.speciesCaught,
-                          style: TextStyle(
-                            color: Colors.blue.shade800,
+                          style: const TextStyle(
+                            color: AppTheme.primaryColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -146,13 +142,13 @@ class FishJournalCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: Icon(Icons.edit, color: Colors.blue.shade600),
+                    icon: const Icon(Icons.edit, color: AppTheme.primaryColor),
                     onPressed: onEdit,
                     splashRadius: 20,
                     tooltip: 'Modifier',
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red.shade400),
+                    icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => _confirmDelete(context),
                     splashRadius: 20,
                     tooltip: 'Supprimer',

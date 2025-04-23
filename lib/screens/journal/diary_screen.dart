@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/journal_controller.dart';
 import 'package:fish_app/models/fishingJournal.dart';
 import 'package:fish_app/screens/journal/add_journal_page.dart';
@@ -34,8 +35,12 @@ class JournalScreen extends StatelessWidget {
       ),
       // Modifiez le FloatingActionButton :
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blue[700],
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: AppTheme.primaryColor,
+        child: const Icon(
+          Icons.note_add,
+          size: 60,
+          color: AppTheme.lightPrimary,
+        ),
         onPressed: () async {
           final result = await Get.to(() => AddJournalPage());
           if (result != null) {
@@ -59,8 +64,8 @@ class JournalScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Appuyez sur + pour ajouter une entrée',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            'Aucune entrée pour cette date',
+            style: TextStyle(fontSize: 18, color: AppTheme.darkPrimary),
           ),
         ],
       ),

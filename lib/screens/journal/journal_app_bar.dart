@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/screens/social_network/social_home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -18,7 +19,7 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: const Text(
         'journal',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
@@ -29,13 +30,13 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
         onPressed: () async {
           await Get.offAll(() => SocialHomePage());
         },
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
       ),
       actions: [
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.blue.shade100,
+            color: AppTheme.lightPrimary.withOpacity(0.6),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -49,7 +50,10 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue, Colors.white], // Dégradé plus visible
+            colors: [
+              AppTheme.primaryColor,
+              AppTheme.lightPrimary,
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -64,13 +68,13 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.transparent,
+          color: isSelected ? AppTheme.primaryColor : Colors.transparent,
           borderRadius: BorderRadius.circular(15),
         ),
         child: Text(
           text,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
+            color: isSelected ? Colors.white : AppTheme.darkPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),

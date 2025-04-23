@@ -36,7 +36,7 @@ class EditProfilePage extends StatelessWidget {
     });
 
     return Scaffold(
-      backgroundColor: Colors.blue,
+      backgroundColor: Color(0xff044ab1),
       body: Stack(
         children: [
           // Scrollable white zone
