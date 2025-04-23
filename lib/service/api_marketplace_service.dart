@@ -7,8 +7,8 @@ import 'package:http_parser/http_parser.dart';
 
 class ApiProductService {
   final ApiAuthService _authService = ApiAuthService();
-  //final String baseUrl = 'http://192.168.3.18:8000/api';
-final String baseUrl = 'http://10.0.2.2:8000/api';
+  final String baseUrl = 'http://10.0.2.2:8000/api';
+
   // Headers for requests
   Map<String, String> get headers => {
     'Accept': 'application/json',
@@ -121,35 +121,49 @@ final String baseUrl = 'http://10.0.2.2:8000/api';
     }
   }
 
-  Future<Product> updateProduct(Product product) async {
-    if (product.id == null) {
-      throw Exception('L\'ID du produit ne peut pas être nul.');
+  // Dans ApiProductService
+Future<Product> updateProduct(Product product, {File? imageFile}) async {
+  try {
+    final headers = await _getAuthHeaders();
+    headers.remove('Content-Type');
+
+    var request = http.MultipartRequest(
+      'POST', // Ou 'PUT' selon votre API
+      Uri.parse('$baseUrl/products/${product.id}'),
+    );
+    request.headers.addAll(headers);
+
+    request.fields.addAll({
+      'name': product.name,
+      'description': product.description,
+      'price': product.price.toString(),
+      'unit': product.unit,
+      'stock': product.stock.toString(),
+      'category': product.category,
+      '_method': 'PUT', // Si votre API nécessite cette méthode
+    });
+
+    if (imageFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('image', imageFile.path),
+      );
     }
 
-    try {
-      final headers = await _getAuthHeaders();
-      final response = await http.put(
-        Uri.parse('$baseUrl/products/${product.id}'),
-        headers: headers,
-        body: jsonEncode(product.toJson()),
-      );
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
 
-      if (response.statusCode == 200) {
-        final decodedBody = jsonDecode(response.body);
-        print('Produit mis à jour avec succès: $decodedBody');
-        return Product.fromJson(decodedBody);
-      } else {
-        final errorMessage = _handleError(response);
-        print('Erreur lors de la mise à jour du produit: $errorMessage');
-        throw Exception(errorMessage);
-      }
-    } catch (e) {
-      print('Erreur inattendue lors de la mise à jour du produit: $e');
-      throw Exception(
-        'Erreur lors de la mise à jour du produit: ${e.toString()}',
-      );
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(responseBody);
+      return Product.fromJson(responseData['data']);
+    } else {
+      throw Exception(_handleError(http.Response(responseBody, response.statusCode)));
     }
+  } catch (e) {
+    print('❌ Error updating product: $e');
+    rethrow;
   }
+}
+  
 
   Future<void> deleteProduct(String id) async {
     if (id.isEmpty) {
@@ -188,4 +202,5 @@ final String baseUrl = 'http://10.0.2.2:8000/api';
       return 'Something went wrong';
     }
   }
+  
 }

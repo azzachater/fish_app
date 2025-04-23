@@ -1,10 +1,12 @@
+import 'package:fish_app/models/user_model.dart';
+
 class Event {
   final String? id;
   final String title;
   final String description;
   final String location;
   final DateTime date;
-  List<String> participants; // Retirez 'final' et le '?'
+  List<EventParticipant> participants;
 
   Event({
     this.id,
@@ -12,29 +14,39 @@ class Event {
     required this.description,
     required this.location,
     required this.date,
-    List<String>? participants, // Gardez le '?' pour le paramètre optionnel
-  }) : participants =
-           participants ?? []; // Initialisation avec opérateur null-aware
+    List<EventParticipant>? participants,
+  }) : participants = participants ?? [];
 
   factory Event.fromJson(Map<String, dynamic> json) {
-  return Event(
-    id: json['id']?.toString(),
-    title: json['title'] ?? '',
-    description: json['description'] ?? '',
-    location: json['location'] ?? '',
-    date: DateTime.parse(json['date'].toString()), // Force le parsing
-    participants: List<String>.from(json['participants'] ?? []),
-  );
+    return Event(
+      id: json['id']?.toString(),
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      location: json['location'] ?? '',
+      date: DateTime.parse(json['date'].toString()),
+      participants: (json['participants'] as List?)
+          ?.map((p) => EventParticipant.fromJson(p))
+          .toList() ?? [],
+    );
+  }
 }
 
-  Map<String, dynamic> toJson() {
-    return {
-      if (id != null) 'id': id,
-      'title': title,
-      'description': description,
-      'location': location,
-      'date': date.toIso8601String(),
-      'participants': participants,
-    };
+class EventParticipant {
+  final String userId;
+  final User user;
+
+  EventParticipant({
+    required this.userId,
+    required this.user,
+  });
+
+  factory EventParticipant.fromJson(Map<String, dynamic> json) {
+    return EventParticipant(
+      userId: json['user_id']?.toString() ?? '',
+      user: User.fromJson({
+        'id': json['user_id'] ?? 0, // Utilise user_id comme fallback
+        ...?json['user'], // Spread operator pour les données user complètes
+      }),
+    );
   }
 }

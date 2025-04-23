@@ -7,6 +7,7 @@ class Product {
   final int stock;
   final String image;
   final String category;
+  final String userId; // Ajout du propriétaire
   final bool isPopular;
   bool isFavorite;
   int quantity;
@@ -20,6 +21,7 @@ class Product {
     required this.stock,
     required this.image,
     required this.category,
+    required this.userId, // Ajouté comme paramètre requis
     this.isFavorite = false,
     this.quantity = 1,
     this.isPopular = false,
@@ -37,6 +39,7 @@ class Product {
         stock: 3,
         image: 'assets/images/produit1.png',
         category: 'Cannes',
+        userId: '1', // Ajouté pour les samples
       ),
       Product(
         id: '2',
@@ -47,6 +50,7 @@ class Product {
         stock: 5,
         image: 'assets/images/produit2.png',
         category: 'Moulinets',
+        userId: '2', // Ajouté pour les samples
       ),
     ];
   }
@@ -63,6 +67,7 @@ class Product {
     int? stock,
     String? image,
     String? category,
+    String? userId,
     bool? isPopular,
   }) {
     return Product(
@@ -74,6 +79,7 @@ class Product {
       stock: stock ?? this.stock,
       image: image ?? this.image,
       category: category ?? this.category,
+      userId: userId ?? this.userId, // Ajouté dans copyWith
       quantity: quantity ?? this.quantity,
       isFavorite: isFavorite ?? this.isFavorite,
       isPopular: isPopular ?? this.isPopular,
@@ -84,23 +90,21 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) {
     String imageUrl = '';
     if (json['image'] != null) {
-      imageUrl =
-          json['image'].toString().contains('http')
-              ? json['image'].toString()
-              : 'http://10.0.2.2:8000/storage/${json['image']}';
+      imageUrl = json['image'].toString().contains('http')
+          ? json['image'].toString()
+          : 'http://192.168.1.34:8000/storage/${json['image']}';
     }
 
     return Product(
-      id:
-          json['id']?.toString() ??
-          DateTime.now().millisecondsSinceEpoch.toString(),
+      id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: json['name']?.toString() ?? 'Produit sans nom',
       description: json['description']?.toString() ?? 'Aucune description',
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0,
       unit: json['unit']?.toString() ?? '€',
       stock: int.tryParse(json['stock']?.toString() ?? '0') ?? 0,
-      image: imageUrl, // Utilisez la variable sécurisée
+      image: imageUrl,
       category: json['category']?.toString() ?? 'Autre',
+      userId: json['user_id']?.toString() ?? '0', // Ajouté depuis JSON
     );
   }
 
@@ -115,6 +119,7 @@ class Product {
       'stock': stock,
       'image': image,
       'category': category,
+      'user_id': userId, // Ajouté dans le JSON
       'is_popular': isPopular,
       'is_favorite': isFavorite,
       'quantity': quantity,

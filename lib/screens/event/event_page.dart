@@ -1,3 +1,4 @@
+import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/models/event.dart';
 import 'package:fish_app/screens/event/create_event_page.dart';
 import 'package:fish_app/controller/event_controller.dart';
@@ -108,29 +109,42 @@ class EventPage extends StatelessWidget {
                     ),
                     SizedBox(height: 10),
                     // Section Participants améliorée
-                    _buildParticipantsSection(event, index),
+                    _buildParticipantsSection(event),
                     SizedBox(height: 12),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // Utiliser l'avatar de l'utilisateur connecté
-                          final userAvatar = _getUserAvatarUrl();
-                          eventController.joinEvent(index, userAvatar);
-                        },
-                        icon: Icon(Icons.person_add),
-                        label: Text('Participer'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF4A8BE5),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                      child: Obx(() {
+                        final currentUser =
+                            Get.find<UserController>().currentUser.value;
+                        final isParticipating = event.participants.any(
+                          (p) => p.user.id == currentUser?.id,
+                        );
+
+                        return ElevatedButton.icon(
+                          onPressed:
+                              isParticipating
+                                  ? null
+                                  : () => eventController.joinEvent(index),
+                          icon: Icon(Icons.person_add, size: 18),
+                          label: Text(
+                            isParticipating ? 'Déjà inscrit' : 'Rejoindre',
                           ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isParticipating
+                                    ? Colors.grey
+                                    : Color(0xFF4A8BE5),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                     ),
                   ],
                 ),
@@ -150,7 +164,7 @@ class EventPage extends StatelessWidget {
     );
   }
 
-  Widget _buildParticipantsSection(Event event, int index) {
+  Widget _buildParticipantsSection(Event event) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -166,28 +180,46 @@ class EventPage extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
-              ...event.participants.map(
-                (avatarUrl) => CircleAvatar(
-                  radius: 18,
-                  backgroundImage: NetworkImage(avatarUrl),
-                ),
-              ),
-            ],
+            children:
+                event.participants
+                    .map(
+                      (participant) => Tooltip(
+                        message: participant.user.name,
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundImage: _getAvatarProvider(
+                            participant.user.avatar,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
           ),
           SizedBox(height: 8),
         ],
         Text(
           'Total participants: ${event.participants.length}',
-          style: TextStyle(color: Colors.blue[600]),
+          style: TextStyle(
+            color: Colors.blue[600],
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
   }
 
-  String _getUserAvatarUrl() {
-    // À remplacer par l'avatar réel de l'utilisateur connecté
-    // Exemple temporaire avec un avatar aléatoire
-    return 'https://i.pravatar.cc/150?img=${DateTime.now().millisecondsSinceEpoch % 70}';
+  ImageProvider _getAvatarProvider(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    }
+
+    if (avatarUrl.startsWith('http')) {
+      return NetworkImage(avatarUrl);
+    } else if (avatarUrl.startsWith('assets/')) {
+      return AssetImage(avatarUrl);
+    } else {
+      // Pour les chemins relatifs sans le préfixe 'assets/'
+      return AssetImage('assets/$avatarUrl');
+    }
   }
 }

@@ -7,6 +7,16 @@ class CartController extends GetxController {
   final CartService _cartService = CartService();
   var cartItems = <Product>[].obs;
   var isLoading = false.obs;
+  final RxString checkoutPhone = ''.obs;
+  final RxString checkoutAddress = ''.obs;
+  final RxString paymentMethod = ''.obs;
+  
+  // Méthode pour mettre à jour les infos de checkout
+  void updateCheckoutInfo({String? phone, String? address, String? method}) {
+    if (phone != null) checkoutPhone.value = phone;
+    if (address != null) checkoutAddress.value = address;
+    if (method != null) paymentMethod.value = method;
+  }
 
   @override
   void onInit() {
