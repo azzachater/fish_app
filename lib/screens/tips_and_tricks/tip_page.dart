@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/models/tip_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,12 +17,30 @@ class TipsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tips and Tricks'),
+        backgroundColor: AppTheme.primaryColor,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
+        ),
+        title: const Text(
+          'Tips and Tricks',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back_ios, size: 20, color: Colors.black),
+          icon: const Icon(
+            Icons.arrow_back,
+            size: 24,
+            color: Colors.white,
+          ), // icône plus moderne
         ),
       ),
+
       body: Obx(() {
         // Observe the tips list for changes
         return ListView.builder(
@@ -35,18 +54,23 @@ class TipsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EditTipScreen(
-                      tip: controller.tips[index],
-                      onUpdate: (updatedTip) {
-                        controller.updateTip(updatedTip);
-                      },
-                    ),
+                    builder:
+                        (context) => EditTipScreen(
+                          tip: controller.tips[index],
+                          onUpdate: (updatedTip) {
+                            controller.updateTip(updatedTip);
+                          },
+                        ),
                   ),
                 );
               },
               onDelete: () {
                 // Show delete confirmation
-                _showDeleteConfirmation(context, controller.tips[index], controller);
+                _showDeleteConfirmation(
+                  context,
+                  controller.tips[index],
+                  controller,
+                );
               },
             );
           },
@@ -62,37 +86,43 @@ class TipsPage extends StatelessWidget {
             ),
           );
         },
-        backgroundColor: Colors.blue,
+        backgroundColor: AppTheme.primaryColor,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, Tip tip, TipController controller) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text("Supprimer le conseil"),
-        content: const Text("Voulez-vous vraiment supprimer ce conseil ?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Annuler"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              if (tip.id != null) {
-                controller.deleteTip(tip.id!); // ✅ Suppression correcte
-              }
-            },
-            child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      );
-    },
-  );
-}
-
+  void _showDeleteConfirmation(
+    BuildContext context,
+    Tip tip,
+    TipController controller,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Supprimer le conseil"),
+          content: const Text("Voulez-vous vraiment supprimer ce conseil ?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Annuler"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                if (tip.id != null) {
+                  controller.deleteTip(tip.id!); // ✅ Suppression correcte
+                }
+              },
+              child: const Text(
+                "Supprimer",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

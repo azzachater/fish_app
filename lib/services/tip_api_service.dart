@@ -6,7 +6,7 @@ import '../models/tip_model.dart';
 
 class ApiTipService {
   final ApiAuthService _authService = ApiAuthService(); 
-  final String baseUrl = 'http://192.168.1.34:8000/api';
+  final String baseUrl = 'http://192.168.3.18:8000/api';
 
   Map<String, String> get headers => {
         'Accept': 'application/json',

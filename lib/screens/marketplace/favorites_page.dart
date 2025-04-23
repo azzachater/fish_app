@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:flutter/material.dart';
@@ -124,7 +125,7 @@ class FavoritesPage extends StatelessWidget {
                         "${product.price} ${product.unit}",
                         style: const TextStyle(
                           fontSize: 16,
-                          color: Colors.blue,
+                          color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

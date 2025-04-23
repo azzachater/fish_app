@@ -1,10 +1,9 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 
 class MyTabBar extends StatelessWidget {
-  const MyTabBar({
-    required this.tabController,
-    required Key key,
-  }) : super(key: key);
+  const MyTabBar({required this.tabController, required Key key})
+    : super(key: key);
 
   final TabController tabController;
 
@@ -18,25 +17,26 @@ class MyTabBar extends StatelessWidget {
       ),
       child: TabBar(
         controller: tabController,
-        indicatorSize: TabBarIndicatorSize.tab, // L'indicateur prend toute la largeur de l'onglet
+        indicatorSize:
+            TabBarIndicatorSize
+                .tab, // L'indicateur prend toute la largeur de l'onglet
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(25.0),
-          color: Colors.blue.shade100,
+          color: AppTheme.primaryColor,
         ),
-        labelColor: Colors.blue,
+        labelColor: AppTheme.primaryColor,
         unselectedLabelColor: Colors.black,
         labelStyle: const TextStyle(
           fontSize: 18, // Taille augmentée pour une meilleure lisibilité
-          fontWeight: FontWeight.bold, // Texte plus épais pour plus de visibilité
+          fontWeight:
+              FontWeight.bold, // Texte plus épais pour plus de visibilité
         ),
         unselectedLabelStyle: const TextStyle(
-          fontSize: 16, // Taille un peu plus petite pour les onglets non sélectionnés
+          fontSize:
+              16, // Taille un peu plus petite pour les onglets non sélectionnés
           fontWeight: FontWeight.w500, // Épaisseur moyenne pour les inactifs
         ),
-        tabs: const [
-          Tab(text: 'Chats'),
-          Tab(text: 'Groups'),
-        ],
+        tabs: const [Tab(text: 'Chats'), Tab(text: 'Groups')],
       ),
     );
   }

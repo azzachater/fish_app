@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/screens/marketplace/market_place.dart';
 import 'package:flutter/material.dart';
@@ -121,7 +122,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                         Get.offAll(() => Marketplace());
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: AppTheme.primaryColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -154,7 +155,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue,
+                    color: AppTheme.primaryColor,
                   ),
                 ),
               ],

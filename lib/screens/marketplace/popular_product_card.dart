@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 
 class PopularProductCard extends StatelessWidget {
@@ -65,7 +66,7 @@ class PopularProductCard extends StatelessWidget {
             "$price €",
             style: const TextStyle(
               fontSize: 16,
-              color: Colors.blue,
+              color: AppTheme.primaryColor,
               fontWeight: FontWeight.bold,
             ),
           ),

@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/screens/marketplace/add_product_page.dart';
@@ -64,7 +65,7 @@ class ProductCard extends StatelessWidget {
                       Text(
                         '${product.price} ${product.unit}',
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -117,7 +118,10 @@ class ProductCard extends StatelessWidget {
                 bottom: 8,
                 right: 8,
                 child: IconButton(
-                  icon: Icon(Icons.add_shopping_cart, color: Colors.blue),
+                  icon: Icon(
+                    Icons.add_shopping_cart,
+                    color: AppTheme.primaryColor,
+                  ),
                   onPressed: () {
                     cartController.addToCart(product);
                     Get.snackbar(
@@ -203,7 +207,7 @@ class ProductCard extends StatelessWidget {
                           value: 'edit',
                           child: Row(
                             children: [
-                              Icon(Icons.edit, color: Colors.blue),
+                              Icon(Icons.edit, color: AppTheme.primaryColor),
                               SizedBox(width: 8),
                               Text('Modifier'),
                             ],
@@ -234,7 +238,7 @@ class ProductCard extends StatelessWidget {
     } else if (imagePath.startsWith('assets/')) {
       return AssetImage(imagePath);
     } else {
-      return NetworkImage('http://192.168.1.34:8000/storage/$imagePath');
+      return NetworkImage('http://192.168.3.18:8000/storage/$imagePath');
     }
   }
 }

@@ -5,7 +5,7 @@ import '../models/user_model.dart';
 
 
 class ApiUserService {
-  final String baseUrl = 'http://192.168.1.34:8000/api';
+  final String baseUrl = 'http://192.168.3.18:8000/api';
   final ApiAuthService _authService;
 
   ApiUserService({ApiAuthService? authService}) 

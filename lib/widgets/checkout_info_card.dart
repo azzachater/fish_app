@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 
 class CheckoutInfoCard extends StatelessWidget {
@@ -41,7 +42,7 @@ class CheckoutInfoCard extends StatelessWidget {
                       value,
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.blue,
+                        color: AppTheme.primaryColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

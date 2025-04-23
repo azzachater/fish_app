@@ -20,7 +20,6 @@ import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:fish_app/services/api_push_notif_service.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Get.put(AuthController());
@@ -34,14 +33,12 @@ void main() async {
   await Get.putAsync(() => PusherService().init());
 
   Get.put(UserController());
-    Get.put(NotificationController());
+  Get.put(NotificationController());
 
   Get.put(ProfileController());
 
-
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -52,7 +49,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'fish Net',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
 
@@ -79,5 +75,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-

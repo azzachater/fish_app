@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../models/post_model.dart';
@@ -25,7 +26,8 @@ class CommentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final CommentController commentController = Get.put(CommentController());
-    final UserController userController = Get.find<UserController>(); // Obtenez le UserController
+    final UserController userController =
+        Get.find<UserController>(); // Obtenez le UserController
     final TextEditingController commentControllerText = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -33,9 +35,7 @@ class CommentPage extends StatelessWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Commentaires'),
-      ),
+      appBar: AppBar(title: const Text('Commentaires')),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -43,14 +43,17 @@ class CommentPage extends StatelessWidget {
             Expanded(
               child: Obx(() {
                 if (commentController.comments.isEmpty) {
-                  return const Center(child: Text("Aucun commentaire pour l'instant."));
+                  return const Center(
+                    child: Text("Aucun commentaire pour l'instant."),
+                  );
                 }
                 return ListView.builder(
                   itemCount: commentController.comments.length,
                   itemBuilder: (context, index) {
                     final comment = commentController.comments[index];
-                    final isCurrentUserOwner = userController.currentUser.value?.id == comment.user.id;
-                    
+                    final isCurrentUserOwner =
+                        userController.currentUser.value?.id == comment.user.id;
+
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundImage: buildAvatarImage(comment.user.avatar),
@@ -66,7 +69,10 @@ class CommentPage extends StatelessWidget {
                               icon: const Icon(Icons.more_vert),
                               onSelected: (value) {
                                 if (value == 'delete') {
-                                  commentController.deleteComment(post.id, comment.id);
+                                  commentController.deleteComment(
+                                    post.id,
+                                    comment.id,
+                                  );
                                 }
                               },
                               itemBuilder: (BuildContext context) {
@@ -99,14 +105,17 @@ class CommentPage extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.send, color: Colors.blue),
+                    icon: const Icon(Icons.send, color: AppTheme.primaryColor),
                     onPressed: () {
                       final text = commentControllerText.text.trim();
                       if (text.isNotEmpty) {
                         commentController.addComment(post.id, text);
                         commentControllerText.clear();
                       } else {
-                        Get.snackbar("Erreur", "Le commentaire ne peut pas être vide.");
+                        Get.snackbar(
+                          "Erreur",
+                          "Le commentaire ne peut pas être vide.",
+                        );
                       }
                     },
                   ),

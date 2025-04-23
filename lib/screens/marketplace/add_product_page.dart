@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/models/product.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,7 @@ class AddProductPage extends StatelessWidget {
             fontSize: 18,
           ),
         ),
-        backgroundColor: const Color.fromARGB(255, 44, 141, 238),
+        backgroundColor: AppTheme.primaryColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -260,7 +261,7 @@ class AddProductPage extends StatelessWidget {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
+                          backgroundColor: AppTheme.primaryColor,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(

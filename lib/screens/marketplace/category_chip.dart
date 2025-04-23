@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 
 class CategoryChip extends StatelessWidget {
@@ -21,14 +22,17 @@ class CategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         margin: const EdgeInsets.only(right: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue[800] : Colors.grey[200],
+          color: isSelected ? AppTheme.primaryColor : Colors.grey[200],
           borderRadius: BorderRadius.circular(20),
-          border: isSelected ? Border.all(color: Colors.blue, width: 2) : null,
+          border:
+              isSelected
+                  ? Border.all(color: AppTheme.primaryColor, width: 2)
+                  : null,
           boxShadow:
               isSelected
                   ? [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: AppTheme.primaryColor.withOpacity(0.2),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),

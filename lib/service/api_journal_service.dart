@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 class ApiJournalService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.34:8000/api'; // Adaptez l'URL
+  final String baseUrl = 'http://192.168.3.18:8000/api'; // Adaptez l'URL
 
   // Headers de base
   Map<String, String> get headers => {

@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,8 @@ class ProductDetailPage extends StatelessWidget {
     final CartController cartController = Get.find<CartController>();
     final ProductController productController = Get.find<ProductController>();
     final isFavorite = productController.isFavorite(product.id).obs;
-    final isInCart = cartController.cartItems.any((item) => item.id == product.id).obs;
+    final isInCart =
+        cartController.cartItems.any((item) => item.id == product.id).obs;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -51,30 +53,35 @@ class ProductDetailPage extends StatelessWidget {
               aspectRatio: 1,
               child: Container(
                 color: Colors.grey.shade100,
-                child: product.image.startsWith('http')
-                    ? Image.network(
-                        product.image,
-                        fit: BoxFit.contain,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) => 
-                          _buildImagePlaceholder(),
-                      )
-                    : Image.asset(
-                        product.image,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => 
-                          _buildImagePlaceholder(),
-                      ),
+                child:
+                    product.image.startsWith('http')
+                        ? Image.network(
+                          product.image,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value:
+                                    loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                              ),
+                            );
+                          },
+                          errorBuilder:
+                              (context, error, stackTrace) =>
+                                  _buildImagePlaceholder(),
+                        )
+                        : Image.asset(
+                          product.image,
+                          fit: BoxFit.contain,
+                          errorBuilder:
+                              (context, error, stackTrace) =>
+                                  _buildImagePlaceholder(),
+                        ),
               ),
             ),
             const SizedBox(height: 20),
@@ -89,12 +96,12 @@ class ProductDetailPage extends StatelessWidget {
                     product.category.toUpperCase(),
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.blue.shade600,
+                      color: AppTheme.primaryColor,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  
+
                   Text(
                     product.name,
                     style: const TextStyle(
@@ -119,8 +126,8 @@ class ProductDetailPage extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: Text(
-                          product.description.isNotEmpty 
-                              ? product.description 
+                          product.description.isNotEmpty
+                              ? product.description
                               : "Aucune description disponible",
                           style: TextStyle(
                             fontSize: 16,
@@ -151,7 +158,7 @@ class ProductDetailPage extends StatelessWidget {
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final isSmallScreen = constraints.maxWidth < 350;
-                        
+
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -161,55 +168,72 @@ class ProductDetailPage extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
+                                  color: AppTheme.primaryColor,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Obx(() => Flexible(
-                              child: ElevatedButton.icon(
-                                onPressed: isInCart.value
-                                    ? null
-                                    : () {
-                                        cartController.addToCart(product);
-                                        isInCart.value = true;
-                                        Get.snackbar(
-                                          "Ajouté au panier",
-                                          "${product.name} a été ajouté à votre panier",
-                                          snackPosition: SnackPosition.BOTTOM,
-                                          backgroundColor: Colors.green,
-                                          colorText: Colors.white,
-                                          duration: const Duration(seconds: 2),
-                                        );
-                                      },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: isInCart.value 
-                                      ? Colors.grey.shade300 
-                                      : Colors.blue,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: isSmallScreen ? 12 : 24,
-                                    vertical: 16,
+                            Obx(
+                              () => Flexible(
+                                child: ElevatedButton.icon(
+                                  onPressed:
+                                      isInCart.value
+                                          ? null
+                                          : () {
+                                            cartController.addToCart(product);
+                                            isInCart.value = true;
+                                            Get.snackbar(
+                                              "Ajouté au panier",
+                                              "${product.name} a été ajouté à votre panier",
+                                              snackPosition:
+                                                  SnackPosition.BOTTOM,
+                                              backgroundColor: Colors.green,
+                                              colorText: Colors.white,
+                                              duration: const Duration(
+                                                seconds: 2,
+                                              ),
+                                            );
+                                          },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        isInCart.value
+                                            ? Colors.grey.shade300
+                                            : AppTheme.primaryColor,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: isSmallScreen ? 12 : 24,
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
                                   ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
+                                  icon: Icon(
+                                    isInCart.value
+                                        ? Icons.check
+                                        : Icons.add_shopping_cart,
+                                    color:
+                                        isInCart.value
+                                            ? Colors.grey
+                                            : Colors.white,
+                                    size: isSmallScreen ? 18 : 24,
                                   ),
-                                ),
-                                icon: Icon(
-                                  isInCart.value ? Icons.check : Icons.add_shopping_cart,
-                                  color: isInCart.value ? Colors.grey : Colors.white,
-                                  size: isSmallScreen ? 18 : 24,
-                                ),
-                                label: Text(
-                                  isInCart.value ? "Déjà au panier" : "Ajouter",
-                                  style: TextStyle(
-                                    fontSize: isSmallScreen ? 14 : 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: isInCart.value ? Colors.grey : Colors.white,
+                                  label: Text(
+                                    isInCart.value
+                                        ? "Déjà au panier"
+                                        : "Ajouter",
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14 : 16,
+                                      fontWeight: FontWeight.bold,
+                                      color:
+                                          isInCart.value
+                                              ? Colors.grey
+                                              : Colors.white,
+                                    ),
                                   ),
                                 ),
                               ),
-                            )),
+                            ),
                           ],
                         );
                       },
@@ -222,60 +246,57 @@ class ProductDetailPage extends StatelessWidget {
           ],
         ),
       ),
-      
+
       // Bouton flottant pour accéder rapidement au panier
       floatingActionButton: FloatingActionButton(
         onPressed: () => Get.toNamed('/cart'),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppTheme.primaryColor,
         child: const Icon(Icons.shopping_cart, color: Colors.white),
       ),
     );
   }
+
   List<Widget> _generateProductSpecifications(Product product) {
-  final specs = <Widget>[];
-  
-  // Spécifications basées sur la catégorie
-  if (product.category.toLowerCase().contains('cann')) {
-    specs.addAll([
-      _buildSpecificationTile("Longueur", "2.10 m"),
-      _buildSpecificationTile("Poids", "350g"),
-      _buildSpecificationTile("Action", "Moyenne"),
-    ]);
-  } 
-  else if (product.category.toLowerCase().contains('moulinet')) {
-    specs.addAll([
-      _buildSpecificationTile("Ratio", "5.2:1"),
-      _buildSpecificationTile("Roulements", "4+1"),
-      _buildSpecificationTile("Poids", "280g"),
-    ]);
-  }
-  else if (product.category.toLowerCase().contains('leurr')) {
-    specs.addAll([
-      _buildSpecificationTile("Type", "Crevette"),
-      _buildSpecificationTile("Profondeur", "1-3m"),
-      _buildSpecificationTile("Poids", "15g"),
-    ]);
-  }
-  else {
-    // Spécifications par défaut basées sur le nom
-    if (product.name.toLowerCase().contains('alumini')) {
-      specs.add(_buildSpecificationTile("Matériau", "Aluminium"));
-    }
-    if (product.name.toLowerCase().contains('carbon')) {
-      specs.add(_buildSpecificationTile("Matériau", "Fibre de carbone"));
-    }
-    
-    // Ajoutez d'autres règles de détection ici...
-  }
+    final specs = <Widget>[];
 
-  // Toujours ajouter le prix comme spécification
-  specs.add(_buildSpecificationTile(
-    "Prix", 
-    "${product.price} ${product.unit}"
-  ));
+    // Spécifications basées sur la catégorie
+    if (product.category.toLowerCase().contains('cann')) {
+      specs.addAll([
+        _buildSpecificationTile("Longueur", "2.10 m"),
+        _buildSpecificationTile("Poids", "350g"),
+        _buildSpecificationTile("Action", "Moyenne"),
+      ]);
+    } else if (product.category.toLowerCase().contains('moulinet')) {
+      specs.addAll([
+        _buildSpecificationTile("Ratio", "5.2:1"),
+        _buildSpecificationTile("Roulements", "4+1"),
+        _buildSpecificationTile("Poids", "280g"),
+      ]);
+    } else if (product.category.toLowerCase().contains('leurr')) {
+      specs.addAll([
+        _buildSpecificationTile("Type", "Crevette"),
+        _buildSpecificationTile("Profondeur", "1-3m"),
+        _buildSpecificationTile("Poids", "15g"),
+      ]);
+    } else {
+      // Spécifications par défaut basées sur le nom
+      if (product.name.toLowerCase().contains('alumini')) {
+        specs.add(_buildSpecificationTile("Matériau", "Aluminium"));
+      }
+      if (product.name.toLowerCase().contains('carbon')) {
+        specs.add(_buildSpecificationTile("Matériau", "Fibre de carbone"));
+      }
 
-  return specs;
-}
+      // Ajoutez d'autres règles de détection ici...
+    }
+
+    // Toujours ajouter le prix comme spécification
+    specs.add(
+      _buildSpecificationTile("Prix", "${product.price} ${product.unit}"),
+    );
+
+    return specs;
+  }
 
   Widget _buildImagePlaceholder() {
     return Center(
@@ -312,9 +333,7 @@ class ProductDetailPage extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
         ],

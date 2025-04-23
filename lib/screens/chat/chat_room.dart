@@ -22,28 +22,28 @@ class _ChatRoomState extends State<ChatRoom> {
   late final Conversation? _conversation;
 
   @override
-void initState() {
-  super.initState();
-  _conversation = chatController.conversations.firstWhereOrNull(
-    (conv) => conv.userOne.id == widget.user.id || conv.userTwo.id == widget.user.id
-  );
-  _loadMessages();
-  
-}
-
+  void initState() {
+    super.initState();
+    _conversation = chatController.conversations.firstWhereOrNull(
+      (conv) =>
+          conv.userOne.id == widget.user.id ||
+          conv.userTwo.id == widget.user.id,
+    );
+    _loadMessages();
+  }
 
   void _loadMessages() {
     if (_conversation != null) {
       chatController.loadMessages(_conversation.id);
       chatController.subscribeToConversationChannel(_conversation.id);
-
     } else {
       chatController.conversationMessages.assignAll([]);
     }
   }
 
   ImageProvider _buildImageProvider(String avatarPath) {
-    if (avatarPath.isEmpty) return const AssetImage('assets/images/default_avatar.png');
+    if (avatarPath.isEmpty)
+      return const AssetImage('assets/images/default_avatar.png');
     if (avatarPath.startsWith('http')) return NetworkImage(avatarPath);
     if (avatarPath.startsWith('assets/')) return AssetImage(avatarPath);
     return FileImage(File(avatarPath));
@@ -67,7 +67,10 @@ void initState() {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(widget.user.name, style: AppTheme.chatSenderName),
-                Text('online', style: AppTheme.bodyText1.copyWith(fontSize: 18)),
+                Text(
+                  'online',
+                  style: AppTheme.bodyText1.copyWith(fontSize: 18),
+                ),
               ],
             ),
           ],
@@ -86,7 +89,7 @@ void initState() {
                 ),
               ),
               child: Obx(() {
-                if (chatController.isLoading.value && 
+                if (chatController.isLoading.value &&
                     chatController.conversationMessages.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
@@ -96,7 +99,9 @@ void initState() {
                   itemCount: chatController.conversationMessages.length,
                   itemBuilder: (context, index) {
                     final message = chatController.conversationMessages[index];
-                    final isMe = message.sender.id == chatController.currentUser.value?.id;
+                    final isMe =
+                        message.sender.id ==
+                        chatController.currentUser.value?.id;
                     return _buildMessageBubble(message, isMe, context);
                   },
                 );
@@ -104,11 +109,11 @@ void initState() {
             ),
           ),
           ChatComposer(
-              onSendMessage: (text) {
-                chatController.sendMessage(text, widget.user.id );
-              },
-              user: widget.user,
-            ),
+            onSendMessage: (text) {
+              chatController.sendMessage(text, widget.user.id);
+            },
+            user: widget.user,
+          ),
         ],
       ),
     );
@@ -120,7 +125,8 @@ void initState() {
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            mainAxisAlignment:
+                isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!isMe)
@@ -155,17 +161,21 @@ void initState() {
           Padding(
             padding: const EdgeInsets.only(top: 5),
             child: Row(
-              mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+              mainAxisAlignment:
+                  isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
               children: [
                 if (!isMe) const SizedBox(width: 40),
                 Icon(
                   Icons.done_all,
                   size: 20,
-                  color: message.isRead ? Colors.blue : AppTheme.bodyTextTime.color,
+                  color:
+                      message.isRead
+                          ? AppTheme.primaryColor
+                          : AppTheme.bodyTextTime.color,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  DateFormat('HH:mm').format(message.createdAt), 
+                  DateFormat('HH:mm').format(message.createdAt),
                   style: AppTheme.bodyTextTime,
                 ),
               ],

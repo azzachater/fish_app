@@ -1,7 +1,9 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/controller/map_controller_X.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MapPage extends StatelessWidget {
   final MapControllerX controller = Get.put(MapControllerX());
@@ -9,7 +11,32 @@ class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Carte des Spots de Pêche")),
+      appBar: AppBar(
+        title: Text(
+          'Carte des Spots de Pêche',
+          style: GoogleFonts.poppins(
+            textStyle: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+        backgroundColor: AppTheme.primaryColor,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+          ), // <-- couleur de l’icône
+          onPressed: () => Navigator.pop(context),
+        ),
+        elevation: 3,
+        centerTitle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
+        ),
+      ),
       body: Stack(
         children: [
           OSMFlutter(
@@ -86,7 +113,7 @@ class MapPage extends StatelessWidget {
             ),
           ),
           if (controller.isLoading.value)
-              Center(child: CircularProgressIndicator()),
+            Center(child: CircularProgressIndicator()),
           Obx(
             () =>
                 controller.isLoading.value

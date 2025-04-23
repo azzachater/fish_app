@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 
 class SaveButton extends StatelessWidget {
@@ -13,13 +14,13 @@ class SaveButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: const LinearGradient(
-            colors: [Colors.blue, Colors.lightBlueAccent],
+            colors: [AppTheme.primaryColor, Colors.lightBlueAccent],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.3),
+              color: AppTheme.primaryColor.withOpacity(0.3),
               blurRadius: 6,
               offset: const Offset(0, 3),
             ),

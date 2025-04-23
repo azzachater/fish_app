@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:fish_app/screens/marketplace/cart_page.dart';
 import 'package:flutter/material.dart';
@@ -27,34 +28,45 @@ class Marketplace extends StatelessWidget {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.primaryColor,
         title: Text(
-          "🎣 Catch the best deal ",
+          "🎣 Catch the best deal",
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.blue[800],
+            color: AppTheme.lightPrimary, // Texte clair
           ),
         ),
         actions: [
           IconButton(
             icon: Badge(
-              child: const Icon(Icons.favorite, color: Colors.red),
+              child: Icon(Icons.favorite, color: AppTheme.lightPrimary),
               isLabelVisible: productController.favoriteCount > 0,
-              label: Text(productController.favoriteCount.toString()),
+              label: Text(
+                productController.favoriteCount.toString(),
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
             ),
             onPressed: () => Get.to(() => FavoritesPage()),
           ),
           IconButton(
             icon: Badge(
-              child: const Icon(Icons.shopping_cart, color: Colors.blue),
+              child: Icon(Icons.shopping_cart, color: AppTheme.lightPrimary),
               isLabelVisible: productController.cartCount > 0,
-              label: Text(productController.cartCount.toString()),
+              label: Text(
+                productController.cartCount.toString(),
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor:
+                  Colors
+                      .green, // Ou AppTheme.darkPrimary si tu veux garder l’uniformité
             ),
             onPressed: () => Get.to(() => CartPage()),
           ),
         ],
       ),
+
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -74,7 +86,7 @@ class Marketplace extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue[800],
+                  color: AppTheme.primaryColor,
                 ),
               ),
               const SizedBox(height: 10),

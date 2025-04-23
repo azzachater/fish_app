@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -34,10 +35,11 @@ class PostWidget extends StatelessWidget {
         fontWeight: FontWeight.w600,
         color: Colors.black,
       ),
-      middleText: "Are you sure you want to delete this post? This action can't be undone.",
+      middleText:
+          "Are you sure you want to delete this post? This action can't be undone.",
       middleTextStyle: const TextStyle(fontSize: 14, color: Colors.black54),
       textCancel: "Cancel",
-      cancelTextColor: Colors.blueGrey,
+      cancelTextColor: AppTheme.primaryColorGrey,
       textConfirm: "Delete",
       confirmTextColor: Colors.white,
       buttonColor: Colors.redAccent,
@@ -75,11 +77,7 @@ class PostWidget extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -98,39 +96,44 @@ class PostWidget extends StatelessWidget {
               style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
             contentPadding: const EdgeInsets.all(10),
-            trailing: postController.currentUserId == post.user.id.toString()
-                ? PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'update') {
-                        openUpdatePostPage();
-                      } else if (value == 'delete') {
-                        _showDeleteConfirmationDialog(context);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem<String>(
-                        value: 'update',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, color: Colors.blue),
-                            SizedBox(width: 8),
-                            Text("Update"),
+            trailing:
+                postController.currentUserId == post.user.id.toString()
+                    ? PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'update') {
+                          openUpdatePostPage();
+                        } else if (value == 'delete') {
+                          _showDeleteConfirmationDialog(context);
+                        }
+                      },
+                      itemBuilder:
+                          (context) => [
+                            const PopupMenuItem<String>(
+                              value: 'update',
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.edit,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text("Update"),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red),
+                                  SizedBox(width: 8),
+                                  Text("Delete"),
+                                ],
+                              ),
+                            ),
                           ],
-                        ),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text("Delete"),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                : null,
+                    )
+                    : null,
           ),
           if (post.postText != null && post.postText!.isNotEmpty)
             Padding(
@@ -147,46 +150,66 @@ class PostWidget extends StatelessWidget {
           if (post.postImage != null && post.postImage!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: post.postImage!.startsWith('http')
-                  ? Image.network(
-                      post.postImage!,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.broken_image, color: Colors.red, size: 50);
-                      },
-                    )
-                  : (post.postImage!.startsWith('assets/')
-                      ? Image.asset(post.postImage!)
-                      : Image.file(File(post.postImage!))),
+              child:
+                  post.postImage!.startsWith('http')
+                      ? Image.network(
+                        post.postImage!,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.broken_image,
+                            color: Colors.red,
+                            size: 50,
+                          );
+                        },
+                      )
+                      : (post.postImage!.startsWith('assets/')
+                          ? Image.asset(post.postImage!)
+                          : Image.file(File(post.postImage!))),
             ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Obx(() => Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        FontAwesomeIcons.thumbsUp,
-                        color: isLiked.value ? Colors.blue : Colors.grey,
+                Obx(
+                  () => Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          FontAwesomeIcons.thumbsUp,
+                          color:
+                              isLiked.value
+                                  ? AppTheme.primaryColor
+                                  : Colors.grey,
+                        ),
+                        onPressed: () {
+                          isLiked.toggle();
+                          likeCount.value += isLiked.value ? 1 : -1;
+                          postController.likePost(
+                            post.id,
+                          ); // API call to like post
+                        },
                       ),
-                      onPressed: () {
-                        isLiked.toggle();
-                        likeCount.value += isLiked.value ? 1 : -1;
-                        postController.likePost(post.id); // API call to like post
-                      },
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${likeCount.value} Likes',
-                      style: TextStyle(color: isLiked.value ? Colors.blue : Colors.grey),
-                    ),
-                  ],
-                )),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${likeCount.value} Likes',
+                        style: TextStyle(
+                          color:
+                              isLiked.value
+                                  ? AppTheme.primaryColor
+                                  : Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(FontAwesomeIcons.commentDots, color: Colors.grey),
+                      icon: const Icon(
+                        FontAwesomeIcons.commentDots,
+                        color: Colors.grey,
+                      ),
                       onPressed: navigateToComments,
                     ),
                     const SizedBox(width: 4),

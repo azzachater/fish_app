@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/controller/event_controller.dart';
@@ -26,14 +27,15 @@ class _CreateEventPageState extends State<CreateEventPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Colors.blue[700]!,
+              primary: AppTheme.primaryColor!,
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: Colors.blue[700], // button text color
+                foregroundColor:
+                    AppTheme.primaryColor, // button text color
               ),
             ),
           ),
@@ -56,10 +58,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
     final borderRadius = BorderRadius.circular(16);
     final inputDecoration = InputDecoration(
       filled: true,
-      fillColor: Colors.blue.shade50,
+      fillColor: AppTheme.primaryColor,
       border: OutlineInputBorder(borderRadius: borderRadius),
       focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+        borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
         borderRadius: borderRadius,
       ),
     );
@@ -121,7 +123,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                   decoration: inputDecoration.copyWith(
                     suffixIcon: Icon(
                       Icons.calendar_month,
-                      color: Colors.blue[700],
+                      color: AppTheme.primaryColor,
                     ),
                   ),
                 ),
@@ -157,7 +159,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 label: Text("Ajouter l'événement"),
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 14),
-                  backgroundColor: Colors.blue[700],
+                  backgroundColor: AppTheme.primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -190,7 +192,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.blueGrey[800],
+            color: AppTheme.primaryColorGrey,
           ),
         ),
         SizedBox(height: 8),
@@ -199,7 +201,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
           maxLines: maxLines,
           decoration: decoration.copyWith(
             hintText: hint,
-            prefixIcon: Icon(icon, color: Colors.blue[700]),
+            prefixIcon: Icon(icon, color: AppTheme.primaryColor),
           ),
         ),
       ],

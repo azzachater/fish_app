@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fish_app/constants/theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -29,7 +30,9 @@ class CreatePostPage extends StatelessWidget {
     if (pickedFile != null) {
       final appDir = await getApplicationDocumentsDirectory();
       final fileName = pickedFile.name;
-      final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
+      final savedImage = await File(
+        pickedFile.path,
+      ).copy('${appDir.path}/$fileName');
       _image.value = XFile(savedImage.path);
     }
   }
@@ -46,21 +49,27 @@ class CreatePostPage extends StatelessWidget {
   void _submitPost() {
     final currentUser = userController.currentUser.value;
     if (currentUser == null) {
-      Get.snackbar("Erreur", "Utilisateur non connecté",
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Erreur",
+        "Utilisateur non connecté",
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return;
     }
 
     String postText = _textController.text.trim();
     if (postText.isNotEmpty || _image.value != null) {
       postController.createPost(postText, _image.value?.path ?? "");
-      
+
       _textController.clear();
       _image.value = null;
       Get.back();
     } else {
-      Get.snackbar("Erreur", "Le post ne peut pas être vide",
-          snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Erreur",
+        "Le post ne peut pas être vide",
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -68,7 +77,10 @@ class CreatePostPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Créer un post", style: TextStyle(color: Colors.black)),
+        title: const Text(
+          "Créer un post",
+          style: TextStyle(color: Colors.black),
+        ),
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -92,7 +104,13 @@ class CreatePostPage extends StatelessWidget {
                       backgroundImage: _getAvatarImage(avatar),
                     ),
                     const SizedBox(width: 12),
-                    Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -103,24 +121,30 @@ class CreatePostPage extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: "Quoi de neuf, $name ?",
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                   maxLines: null,
                 ),
                 const SizedBox(height: 20),
 
                 // Affichage de l'image sélectionnée
-                Obx(() => _image.value != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(
-                          File(_image.value!.path),
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : const SizedBox()),
+                Obx(
+                  () =>
+                      _image.value != null
+                          ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              File(_image.value!.path),
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                          : const SizedBox(),
+                ),
 
                 const SizedBox(height: 20),
 
@@ -130,34 +154,46 @@ class CreatePostPage extends StatelessWidget {
                     Expanded(
                       child: TextButton.icon(
                         onPressed: _pickImage,
-                        icon: const Icon(Icons.photo_library, color: Colors.green),
-                        label: const Text("Photo", style: TextStyle(color: Colors.black)),
-                      ),),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Bouton pour publier
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _submitPost,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        elevation: 0,
+                        icon: const Icon(
+                          Icons.photo_library,
+                          color: Colors.green,
+                        ),
+                        label: const Text(
+                          "Photo",
+                          style: TextStyle(color: Colors.black),
+                        ),
                       ),
-                      child: const Text("Publier", style: TextStyle(color: Colors.white, fontSize: 16)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Bouton pour publier
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _submitPost,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColorAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      "Publier",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          );
-        }),
-      );
-    }
+          ),
+        );
+      }),
+    );
+  }
 
   Future<void> requestPermissions() async {
     if (await Permission.storage.request().isGranted) {
