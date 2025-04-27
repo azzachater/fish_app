@@ -3,90 +3,83 @@ import 'package:fish_app/service/api_auth_service.dart';
 import 'package:http/http.dart' as http;
 import '../models/tip_model.dart';
 
-
 class ApiTipService {
-  final ApiAuthService _authService = ApiAuthService(); 
-  final String baseUrl = 'http://192.168.3.18:8000/api';
+  final ApiAuthService _authService = ApiAuthService();
+  final String baseUrl = 'http://192.168.1.44:8000/api';
 
   Map<String, String> get headers => {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  };
 
   Future<Map<String, String>> _getAuthHeaders() async {
     final headers = await _authService.getAuthHeaders();
-      print("🔵 Auth Headers: $headers"); 
+    print("🔵 Auth Headers: $headers");
     return headers;
   }
 
   Future<String?> getCsrfToken() async {
     return await _authService.getCsrfToken();
   }
-  
 
   Future<List<Tip>> getTips() async {
-  try {
-    final headers = await _getAuthHeaders();
-    final response = await http.get(
-      Uri.parse('$baseUrl/tips'),
-      headers: headers,
-    );
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/tips'),
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      final dynamic jsonResponse = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final dynamic jsonResponse = jsonDecode(response.body);
 
-      if (jsonResponse is List) { 
-        return jsonResponse.map((tip) => Tip.fromJson(tip)).toList();
-      } else if (jsonResponse is Map<String, dynamic>) {
-        final List<dynamic> data = jsonResponse['tips'] ?? [];
-        return data.map((tip) => Tip.fromJson(tip)).toList();
+        if (jsonResponse is List) {
+          return jsonResponse.map((tip) => Tip.fromJson(tip)).toList();
+        } else if (jsonResponse is Map<String, dynamic>) {
+          final List<dynamic> data = jsonResponse['tips'] ?? [];
+          return data.map((tip) => Tip.fromJson(tip)).toList();
+        } else {
+          throw Exception("Unexpected API response format");
+        }
       } else {
-        throw Exception("Unexpected API response format");
+        print("Error getting tips: ${response.body}");
+        throw _handleError(response);
       }
-    } else {
-      print("Error getting tips: ${response.body}");
-      throw _handleError(response);
+    } catch (e) {
+      print('Error getting tips: $e');
+      throw _handleError(e);
     }
-  } catch (e) {
-    print('Error getting tips: $e');
-    throw _handleError(e);
   }
-}
-
 
   Future<Tip> createTip(String title, String description) async {
-  try {
-    final headers = await _getAuthHeaders();
-    final body = jsonEncode({
-      'title': title,
-      'description': description,
-    });
+    try {
+      final headers = await _getAuthHeaders();
+      final body = jsonEncode({'title': title, 'description': description});
 
-    print("🔵 Sending request to $baseUrl/tips");
-    print("🟡 Headers: $headers");
-    print("🟢 Body: $body");
+      print("🔵 Sending request to $baseUrl/tips");
+      print("🟡 Headers: $headers");
+      print("🟢 Body: $body");
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/tips'),
-      headers: headers,
-      body: body,
-    );
+      final response = await http.post(
+        Uri.parse('$baseUrl/tips'),
+        headers: headers,
+        body: body,
+      );
 
-    print("🔴 Response Code: ${response.statusCode}");
-    print("🟠 Response Body: ${response.body}");
+      print("🔴 Response Code: ${response.statusCode}");
+      print("🟠 Response Body: ${response.body}");
 
-    if (response.statusCode == 201) {
-      return Tip.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception(_handleError(response));
+      if (response.statusCode == 201) {
+        return Tip.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception(_handleError(response));
+      }
+    } catch (e) {
+      print('🔴 Create tip error: $e');
+      throw _handleError(e);
     }
-  } catch (e) {
-    print('🔴 Create tip error: $e');
-    throw _handleError(e);
   }
-}
-
 
   Future<Tip> updateTip(Tip tip) async {
     try {
@@ -127,7 +120,7 @@ class ApiTipService {
   }
 
   Future<void> clearToken() async {
-    await _authService.clearToken();  
+    await _authService.clearToken();
   }
 
   String _handleError(dynamic error) {

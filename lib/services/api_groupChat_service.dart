@@ -4,18 +4,18 @@ import 'package:fish_app/service/api_auth_service.dart';
 import '../models/group_conversation_model.dart';
 import '../models/group_message_model.dart';
 
-
 class ApiGroupChatService {
-  final String baseUrl = 'http://192.168.3.18:8000/api';
+  final String baseUrl = 'http://192.168.1.44:8000/api';
   final ApiAuthService _authService;
 
-  ApiGroupChatService({ApiAuthService? authService}) : _authService = authService ?? ApiAuthService();
-  
+  ApiGroupChatService({ApiAuthService? authService})
+    : _authService = authService ?? ApiAuthService();
+
   Map<String, String> get headers => {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  };
   Future<List<GroupConversation>> getMyGroups() async {
     try {
       final headers = await _authService.getAuthHeaders();
@@ -36,7 +36,11 @@ class ApiGroupChatService {
     }
   }
 
-  Future<GroupConversation> createGroup(String name, String avatar, List<int> memberIds) async {
+  Future<GroupConversation> createGroup(
+    String name,
+    String avatar,
+    List<int> memberIds,
+  ) async {
     try {
       final headers = await _authService.getAuthHeaders();
       final response = await http.post(
@@ -115,40 +119,43 @@ class ApiGroupChatService {
       rethrow;
     }
   }
+
   Future<int> getGroupUnreadCount(int groupId) async {
-  try {
-    final headers = await _authService.getAuthHeaders();
-    final response = await http.get(
-      Uri.parse('$baseUrl/group/$groupId/unread-count'),
-      headers: headers,
-    );
+    try {
+      final headers = await _authService.getAuthHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/group/$groupId/unread-count'),
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['unread_count'] ?? 0;
-    } else {
-      throw Exception('Failed to get unread count: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['unread_count'] ?? 0;
+      } else {
+        throw Exception('Failed to get unread count: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in getGroupUnreadCount: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('Error in getGroupUnreadCount: $e');
-    rethrow;
   }
-}
-Future<void> markGroupMessagesAsRead(int groupId) async {
-  try {
-    final headers = await _authService.getAuthHeaders();
-    final response = await http.post(
-      Uri.parse('$baseUrl/group/$groupId/mark-as-read'),
-      headers: headers,
-    );
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to mark messages as read: ${response.statusCode}');
+  Future<void> markGroupMessagesAsRead(int groupId) async {
+    try {
+      final headers = await _authService.getAuthHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/group/$groupId/mark-as-read'),
+        headers: headers,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to mark messages as read: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      print('Error in markGroupMessagesAsRead: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('Error in markGroupMessagesAsRead: $e');
-    rethrow;
   }
-}
-
 }

@@ -8,7 +8,7 @@ class ApiAuthService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   FlutterSecureStorage get storage => _storage;
 
-  final String baseUrl = 'http://192.168.3.18:8000/api';
+  final String baseUrl = 'http://192.168.1.44:8000/api';
 
   Map<String, String> get _headers => {
     'Accept': 'application/json',
@@ -99,88 +99,90 @@ class ApiAuthService {
   }
 
   Future<User> register(
-  String name,
-  String email,
-  String password,
-  String passwordConfirmation,
-) async {
-  try {
-    final headers = await getAuthHeaders();
-    final csrfToken = await getCsrfToken();
-    if (csrfToken != null) {
-      headers['X-XSRF-TOKEN'] = csrfToken;
-    }
+    String name,
+    String email,
+    String password,
+    String passwordConfirmation,
+  ) async {
+    try {
+      final headers = await getAuthHeaders();
+      final csrfToken = await getCsrfToken();
+      if (csrfToken != null) {
+        headers['X-XSRF-TOKEN'] = csrfToken;
+      }
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/register'),
-      headers: headers,
-      body: jsonEncode({
-        'name': name,
-        'email': email,
-        'password': password,
-        'password_confirmation': passwordConfirmation,
-      }),
-    );
-
-    final data = jsonDecode(response.body);
-
-    if (response.statusCode == 201) {
-      return User(
-        id: data['user_id'],
-        name: name,
-        email: email,
-        avatar: '',
-        bio: '',
-        emailVerified: false,
+      final response = await http.post(
+        Uri.parse('$baseUrl/register'),
+        headers: headers,
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+        }),
       );
-    } else {
-      throw Exception(data['message'] ?? 'Erreur lors de l\'inscription');
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        return User(
+          id: data['user_id'],
+          name: name,
+          email: email,
+          avatar: '',
+          bio: '',
+          emailVerified: false,
+        );
+      } else {
+        throw Exception(data['message'] ?? 'Erreur lors de l\'inscription');
+      }
+    } catch (e) {
+      print('Error registering user: $e');
+      throw Exception('Erreur réseau: ${e.toString()}');
     }
-  } catch (e) {
-    print('Error registering user: $e');
-    throw Exception('Erreur réseau: ${e.toString()}');
   }
-}
 
   Future<String> getToken() async {
     return await _storage.read(key: 'token') ?? '';
   }
-Future<User> login(String email, String password) async {
-  try {
-    final headers = await getAuthHeaders();
-    // Récupérer et utiliser systématiquement le CSRF token
-    final csrfToken = await getCsrfToken();
-    headers['X-XSRF-TOKEN'] = csrfToken ?? '';
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/login'),
-      headers: headers,
-      body: jsonEncode({'email': email, 'password': password}),
-    );
+  Future<User> login(String email, String password) async {
+    try {
+      final headers = await getAuthHeaders();
+      // Récupérer et utiliser systématiquement le CSRF token
+      final csrfToken = await getCsrfToken();
+      headers['X-XSRF-TOKEN'] = csrfToken ?? '';
 
-    final data = jsonDecode(response.body);
+      final response = await http.post(
+        Uri.parse('$baseUrl/login'),
+        headers: headers,
+        body: jsonEncode({'email': email, 'password': password}),
+      );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      if (data.containsKey('User') && data.containsKey('Token')) {
-        final user = User.fromJson(data['User']);
-        
-        // Vérification de l'email AVANT de stocker le token
-        if (!user.emailVerified) {
-          await clearToken();
-          throw Exception('EmailNotVerified');
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (data.containsKey('User') && data.containsKey('Token')) {
+          final user = User.fromJson(data['User']);
+
+          // Vérification de l'email AVANT de stocker le token
+          if (!user.emailVerified) {
+            await clearToken();
+            throw Exception('EmailNotVerified');
+          }
+
+          await _storage.write(key: 'token', value: data['Token']);
+          return user;
         }
-        
-        await _storage.write(key: 'token', value: data['Token']);
-        return user;
+        throw Exception('Invalid response format');
+      } else {
+        throw _handleError(response);
       }
-      throw Exception('Invalid response format');
-    } else {
-      throw _handleError(response);
+    } catch (e) {
+      throw _handleErrorDynamic(e);
     }
-  } catch (e) {
-    throw _handleErrorDynamic(e);
   }
-}
+
   Future<void> logout() async {
     try {
       final response = await http.post(
@@ -220,26 +222,23 @@ Future<User> login(String email, String password) async {
   }
 
   Future<Map<String, dynamic>> verifyCode(int userId, String code) async {
-  final response = await http.post(
-    Uri.parse('$baseUrl/verify-code'),
-    headers: await getAuthHeaders(),
-    body: jsonEncode({
-      'user_id': userId,
-      'code': code,
-    }),
-  );
-  
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    // Stocker le token si présent dans la réponse
-    if (data.containsKey('token')) {
-      await _storage.write(key: 'token', value: data['token']);
+    final response = await http.post(
+      Uri.parse('$baseUrl/verify-code'),
+      headers: await getAuthHeaders(),
+      body: jsonEncode({'user_id': userId, 'code': code}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Stocker le token si présent dans la réponse
+      if (data.containsKey('token')) {
+        await _storage.write(key: 'token', value: data['token']);
+      }
+      return data;
+    } else {
+      throw handleError(response);
     }
-    return data;
-  } else {
-    throw handleError(response);
   }
-}
 
   Future<void> resendCode(int userId) async {
     final response = await http.post(

@@ -6,7 +6,7 @@ import 'api_auth_service.dart';
 
 class ApiEventService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.3.18:8000/api';
+  final String baseUrl = 'http://192.168.1.44:8000/api';
 
   // Headers
   Map<String, String> get headers => {
@@ -163,26 +163,25 @@ class ApiEventService {
     }
   }
 
-
   Future<Event> joinEvent(String eventId, String userId) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/events/$eventId/join'),
-      headers: await _getAuthHeaders(),
-      body: jsonEncode({}),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/events/$eventId/join'),
+        headers: await _getAuthHeaders(),
+        body: jsonEncode({}),
+      );
 
-    if (response.statusCode == 201) {
-      final responseData = jsonDecode(response.body);
-      return Event.fromJson(responseData['event']);
-    } else {
-      throw Exception(_handleError(response));
+      if (response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+        return Event.fromJson(responseData['event']);
+      } else {
+        throw Exception(_handleError(response));
+      }
+    } catch (e) {
+      print('❌ joinEvent error: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('❌ joinEvent error: $e');
-    rethrow;
   }
-}
 
   Future<void> clearToken() async {
     await _authService.clearToken();

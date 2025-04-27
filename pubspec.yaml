@@ -66,6 +66,8 @@ dependencies:
   pusher_channels_flutter: ^2.1.1
   flutter_map: ^5.0.0
   latlong2: ^0.9.0
+  #google_maps_flutter: ^2.12.1
+  geolocator: ^9.0.2
 
 dev_dependencies:
   flutter_test:
@@ -103,6 +105,10 @@ flutter:
     - assets/images/default_avatar.png
     - assets/images/cover_default_image.png
     - assets/images/default_group_avatar.png
+    - assets/images/markers/trout_fish.png
+    - assets/images/markers/perch_fish.png
+    - assets/images/markers/pike_fish.png
+    - assets/images/markers/default_fish.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

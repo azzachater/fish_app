@@ -5,14 +5,15 @@ import '../service/api_auth_service.dart'; // Pour récupérer le token d'auth
 
 class ApiCommentService {
   final ApiAuthService _authService = ApiAuthService();
-  static const String baseUrl = "http://192.168.3.18:8000/api"; // Remplace par ton URL backend
+  static const String baseUrl =
+      "http://192.168.1.44:8000/api"; // Remplace par ton URL backend
 
   // Headers pour les requêtes sans authentification
   Map<String, String> get headers => {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  };
 
   // Obtenir les headers avec authentification
   Future<Map<String, String>> _getAuthHeaders() async {
@@ -25,14 +26,17 @@ class ApiCommentService {
   Future<List<Comment>> fetchComments(String postId) async {
     try {
       final headers = await _getAuthHeaders();
-      final response = await http.get(Uri.parse('$baseUrl/posts/$postId/comments'), headers: headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/posts/$postId/comments'),
+        headers: headers,
+      );
 
       print("🚀 API Response Status: ${response.statusCode}");
       print("📩 API Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
         if (response.body.isEmpty) return [];
-        
+
         final List<dynamic> jsonResponse = jsonDecode(response.body);
         return jsonResponse.map((commentJson) {
           try {
@@ -54,39 +58,40 @@ class ApiCommentService {
 
   // Ajouter un commentaire
   Future<Comment?> addComment(String postId, String content) async {
-  try {
-    final authHeaders = await _getAuthHeaders();
-    final response = await http.post(
-      Uri.parse('$baseUrl/posts/$postId/comments'),
-      headers: authHeaders,
-      body: json.encode({'content': content}),
-    );
+    try {
+      final authHeaders = await _getAuthHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/posts/$postId/comments'),
+        headers: authHeaders,
+        body: json.encode({'content': content}),
+      );
 
-    print("🔴 Response Status: ${response.statusCode}");
-    print("🔴 Response Body: ${response.body}");
+      print("🔴 Response Status: ${response.statusCode}");
+      print("🔴 Response Body: ${response.body}");
 
-    if (response.statusCode == 201) {
-      final Map<String, dynamic> responseData = json.decode(response.body);
+      if (response.statusCode == 201) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
 
-print("📌 Response Data: $responseData");
-print("📌 Comment Key Exists: ${responseData.containsKey('comment')}");
-print("📌 Comment Value: ${responseData['comment']}");
+        print("📌 Response Data: $responseData");
+        print("📌 Comment Key Exists: ${responseData.containsKey('comment')}");
+        print("📌 Comment Value: ${responseData['comment']}");
 
-if (responseData.containsKey('comment') && responseData['comment'] != null) {
-  return Comment.fromJson(responseData['comment'] as Map<String, dynamic>);
-} else {
-  throw Exception("Réponse invalide : ${response.body}");
-}
-
-
-    } else {
-      throw Exception("Échec de l'ajout du commentaire: ${response.body}");
+        if (responseData.containsKey('comment') &&
+            responseData['comment'] != null) {
+          return Comment.fromJson(
+            responseData['comment'] as Map<String, dynamic>,
+          );
+        } else {
+          throw Exception("Réponse invalide : ${response.body}");
+        }
+      } else {
+        throw Exception("Échec de l'ajout du commentaire: ${response.body}");
+      }
+    } catch (e) {
+      print("❌ Erreur ajout commentaire : $e");
+      throw Exception('Erreur lors de l\'ajout du commentaire: $e');
     }
-  } catch (e) {
-    print("❌ Erreur ajout commentaire : $e");
-    throw Exception('Erreur lors de l\'ajout du commentaire: $e');
   }
-}
 
   // Supprimer un commentaire
   Future<bool> deleteComment(String postId, String commentId) async {

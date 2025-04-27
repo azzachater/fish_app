@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/service/api_map_service.dart';
+import 'package:latlong2/latlong.dart';
 
 class MapControllerX extends GetxController {
   late MapController mapController;
@@ -66,13 +67,10 @@ class MapControllerX extends GetxController {
       final spots = await mapService.getAllSpots();
       fishingSpots.clear();
 
-      // Supprimer tous les marqueurs en réinitialisant la carte
-      await mapController.goToLocation(await mapController.myLocation());
-
       for (var spot in spots) {
         final point = GeoPoint(
-          latitude: spot.latitude,
-          longitude: spot.longitude,
+          latitude: spot.position.latitude,
+          longitude: spot.position.longitude,
         );
 
         fishingSpots[point] = {
@@ -85,13 +83,7 @@ class MapControllerX extends GetxController {
 
         await mapController.addMarker(
           point,
-          markerIcon: MarkerIcon(
-            icon: Icon(
-              Icons.location_pin,
-              color: AppTheme.primaryColor,
-              size: 48,
-            ),
-          ),
+          markerIcon: _getFishMarkerIcon(spot.fishSpecies), // Utilisation ici
         );
       }
     } catch (e) {
@@ -118,8 +110,7 @@ class MapControllerX extends GetxController {
 
       final spot = Spot(
         name: spotData['name'] ?? 'Nouveau spot',
-        latitude: point.latitude,
-        longitude: point.longitude,
+        position: LatLng(point.latitude, point.longitude),
         description: spotData['description'] ?? '',
         fishSpecies: spotData['fish_species'] ?? '',
         recommendedTechniques: spotData['recommendedTechniques'] ?? '',
@@ -258,4 +249,33 @@ class MapControllerX extends GetxController {
   void updateMapMarkers(List<Map<String, dynamic>> filteredSpots) {
     // Logique pour mettre à jour les marqueurs de la carte avec les spots filtrés
   }
+  MarkerIcon _getFishMarkerIcon(String fishSpecies) {
+  String assetPath;
+
+  // Convertir en minuscules pour la comparaison
+  final species = fishSpecies.toLowerCase();
+
+  if (species.contains('truite')) {
+    assetPath = 'assets/images/markers/trout_fish.png';
+  } else if (species.contains('perche')) {
+    assetPath = 'assets/images/markers/perch_fish.png';
+  } else if (species.contains('brochet')) {
+    assetPath = 'assets/images/markers/pike_fish.png';
+  } else {
+    assetPath = 'assets/images/markers/default_fish.png';
+  }
+
+  return MarkerIcon(
+    iconWidget: Image.asset(
+      assetPath, 
+      width: 48, 
+      height: 48,
+      errorBuilder: (context, error, stackTrace) => Icon(
+        Icons.location_pin,
+        color: Colors.red,
+        size: 48,
+      ),
+    ),
+  );
+}
 }

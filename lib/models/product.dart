@@ -90,13 +90,16 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) {
     String imageUrl = '';
     if (json['image'] != null) {
-      imageUrl = json['image'].toString().contains('http')
-          ? json['image'].toString()
-          : 'http://192.168.3.18:8000/storage/${json['image']}';
+      imageUrl =
+          json['image'].toString().contains('http')
+              ? json['image'].toString()
+              : 'http://192.168.1.44:8000/storage/${json['image']}';
     }
 
     return Product(
-      id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id:
+          json['id']?.toString() ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       name: json['name']?.toString() ?? 'Produit sans nom',
       description: json['description']?.toString() ?? 'Aucune description',
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0,

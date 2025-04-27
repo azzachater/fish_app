@@ -33,7 +33,7 @@ class PusherService extends GetxService {
       await _pusher.init(
         apiKey: '2798f826b9ce70d037b5',
         cluster: 'eu',
-        authEndpoint: 'http://192.168.3.18:8000/api/broadcasting/auth',
+        authEndpoint: 'http://192.168.1.44:8000/api/broadcasting/auth',
         onAuthorizer: _onAuthorizer,
         onConnectionStateChange: _onConnectionStateChange,
         onError: _onError,
@@ -50,10 +50,10 @@ class PusherService extends GetxService {
           }
         },
       );
-      
+
       // Configurer le handler d'événements après l'initialisation
       _pusher.onEvent = _handlePusherEvent;
-      
+
       print('🟢 Initialisation de Pusher terminée avec succès');
     } catch (e) {
       print('❌ Erreur initialisation Pusher: $e');
@@ -64,18 +64,19 @@ class PusherService extends GetxService {
     }
   }
 
-  Future<Map<String, String>> _onAuthorizer(String channelName, String socketId, dynamic options) async {
+  Future<Map<String, String>> _onAuthorizer(
+    String channelName,
+    String socketId,
+    dynamic options,
+  ) async {
     try {
       final token = await _authService.getToken();
 
       print('🔑 Authentification pour le canal: $channelName');
-      
+
       final response = await GetConnect().post(
-        'http://192.168.3.18:8000/api/broadcasting/auth',
-        {
-          'socket_id': socketId,
-          'channel_name': channelName,
-        },
+        'http://192.168.1.44:8000/api/broadcasting/auth',
+        {'socket_id': socketId, 'channel_name': channelName},
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -85,12 +86,14 @@ class PusherService extends GetxService {
 
       if (response.statusCode == 200) {
         print('📦 Réponse de l\'authorizer: ${response.bodyString}');
-        
+
         // Retourner directement la réponse JSON décodée
         final authResponse = jsonDecode(response.bodyString!);
         return authResponse.cast<String, String>();
       } else {
-        throw Exception('Erreur authorizer: ${response.statusCode} - ${response.bodyString}');
+        throw Exception(
+          'Erreur authorizer: ${response.statusCode} - ${response.bodyString}',
+        );
       }
     } catch (e) {
       print('❌ Erreur authorizer: $e');
@@ -139,7 +142,6 @@ class PusherService extends GetxService {
 
       final privateChannel = 'private-notifications.${currentUser.id}';
       await subscribeToChannel(privateChannel);
-
     } catch (e) {
       print('❌ Erreur connexion Pusher: $e');
       _isConnected = false;
@@ -158,7 +160,7 @@ class PusherService extends GetxService {
       await _pusher.subscribe(channelName: channelName);
       _currentChannel = channelName;
       _isConnected = true;
-      
+
       print('✅ Abonnement réussi à $channelName');
     } catch (e) {
       print('❌ Erreur lors de l\'abonnement à $channelName: $e');
@@ -182,50 +184,48 @@ class PusherService extends GetxService {
   }
 
   void _handleNewNotification(String eventData) {
-  try {
-    final data = jsonDecode(eventData);
-    final notifController = Get.find<NotificationController>();
+    try {
+      final data = jsonDecode(eventData);
+      final notifController = Get.find<NotificationController>();
 
-    // Conversion sécurisée du receiver_id
-    final receiverId = int.tryParse(data['receiver_id'].toString()) ?? 0;
+      // Conversion sécurisée du receiver_id
+      final receiverId = int.tryParse(data['receiver_id'].toString()) ?? 0;
 
-    final notification = NotificationModel(
-      id: data['id'] ?? 0,
-      senderId: data['sender_id'] ?? 0,
-      receiverId: receiverId, // Utilisez la valeur convertie
-      message: data['message'] ?? 'Nouveau message',
-      type: data['type'] ?? 'message',
-      conversationId: data['conversation_id'],
-      groupConversationId: data['group_conversation_id'],
-      isRead: data['is_read'] == 1,
-      createdAt: data['created_at'] != null
-          ? DateTime.parse(data['created_at'])
-          : DateTime.now(),
-    );
+      final notification = NotificationModel(
+        id: data['id'] ?? 0,
+        senderId: data['sender_id'] ?? 0,
+        receiverId: receiverId, // Utilisez la valeur convertie
+        message: data['message'] ?? 'Nouveau message',
+        type: data['type'] ?? 'message',
+        conversationId: data['conversation_id'],
+        groupConversationId: data['group_conversation_id'],
+        isRead: data['is_read'] == 1,
+        createdAt:
+            data['created_at'] != null
+                ? DateTime.parse(data['created_at'])
+                : DateTime.now(),
+      );
 
-    //notifController.notifications.insert(0, notification);
-    notifController.addNotification(notification);
+      //notifController.notifications.insert(0, notification);
+      notifController.addNotification(notification);
 
-
-    Future.delayed(Duration(milliseconds: 500), () {
-  Get.rawSnackbar(
-    title: 'Nouvelle notification',
-    message: notification.message,
-    snackPosition: SnackPosition.TOP,
-    duration: Duration(seconds: 3),
-    backgroundColor: Colors.green[400] ?? Colors.green,
-    borderRadius: 10,
-    margin: EdgeInsets.all(10),
-  );
-});
-
-
-  } catch (e) {
-    print('❌ Erreur traitement notification: $e');
-    print('Données reçues: ${eventData}');
-    print('Stack trace: ${StackTrace.current}');
+      Future.delayed(Duration(milliseconds: 500), () {
+        Get.rawSnackbar(
+          title: 'Nouvelle notification',
+          message: notification.message,
+          snackPosition: SnackPosition.TOP,
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.green[400] ?? Colors.green,
+          borderRadius: 10,
+          margin: EdgeInsets.all(10),
+        );
+      });
+    } catch (e) {
+      print('❌ Erreur traitement notification: $e');
+      print('Données reçues: ${eventData}');
+      print('Stack trace: ${StackTrace.current}');
+    }
   }
-}
 
   Future<void> disconnect() async {
     try {
