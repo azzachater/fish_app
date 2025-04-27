@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 
 class GradientBackground extends StatelessWidget {
@@ -9,7 +10,7 @@ class GradientBackground extends StatelessWidget {
       height: 180,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.lightBlueAccent, Colors.blue],
+          colors: [Colors.lightBlueAccent, AppTheme.primaryColor],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

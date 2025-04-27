@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:fish_app/screens/marketplace/checkout_screen.dart';
 import 'package:flutter/material.dart';
@@ -13,16 +14,16 @@ class CartPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.primaryColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppTheme.textColor),
           onPressed: () => Get.back(),
         ),
         title: const Text(
           "My Cart",
           style: TextStyle(
-            color: Colors.black,
+            color: AppTheme.textColor,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -117,7 +118,7 @@ class CartPage extends StatelessWidget {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: AppTheme.primaryColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -204,7 +205,7 @@ class CartPage extends StatelessWidget {
                   "\$${product.price.toStringAsFixed(2)}",
                   style: const TextStyle(
                     fontSize: 16,
-                    color: Colors.blue,
+                    color: AppTheme.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -274,7 +275,7 @@ class CartPage extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? 18 : 16,
             fontWeight: FontWeight.bold,
-            color: isTotal ? Colors.blue : Colors.black,
+            color: isTotal ? AppTheme.primaryColor : Colors.black,
           ),
         ),
       ],

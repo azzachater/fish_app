@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 
 class FloatingAddButton extends StatelessWidget {
@@ -8,7 +9,7 @@ class FloatingAddButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FloatingActionButton(
       onPressed: onPressed,
-      backgroundColor: Colors.blue,
+      backgroundColor: AppTheme.primaryColor,
       child: const Icon(Icons.add, color: Colors.white),
     );
   }

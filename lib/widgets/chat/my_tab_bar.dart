@@ -11,27 +11,27 @@ class MyTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 50, // Hauteur légèrement augmentée pour plus de confort visuel
+      height: 50, 
       decoration: BoxDecoration(
         color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(25.0), // Coins plus arrondis
+        borderRadius: BorderRadius.circular(25.0), 
       ),
       child: TabBar(
         controller: tabController,
-        indicatorSize: TabBarIndicatorSize.tab, // L'indicateur prend toute la largeur de l'onglet
+        indicatorSize: TabBarIndicatorSize.tab, 
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(25.0),
-          color: Colors.blue.shade100,
+          color: const Color.fromARGB(255, 170, 196, 247),
         ),
-        labelColor: Colors.blue,
+        labelColor: const Color.fromARGB(255, 61, 100, 215),
         unselectedLabelColor: Colors.black,
         labelStyle: const TextStyle(
-          fontSize: 18, // Taille augmentée pour une meilleure lisibilité
-          fontWeight: FontWeight.bold, // Texte plus épais pour plus de visibilité
+          fontSize: 18, 
+          fontWeight: FontWeight.bold,
         ),
         unselectedLabelStyle: const TextStyle(
-          fontSize: 16, // Taille un peu plus petite pour les onglets non sélectionnés
-          fontWeight: FontWeight.w500, // Épaisseur moyenne pour les inactifs
+          fontSize: 16, 
+          fontWeight: FontWeight.w500, 
         ),
         tabs: const [
           Tab(text: 'Chats'),

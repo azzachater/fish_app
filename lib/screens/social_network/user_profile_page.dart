@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart'; 
+import 'package:fish_app/constants/theme.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../models/user_model.dart';
 import '../../models/post_model.dart';
@@ -13,12 +14,14 @@ class UserProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final PostController postController = Get.put(PostController()); // Instanciation du contrôleur PostController
+    final PostController postController = Get.put(
+      PostController(),
+    ); // Instanciation du contrôleur PostController
 
     return Scaffold(
       appBar: AppBar(
         title: Text(user.name),
-        backgroundColor: Colors.blue,
+        backgroundColor: AppTheme.primaryColor,
         elevation: 3,
       ),
       body: SingleChildScrollView(
@@ -30,9 +33,12 @@ class UserProfilePage extends StatelessWidget {
             Obx(() {
               // Récupérer et filtrer les posts en fonction de l'utilisateur de manière réactive
               List<Post> userPosts = postController.getUserPosts(user.id);
-              userPosts.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Tri décroissant
+              userPosts.sort(
+                (a, b) => b.createdAt.compareTo(a.createdAt),
+              ); // Tri décroissant
               return Column(
-                children: userPosts.map((post) => PostWidget(post: post)).toList(),
+                children:
+                    userPosts.map((post) => PostWidget(post: post)).toList(),
               );
             }),
           ],

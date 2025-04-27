@@ -24,7 +24,7 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppTheme.primaryColor, // Couleur bleue unifiée
       elevation: 0,
       leading: IconButton(
         onPressed: () async {
@@ -47,18 +47,6 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ],
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppTheme.primaryColor,
-              AppTheme.lightPrimary,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-      ),
     );
   }
 

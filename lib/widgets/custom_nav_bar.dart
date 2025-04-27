@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
@@ -25,9 +26,9 @@ class CustomNavBar extends StatelessWidget {
 
               return GNav(
                 backgroundColor: Colors.white,
-                color: Colors.blue,
-                activeColor: Colors.blue,
-                tabBackgroundColor: const Color.fromARGB(255, 142, 200, 248),
+                color: AppTheme.primaryColor,
+                activeColor: AppTheme.primaryColor,
+                tabBackgroundColor: AppTheme.accentColor,
                 gap: isSmallScreen ? 4 : 8,
                 selectedIndex: currentIndex,
                 onTabChange: onTabChange,

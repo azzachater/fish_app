@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart'; // <-- ajoute cette ligne si ce n’est pas déjà fait
 import 'package:fish_app/controllers/user_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,31 +18,33 @@ class ProfilePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white), // <-- couleur de l’icône
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Profile'),
+        title: const Text('Profile', style: TextStyle(color: Colors.white)), // <-- titre en blanc
+        iconTheme: const IconThemeData(color: Colors.white), // <-- couleur des autres icônes
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            ProfileHeaderWidget(),
+            ProfileHeaderWidget(), // <-- penser à modifier EditProfile ici si nécessaire
             CreatePostWidget(),
             Obx(() {
               if (userController.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
               }
-              
+
               if (userController.error.value.isNotEmpty) {
                 return Center(child: Text(userController.error.value));
               }
-              
+
               final currentUser = userController.currentUser.value;
               if (currentUser == null) {
                 return const Center(child: Text('No user data'));
               }
-              
+
               List<Post> userPosts = postController.getCurrentUserPosts();
               List<Post> sortedUserPosts = List.from(userPosts)
                 ..sort((a, b) => b.createdAt.compareTo(a.createdAt));

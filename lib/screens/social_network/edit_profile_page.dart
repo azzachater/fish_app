@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/custom_button.dart';
@@ -36,7 +37,7 @@ class EditProfilePage extends StatelessWidget {
     });
 
     return Scaffold(
-      backgroundColor: Color(0xff044ab1),
+      backgroundColor: AppTheme.primaryColor,
       body: Stack(
         children: [
           // Scrollable white zone
@@ -69,7 +70,8 @@ class EditProfilePage extends StatelessWidget {
                         'Edit Profile',
                         style: TextStyle(
                           fontSize: 22,
-                          fontWeight: FontWeight.bold),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 20),
                       CustomTextField(
@@ -152,7 +154,11 @@ class EditProfilePage extends StatelessWidget {
                         child: const CircleAvatar(
                           radius: 15,
                           backgroundColor: Colors.white,
-                          child: Icon(Icons.edit, color: Colors.black, size: 15),
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.black,
+                            size: 15,
+                          ),
                         ),
                       ),
                     ),

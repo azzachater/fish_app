@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/add_cart_controller.dart';
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class AddToCartButton extends StatelessWidget {
         },
         icon: Icon(
           Icons.shopping_cart,
-          color: isAdded ? Colors.blue : Colors.grey,
+          color: isAdded ? AppTheme.primaryColor : Colors.grey,
         ),
       );
     });

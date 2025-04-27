@@ -53,16 +53,19 @@ class _UpdatePostPageState extends State<UpdatePostPage> {
       await postController.updatePost(updatedPost);
       Get.back(result: 'success');
     } catch (e) {
-    Get.back(result: 'error');
-  }
+      Get.back(result: 'error');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        title: const Text("Update Post", style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: AppTheme.primaryColorAccent,
+        title: const Text(
+          "Update Post",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.save, color: Colors.white),
@@ -77,7 +80,11 @@ class _UpdatePostPageState extends State<UpdatePostPage> {
           children: [
             Text(
               "Edit Your Post",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColorAccent,
+              ),
             ),
             const SizedBox(height: 20),
             TextField(
@@ -89,8 +96,11 @@ class _UpdatePostPageState extends State<UpdatePostPage> {
                 fillColor: Colors.grey[200],
                 labelText: "Edit Post",
                 border: const OutlineInputBorder(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                labelStyle: const TextStyle(color: Colors.blueAccent),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                labelStyle: const TextStyle(color: AppTheme.primaryColorAccent),
               ),
             ),
             const SizedBox(height: 20),
@@ -108,32 +118,43 @@ class _UpdatePostPageState extends State<UpdatePostPage> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                  if (selectedImage.value == null && imageUrl != null && imageUrl!.isNotEmpty)
+                  if (selectedImage.value == null &&
+                      imageUrl != null &&
+                      imageUrl!.isNotEmpty)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: imageUrl!.startsWith('assets/')
-                          ? Image.asset(
-                              imageUrl!,
-                              height: 200,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            )
-                          : Image.file(
-                              File(imageUrl!),
-                              height: 200,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
+                      child:
+                          imageUrl!.startsWith('assets/')
+                              ? Image.asset(
+                                imageUrl!,
+                                height: 200,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              )
+                              : Image.file(
+                                File(imageUrl!),
+                                height: 200,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
                     ),
                   const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: pickImage,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 24,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
                     ),
-                    child: const Text("Add Image", style: TextStyle(fontSize: 16)),
+                    child: const Text(
+                      "Add Image",
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
                 ],
               );

@@ -1,3 +1,4 @@
+import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/models/event.dart';
 import 'package:fish_app/screens/event/create_event_page.dart';
@@ -5,6 +6,7 @@ import 'package:fish_app/controller/event_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class EventPage extends StatelessWidget {
   final EventController eventController = Get.find();
@@ -15,14 +17,24 @@ class EventPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Événements de Pêche',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.2,
+          style: GoogleFonts.poppins(
+            textStyle: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 1.2,
+            ),
           ),
         ),
-        backgroundColor: Color(0xFF4A8BE5),
-        elevation: 0,
+        backgroundColor: AppTheme.primaryColor,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+          ), // <-- couleur de l’icône
+          onPressed: () => Navigator.pop(context),
+        ),
+        elevation: 3,
         centerTitle: true,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
@@ -30,11 +42,20 @@ class EventPage extends StatelessWidget {
       ),
       body: Obx(() {
         if (eventController.isLoading.value) {
-          return Center(child: CircularProgressIndicator());
+          return Center(
+            child: CircularProgressIndicator(color: AppTheme.primaryColor),
+          );
         }
 
         if (eventController.events.isEmpty) {
-          return Center(child: Text('Aucun événement disponible'));
+          return Center(
+            child: Text(
+              'Aucun événement disponible',
+              style: GoogleFonts.poppins(
+                textStyle: TextStyle(color: AppTheme.textDark),
+              ),
+            ),
+          );
         }
 
         return ListView.builder(
@@ -55,7 +76,7 @@ class EventPage extends StatelessWidget {
                   ),
                 ],
                 border: Border(
-                  left: BorderSide(color: Colors.blue.shade300, width: 5),
+                  left: BorderSide(color: AppTheme.primaryColor, width: 5),
                 ),
               ),
               child: Padding(
@@ -65,10 +86,12 @@ class EventPage extends StatelessWidget {
                   children: [
                     Text(
                       event.title,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF4A8BE5),
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primaryColor,
+                        ),
                       ),
                     ),
                     SizedBox(height: 6),
@@ -77,26 +100,23 @@ class EventPage extends StatelessWidget {
                         Icon(
                           Icons.calendar_today,
                           size: 16,
-                          color: Colors.grey[700],
+                          color: AppTheme.textDark,
                         ),
                         SizedBox(width: 4),
                         Flexible(
-                          // Remplace Expanded par Flexible pour meilleure compatibilité
                           child: Text(
-                            DateFormat(
-                              'yyyy-MM-dd',
-                            ).format(event.date), // Format simplifié
-                            style: TextStyle(color: Colors.grey[700]),
+                            DateFormat('yyyy-MM-dd').format(event.date),
+                            style: TextStyle(color: AppTheme.textDark),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         SizedBox(width: 8),
-                        Icon(Icons.place, size: 16, color: Colors.grey[700]),
+                        Icon(Icons.place, size: 16, color: AppTheme.textDark),
                         SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             event.location,
-                            style: TextStyle(color: Colors.grey[700]),
+                            style: TextStyle(color: AppTheme.textDark),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -105,10 +125,11 @@ class EventPage extends StatelessWidget {
                     SizedBox(height: 10),
                     Text(
                       event.description,
-                      style: TextStyle(color: Colors.grey[800]),
+                      style: GoogleFonts.poppins(
+                        textStyle: TextStyle(color: Colors.grey[800]),
+                      ),
                     ),
                     SizedBox(height: 10),
-                    // Section Participants améliorée
                     _buildParticipantsSection(event),
                     SizedBox(height: 12),
                     Align(
@@ -133,7 +154,7 @@ class EventPage extends StatelessWidget {
                             backgroundColor:
                                 isParticipating
                                     ? Colors.grey
-                                    : Color(0xFF4A8BE5),
+                                    : AppTheme.primaryColor,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -153,14 +174,26 @@ class EventPage extends StatelessWidget {
           },
         );
       }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.to(() => CreateEventPage()),
-        backgroundColor: Color(0xFF4A8BE5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 6,
-        child: Icon(Icons.add, size: 28),
+      floatingActionButton: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 1.0, end: 1.1),
+        duration: Duration(seconds: 1),
+        curve: Curves.easeInOut,
+        builder: (context, scale, child) {
+          return Transform.scale(
+            scale: scale,
+            child: FloatingActionButton(
+              onPressed: () => Get.to(() => CreateEventPage()),
+              backgroundColor: AppTheme.primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 6,
+              child: Icon(Icons.add, size: 28),
+            ),
+          );
+        },
       ),
-      backgroundColor: Color(0xFFF5F7FB),
+      backgroundColor: AppTheme.lightPrimary,
     );
   }
 
@@ -171,9 +204,11 @@ class EventPage extends StatelessWidget {
         if (event.participants.isNotEmpty) ...[
           Text(
             'Participants:',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[600],
+            style: GoogleFonts.poppins(
+              textStyle: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+              ),
             ),
           ),
           SizedBox(height: 8),
@@ -199,9 +234,11 @@ class EventPage extends StatelessWidget {
         ],
         Text(
           'Total participants: ${event.participants.length}',
-          style: TextStyle(
-            color: Colors.blue[600],
-            fontWeight: FontWeight.bold,
+          style: GoogleFonts.poppins(
+            textStyle: TextStyle(
+              color: AppTheme.primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
@@ -212,13 +249,11 @@ class EventPage extends StatelessWidget {
     if (avatarUrl == null || avatarUrl.isEmpty) {
       return const AssetImage('assets/images/default_avatar.png');
     }
-
     if (avatarUrl.startsWith('http')) {
       return NetworkImage(avatarUrl);
     } else if (avatarUrl.startsWith('assets/')) {
       return AssetImage(avatarUrl);
     } else {
-      // Pour les chemins relatifs sans le préfixe 'assets/'
       return AssetImage('assets/$avatarUrl');
     }
   }

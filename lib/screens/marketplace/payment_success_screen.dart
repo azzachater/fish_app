@@ -1,4 +1,6 @@
-import 'package:fish_app/screens/Authentification/home_page.dart';
+import 'package:fish_app/constants/theme.dart';
+import 'package:fish_app/controllers/user_controller.dart';
+import 'package:fish_app/screens/marketplace/market_place.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/controller/cart_controller.dart';
@@ -11,6 +13,8 @@ class PaymentSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final CartController cartController = Get.find<CartController>();
+    final UserController userController = Get.find<UserController>();
+    final user = userController.currentUser.value;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -19,7 +23,7 @@ class PaymentSuccessScreen extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
-          "Checkout",
+          "Payment Success",
           style: TextStyle(
             color: Colors.black,
             fontSize: 24,
@@ -33,29 +37,58 @@ class PaymentSuccessScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Contact Information',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+            if (user != null) ...[
+              const Text(
+                'Order Details',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            const SizedBox(height: 15),
-            const Text(
-              'emmanueloyiboke@gmail.com',
-              style: TextStyle(fontSize: 16),
-            ),
-            const Text(
-              'Email',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 10),
-            const Text('+234-811-732-5298', style: TextStyle(fontSize: 16)),
-            const Text(
-              'Phone',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
+              const SizedBox(height: 15),
+              Text(
+                user.email,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const Text(
+                'Email',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+              const SizedBox(height: 10),
+              Obx(() => Text(
+                    cartController.checkoutPhone.value.isNotEmpty
+                        ? cartController.checkoutPhone.value
+                        : 'No phone provided',
+                    style: const TextStyle(fontSize: 16),
+                  )),
+              const Text(
+                'Phone',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+              const SizedBox(height: 10),
+              Obx(() => Text(
+                    cartController.checkoutAddress.value.isNotEmpty
+                        ? cartController.checkoutAddress.value
+                        : 'No address provided',
+                    style: const TextStyle(fontSize: 16),
+                  )),
+              const Text(
+                'Shipping Address',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+              const SizedBox(height: 10),
+              Obx(() => Text(
+                    cartController.paymentMethod.value.isNotEmpty
+                        ? cartController.paymentMethod.value
+                        : 'No payment method',
+                    style: const TextStyle(fontSize: 16),
+                  )),
+              const Text(
+                'Payment Method',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
             const SizedBox(height: 40),
             Center(
               child: Column(
@@ -66,6 +99,14 @@ class PaymentSuccessScreen extends StatelessWidget {
                     'Your Payment Is Successful',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Order Total: \$${totalCost.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
@@ -73,10 +114,15 @@ class PaymentSuccessScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         cartController.clearCart();
-                        Get.offAll(() => HomePage());
+                        // Reset checkout info if needed
+                        cartController.checkoutPhone.value = '';
+                        cartController.checkoutAddress.value = '';
+                        cartController.paymentMethod.value = '';
+                        
+                        Get.offAll(() => Marketplace());
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: AppTheme.primaryColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -101,7 +147,7 @@ class PaymentSuccessScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  "Total Cost",
+                  "Total Paid",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -109,7 +155,7 @@ class PaymentSuccessScreen extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue,
+                    color: AppTheme.primaryColor,
                   ),
                 ),
               ],
