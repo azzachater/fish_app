@@ -238,7 +238,7 @@ class ProductCard extends StatelessWidget {
     } else if (imagePath.startsWith('assets/')) {
       return AssetImage(imagePath);
     } else {
-      return NetworkImage('http://192.168.1.44:8000/storage/$imagePath');
+      return NetworkImage('http://192.168.1.52:8000/storage/$imagePath');
     }
   }
 }

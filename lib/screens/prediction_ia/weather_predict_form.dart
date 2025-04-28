@@ -1,4 +1,6 @@
 import 'package:fish_app/constants/theme.dart';
+import 'package:fish_app/screens/prediction_ia/LiveFishingScreen.dart';
+import 'package:fish_app/screens/prediction_ia/location_picker_page.dart';
 import 'package:fish_app/service/api_weather_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -31,6 +33,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
   String? temperature;
   String? humidity;
   double selectedRadius = 100; // pour le choix du rayon max (en km)
+  String selectedLocationName = "Chargement..."; // nouvelle variable
 
   @override
   void initState() {
@@ -41,37 +44,26 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
   //nouveau travaille
 
   void _chooseLocationManually() async {
-    // Affiche une carte ou liste prédéfinie
-    // Exemple simplifié :
-
-    final LatLng? selected = await showDialog<LatLng>(
-      context: context,
-      builder:
-          (context) => SimpleDialog(
-            title: const Text('Choisir une zone'),
-            children: [
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, LatLng(56.8, 11.1)),
-                child: const Text('Zone 1 - Nord'),
-              ),
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(context, LatLng(56.7, 11.2)),
-                child: const Text('Zone 2 - Sud'),
-              ),
-            ],
-          ),
+    final LatLng? selected = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LocationPickerPage()),
     );
 
     if (selected != null) {
       setState(() {
         currentLocation = selected;
+        // On réinitialise la localisation affichée pour forcer à recharger après météo
+        selectedLocationName = 'Chargement...';
       });
+
+      await _loadWeatherDays(); // Charge uniquement la météo de la nouvelle position
+      // ❌ PAS de fetchRecommendedSpots ici !
     }
   }
 
   Future<void> fetchRecommendedSpots() async {
     try {
-      final url = Uri.parse('http://192.168.1.44:5000/recommend');
+      final url = Uri.parse('http://192.168.1.52:5000/recommend');
       final response = await http
           .post(
             url,
@@ -127,7 +119,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
     });
 
     try {
-      final url = Uri.parse('http://192.168.1.44:5000/weather/predict');
+      final url = Uri.parse('http://192.168.1.52:5000/weather/predict');
       final response = await http
           .post(
             url,
@@ -179,7 +171,11 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
     });
 
     try {
-      final data = await widget._weatherService.fetchWeatherDataFor7Days();
+      final data = await widget._weatherService.fetchWeatherDataFor7Days(
+        lat: currentLocation?.latitude,
+        lon: currentLocation?.longitude,
+      );
+
       final today = DateTime.now();
       final todayCategory = (today.weekday >= 6) ? 'Weekend' : 'Weekday';
       final todayFormatted =
@@ -189,6 +185,8 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
         daysData = data;
         selectedDayCategory = todayCategory;
         selectedFullDate = todayFormatted;
+        selectedLocationName =
+            data.isNotEmpty ? data[0]['Location'] : 'Inconnue';
       });
 
       _loadWeatherDataForSelectedDate(todayFormatted);
@@ -359,9 +357,10 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
                 )
                 : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+
                   children: [
                     Text(
-                      'Localisation: ${daysData.isNotEmpty ? daysData[0]['Location'] : 'Chargement...'}',
+                      'Localisation: $selectedLocationName',
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -490,6 +489,32 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LiveFishingScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.sailing_rounded),
+                        label: const Text('🎣 Mode Pêche Live'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 24,
+                          ),
+                          textStyle: const TextStyle(fontSize: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -567,6 +592,23 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
                                     ),
                                     MarkerLayer(
                                       markers: [
+                                        // 🛑 Marqueur pour TA LOCALISATION
+                                        Marker(
+                                          width: 80.0,
+                                          height: 80.0,
+                                          point: currentLocation,
+                                          builder:
+                                              (ctx) => const Icon(
+                                                Icons
+                                                    .my_location, // 🧠 Icône différente
+                                                color:
+                                                    Colors
+                                                        .red, // 🛑 Couleur rouge pour toi
+                                                size: 40,
+                                              ),
+                                        ),
+
+                                        // 🎯 Marqueurs pour les SPOTS RECOMMANDÉS
                                         ...fishingSpots.map((spot) {
                                           return Marker(
                                             width: 80.0,
@@ -577,12 +619,54 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
                                             ),
                                             builder:
                                                 (ctx) => const Icon(
-                                                  Icons.location_on,
-                                                  color: Colors.blue,
+                                                  Icons
+                                                      .location_on, // 🎣 Icône classique
+                                                  color:
+                                                      Colors
+                                                          .blue, // 🔵 Couleur bleu pour spot
                                                   size: 40,
                                                 ),
                                           );
                                         }).toList(),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      children: const [
+                                        Icon(
+                                          Icons.my_location,
+                                          color: Colors.red,
+                                          size: 20,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Vous êtes ici',
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(width: 16),
+                                    Row(
+                                      children: const [
+                                        Icon(
+                                          Icons.location_on,
+                                          color: Colors.blue,
+                                          size: 20,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Spot recommandé',
+                                          style: TextStyle(fontSize: 14),
+                                        ),
                                       ],
                                     ),
                                   ],

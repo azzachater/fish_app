@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ApiPictureService {
   final String baseUrl =
-      'http://192.168.1.44:5000'; // Remplace <IP> par l'adresse IP locale de ton serveur
+      'http://192.168.1.52:5000'; // Remplace <IP> par l'adresse IP locale de ton serveur
 
   Future<String?> predictFishSpecies(File imageFile) async {
     try {

@@ -33,7 +33,7 @@ class PusherService extends GetxService {
       await _pusher.init(
         apiKey: '2798f826b9ce70d037b5',
         cluster: 'eu',
-        authEndpoint: 'http://192.168.1.44:8000/api/broadcasting/auth',
+        authEndpoint: 'http://192.168.1.52:8000/api/broadcasting/auth',
         onAuthorizer: _onAuthorizer,
         onConnectionStateChange: _onConnectionStateChange,
         onError: _onError,
@@ -75,7 +75,7 @@ class PusherService extends GetxService {
       print('🔑 Authentification pour le canal: $channelName');
 
       final response = await GetConnect().post(
-        'http://192.168.1.44:8000/api/broadcasting/auth',
+        'http://192.168.1.52:8000/api/broadcasting/auth',
         {'socket_id': socketId, 'channel_name': channelName},
         headers: {
           'Authorization': 'Bearer $token',

@@ -4,14 +4,14 @@ import 'package:fish_app/service/api_auth_service.dart';
 
 class ApiChatService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.44:8000/api';
+  final String baseUrl = 'http://192.168.1.52:8000/api';
 
   Future<List<dynamic>> getMyConversations() async {
     try {
       final token = await _authService.getToken();
 
       final response = await http.get(
-        Uri.parse("http://192.168.1.44:8000/api/conversations"),
+        Uri.parse("http://192.168.1.52:8000/api/conversations"),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

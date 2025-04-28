@@ -93,7 +93,7 @@ class Product {
       imageUrl =
           json['image'].toString().contains('http')
               ? json['image'].toString()
-              : 'http://192.168.1.44:8000/storage/${json['image']}';
+              : 'http://192.168.1.52:8000/storage/${json['image']}';
     }
 
     return Product(
