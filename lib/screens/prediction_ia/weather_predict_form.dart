@@ -16,7 +16,8 @@ class WeatherPredictForm extends StatefulWidget {
   State<WeatherPredictForm> createState() => _WeatherPredictFormState();
 }
 
-class _WeatherPredictFormState extends State<WeatherPredictForm> {
+class _WeatherPredictFormState extends State<WeatherPredictForm>
+    with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> daysData = [];
   String selectedDayCategory = 'Weekday';
   String? selectedFullDate;
@@ -34,11 +35,23 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
   String? humidity;
   double selectedRadius = 100; // pour le choix du rayon max (en km)
   String selectedLocationName = "Chargement..."; // nouvelle variable
+  List<LatLng> routePoints = []; //pour stocker le trajet
+  late AnimationController _animationController;
+  late Animation<double> _opacityAnimation;
 
   @override
   void initState() {
     super.initState();
     _loadWeatherDays();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _opacityAnimation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(_animationController);
   }
 
   //nouveau travaille
@@ -149,6 +162,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
 
         // ➡️ Peu importe "goodTime" => on essaye quand même de chercher des spots !
         await fetchRecommendedSpots();
+        await _fetchAndDisplayRoute();
       } else {
         throw Exception('Erreur serveur: ${response.statusCode}');
       }
@@ -335,6 +349,15 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
 
   @override
   Widget build(BuildContext context) {
+    List<LatLng> routePoints = [];
+
+    if (fishingSpots.isNotEmpty) {
+      final firstSpot = fishingSpots.first;
+      routePoints = [
+        currentLocation,
+        LatLng(firstSpot['latitude'], firstSpot['longitude']),
+      ];
+    }
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -578,6 +601,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
                                   ),
                                 ),
                               ),
+
                               SizedBox(
                                 height: 250,
                                 child: FlutterMap(
@@ -630,6 +654,24 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
                                         }).toList(),
                                       ],
                                     ),
+                                    if (routePoints.isNotEmpty)
+                                      AnimatedBuilder(
+                                        animation: _animationController,
+                                        builder: (context, child) {
+                                          return PolylineLayer(
+                                            polylines: [
+                                              Polyline(
+                                                points: routePoints,
+                                                strokeWidth: 5.0,
+                                                color: Colors.blueAccent
+                                                    .withOpacity(
+                                                      _opacityAnimation.value,
+                                                    ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
                                   ],
                                 ),
                               ),
@@ -727,5 +769,45 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
       "December",
     ];
     return "${months[date.month - 1]} ${date.day}";
+  }
+
+  Future<List<LatLng>> fetchRoute(LatLng start, LatLng end) async {
+    const apiKey =
+        '5b3ce3597851110001cf6248f0080afa69864f5d99d3eb1bbfcb9ced'; // Mets ta clé ici !
+    final url = Uri.parse(
+      'https://api.openrouteservice.org/v2/directions/foot-walking?api_key=$apiKey&start=${start.longitude},${start.latitude}&end=${end.longitude},${end.latitude}',
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final geometry = data['features'][0]['geometry']['coordinates'];
+
+      return geometry.map<LatLng>((point) {
+        return LatLng(point[1], point[0]);
+      }).toList();
+    } else {
+      throw Exception('Erreur itinéraire: ${response.statusCode}');
+    }
+  }
+
+  //pour chargr la route
+  Future<void> _fetchAndDisplayRoute() async {
+    if (currentLocation != null && fishingSpots.isNotEmpty) {
+      final spot = LatLng(
+        fishingSpots[0]['latitude'],
+        fishingSpots[0]['longitude'],
+      );
+
+      try {
+        final points = await fetchRoute(currentLocation!, spot);
+        setState(() {
+          routePoints = points;
+        });
+      } catch (e) {
+        print('Erreur chargement route: $e');
+      }
+    }
   }
 }

@@ -23,6 +23,9 @@ class _LiveFishingScreenState extends State<LiveFishingScreen> {
   Map<String, dynamic>? weatherData;
   Map<String, dynamic>? recommendation;
   String? errorMessage;
+  List<LatLng> routePoints = [];
+  late AnimationController _animationController;
+  late Animation<double> _opacityAnimation;
 
   @override
   void dispose() {
@@ -119,6 +122,7 @@ class _LiveFishingScreenState extends State<LiveFishingScreen> {
           weatherData = data['weather'];
           recommendation = data['recommendation'];
         });
+        await _fetchAndDisplayRoute();
       } else {
         throw Exception('Erreur serveur: ${response.statusCode}');
       }
@@ -137,62 +141,71 @@ class _LiveFishingScreenState extends State<LiveFishingScreen> {
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : errorMessage != null
-              ? Center(child: Text(errorMessage!, style: const TextStyle(color: Colors.red)))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (!isFishing)
-                        Center(
-                          child: ElevatedButton.icon(
-                            onPressed: _startFishingSession,
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('Démarrer session Live'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[300],
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                            ),
-                          ),
-                        ),
-                      if (isFishing) ...[
-                        if (weatherData != null) _buildWeatherCard(),
-                        const SizedBox(height: 16),
-                        if (recommendation != null) _buildRecommendationCard(),
-                        const SizedBox(height: 16),
-                        _buildLiveMap(),
-                        const SizedBox(height: 16),
-                        Center(
-                          child: ElevatedButton.icon(
-                            onPressed: _fetchLiveStatus,
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Actualiser'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Center(
-                          child: ElevatedButton.icon(
-                            onPressed: _stopFishingSession,
-                            icon: const Icon(Icons.stop),
-                            label: const Text('Arrêter session Live'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : errorMessage != null
+              ? Center(
+                child: Text(
+                  errorMessage!,
+                  style: const TextStyle(color: Colors.red),
                 ),
+              )
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!isFishing)
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: _startFishingSession,
+                          icon: const Icon(Icons.play_arrow),
+                          label: const Text('Démarrer session Live'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[300],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (isFishing) ...[
+                      if (weatherData != null) _buildWeatherCard(),
+                      const SizedBox(height: 16),
+                      if (recommendation != null) _buildRecommendationCard(),
+                      const SizedBox(height: 16),
+                      _buildLiveMap(),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: _fetchLiveStatus,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Actualiser'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: ElevatedButton.icon(
+                          onPressed: _stopFishingSession,
+                          icon: const Icon(Icons.stop),
+                          label: const Text('Arrêter session Live'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
     );
   }
 
@@ -205,14 +218,26 @@ class _LiveFishingScreenState extends State<LiveFishingScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            const Text('Conditions Actuelles', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text(
+              'Conditions Actuelles',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildWeatherTile(Icons.thermostat, '${weatherData?['temp'] ?? '--'} °C'),
-                _buildWeatherTile(Icons.wind_power, '${weatherData?['wind'] ?? '--'} km/h'),
-                _buildWeatherTile(Icons.water_drop, '${weatherData?['humidity'] ?? '--'} %'),
+                _buildWeatherTile(
+                  Icons.thermostat,
+                  '${weatherData?['temp'] ?? '--'} °C',
+                ),
+                _buildWeatherTile(
+                  Icons.wind_power,
+                  '${weatherData?['wind'] ?? '--'} km/h',
+                ),
+                _buildWeatherTile(
+                  Icons.water_drop,
+                  '${weatherData?['humidity'] ?? '--'} %',
+                ),
               ],
             ),
           ],
@@ -242,7 +267,9 @@ class _LiveFishingScreenState extends State<LiveFishingScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Text(
-            isFavorable ? '✅ Bon endroit pour pêcher !' : '🚫 Pas recommandé ici.',
+            isFavorable
+                ? '✅ Bon endroit pour pêcher !'
+                : '🚫 Pas recommandé ici.',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -261,10 +288,7 @@ class _LiveFishingScreenState extends State<LiveFishingScreen> {
       child: SizedBox(
         height: 300,
         child: FlutterMap(
-          options: MapOptions(
-            center: currentLocation,
-            zoom: 13,
-          ),
+          options: MapOptions(center: currentLocation, zoom: 13),
           children: [
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -274,7 +298,12 @@ class _LiveFishingScreenState extends State<LiveFishingScreen> {
                 if (currentLocation != null)
                   Marker(
                     point: currentLocation!,
-                    builder: (ctx) => const Icon(Icons.location_pin, color: Colors.red, size: 40),
+                    builder:
+                        (ctx) => const Icon(
+                          Icons.location_pin,
+                          color: Colors.red,
+                          size: 40,
+                        ),
                   ),
                 if (recommendation != null && recommendation?['spot'] != null)
                   Marker(
@@ -282,13 +311,71 @@ class _LiveFishingScreenState extends State<LiveFishingScreen> {
                       recommendation!['spot']['lat'],
                       recommendation!['spot']['lon'],
                     ),
-                    builder: (ctx) => const Icon(Icons.flag, color: Colors.blue, size: 40),
+                    builder:
+                        (ctx) => const Icon(
+                          Icons.flag,
+                          color: Colors.blue,
+                          size: 40,
+                        ),
                   ),
               ],
             ),
+            if (routePoints.isNotEmpty)
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: routePoints,
+                    strokeWidth: 4.0,
+                    color: Colors.blueAccent,
+                  ),
+                ],
+              ),
           ],
         ),
       ),
     );
+  }
+
+  // fonction bech naamlou trajectoire entre pos actuel et recommended spot
+  Future<List<LatLng>> fetchRoute(LatLng start, LatLng end) async {
+    const apiKey =
+        '5b3ce3597851110001cf6248f0080afa69864f5d99d3eb1bbfcb9ced'; // 🔑 Mets ta vraie clé OpenRouteService
+    final url = Uri.parse(
+      'https://api.openrouteservice.org/v2/directions/foot-walking?api_key=$apiKey&start=${start.longitude},${start.latitude}&end=${end.longitude},${end.latitude}',
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final geometry = data['features'][0]['geometry']['coordinates'];
+
+      return geometry.map<LatLng>((point) {
+        return LatLng(point[1], point[0]);
+      }).toList();
+    } else {
+      throw Exception('Erreur itinéraire: ${response.statusCode}');
+    }
+  }
+
+  //hedhi pour afficher
+  Future<void> _fetchAndDisplayRoute() async {
+    if (currentLocation != null &&
+        recommendation != null &&
+        recommendation?['spot'] != null) {
+      final spot = LatLng(
+        recommendation!['spot']['lat'],
+        recommendation!['spot']['lon'],
+      );
+
+      try {
+        final points = await fetchRoute(currentLocation!, spot);
+        setState(() {
+          routePoints = points;
+        });
+      } catch (e) {
+        print('Erreur chargement route: $e');
+      }
+    }
   }
 }
