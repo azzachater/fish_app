@@ -76,4 +76,51 @@ class CartService {
       return false;
     }
   }
+
+  Future<bool> placeOrder({
+    required String phone,
+    required String address,
+    required String paymentMethod,
+  }) async {
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/orders'),
+        headers: headers,
+        body: jsonEncode({
+          'phone': phone,
+          'address': address,
+          'payment_method': paymentMethod,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Failed to place order: ${response.body}');
+      }
+    } catch (e) {
+      print('Place order error: $e');
+      rethrow;
+    }
+  }
+  //pour verifier le stock 9bal manhotouh fel cart
+  Future<Map<String, dynamic>> checkStock(String productId, int quantity) async {
+  try {
+    final headers = await _getAuthHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/products/$productId/check-stock/$quantity'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to check stock');
+    }
+  } catch (e) {
+    print('Check stock error: $e');
+    rethrow;
+  }
+}
 }

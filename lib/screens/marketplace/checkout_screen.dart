@@ -144,12 +144,10 @@ class CheckoutScreen extends StatelessWidget {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           // Valider les champs requis avant paiement
                           if (_validateCheckoutFields()) {
-                            Get.to(
-                              () => PaymentSuccessScreen(totalCost: total),
-                            );
+                            await cartController.placeOrder();
                           }
                         },
                         style: ElevatedButton.styleFrom(

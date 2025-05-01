@@ -1,4 +1,5 @@
 // cart_controller.dart
+import 'package:fish_app/screens/marketplace/payment_success_screen.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
 import 'package:fish_app/service/api_cart_service.dart';
@@ -10,7 +11,7 @@ class CartController extends GetxController {
   final RxString checkoutPhone = ''.obs;
   final RxString checkoutAddress = ''.obs;
   final RxString paymentMethod = ''.obs;
-  
+
   // Méthode pour mettre à jour les infos de checkout
   void updateCheckoutInfo({String? phone, String? address, String? method}) {
     if (phone != null) checkoutPhone.value = phone;
@@ -38,9 +39,23 @@ class CartController extends GetxController {
 
   Future<void> addToCart(Product product, {int quantity = 1}) async {
     try {
+      // Vérifier le stock d'abord
+      final stockCheck = await _cartService.checkStock(
+        product.id.toString(),
+        quantity,
+      );
+
+      if (!stockCheck['available']) {
+        Get.snackbar(
+          'Stock insuffisant',
+          'Il ne reste que ${stockCheck['current_stock']} unités disponibles',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
       // Ajout côté serveur
       final success = await _cartService.addToCart(product, quantity);
-      
+
       if (success) {
         // Mise à jour côté client
         final existingIndex = cartItems.indexWhere((p) => p.id == product.id);
@@ -85,6 +100,37 @@ class CartController extends GetxController {
       Get.snackbar('Error', 'Failed to update quantity');
     }
   }
+
+  Future<Map<String, dynamic>> checkStock(String productId, int quantity) async {
+  try {
+    final stockData = await _cartService.checkStock(productId, quantity);
+    return stockData;
+  } catch (e) {
+    Get.snackbar('Error', 'Could not verify stock availability');
+    return {'available': false, 'current_stock': 0};
+  }
+}
+
+  Future<void> placeOrder() async {
+    try {
+      isLoading(true);
+      final response = await _cartService.placeOrder(
+        phone: checkoutPhone.value,
+        address: checkoutAddress.value,
+        paymentMethod: paymentMethod.value,
+      );
+
+      if (response) {
+        Get.off(() => PaymentSuccessScreen(totalCost: totalPrice));
+        clearCart();
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to place order: ${e.toString()}');
+    } finally {
+      isLoading(false);
+    }
+  }
+
   Future<void> decreaseQuantity(Product product) async {
     if (product.quantity > 1) {
       await updateCartItem(product, product.quantity - 1);
@@ -94,13 +140,14 @@ class CartController extends GetxController {
   }
 
   double get totalPrice => cartItems.fold(
-        0,
-        (sum, product) => sum + (product.price * product.quantity),
-      );
+    0,
+    (sum, product) => sum + (product.price * product.quantity),
+  );
 
   void clearCart() {
     cartItems.clear();
   }
+
   bool isInCart(Product product) {
     return cartItems.any((p) => p.id == product.id);
   }
