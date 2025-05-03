@@ -8,7 +8,7 @@ class ApiAuthService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   FlutterSecureStorage get storage => _storage;
 
-  final String baseUrl = 'http://192.168.1.52:8000/api';
+  final String baseUrl = 'http://192.168.1.57:8000/api';
 
   Map<String, String> get _headers => {
     'Accept': 'application/json',
@@ -250,4 +250,45 @@ class ApiAuthService {
       throw handleError(response);
     }
   }
+
+  
+Future<void> sendResetCode(String email) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/send-reset-code'),
+    headers: _headers,
+    body: jsonEncode({'email': email}),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception(jsonDecode(response.body)['error'] ?? 'Erreur d’envoi');
+  }
+}
+
+Future<void> verifyResetCode(String email, String code) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/verify-reset-code'),
+    headers: _headers,
+    body: jsonEncode({'email': email, 'code': code}),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception(jsonDecode(response.body)['error'] ?? 'Code invalide');
+  }
+}
+
+Future<void> updatePassword(String email, String password, String confirmation) async {
+  final response = await http.post(
+    Uri.parse('$baseUrl/update-password'),
+    headers: _headers,
+    body: jsonEncode({
+      'email': email,
+      'password': password,
+      'password_confirmation': confirmation,
+    }),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception(jsonDecode(response.body)['error'] ?? 'Erreur de mise à jour');
+  }
+}
 }
