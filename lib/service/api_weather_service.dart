@@ -5,18 +5,15 @@ class WeatherService {
   final String openWeatherKey = '155086bcb12f4e42c364b7f1e4932557';
 
   Future<List<Map<String, dynamic>>> fetchWeatherDataFor7Days({
-    double? lat,
-    double? lon,
+    required double lat, // Maintenant obligatoire
+    required double lon, // Maintenant obligatoire
   }) async {
-    double latitude = lat ?? (56.127233 + 57.458273) / 2;
-    double longitude = lon ?? (11.124048 + 12.340183) / 2;
-
-    // Obtenir la localisation en fonction de la position
-    String location = await _getLocationFromCoordinates(latitude, longitude);
+    // Plus de valeurs par défaut !
+    final location = await _getLocationFromCoordinates(lat, lon);
     print('Localisation: $location');
 
     final url = Uri.parse(
-      'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$openWeatherKey&units=metric',
+      'https://api.openweathermap.org/data/2.5/forecast?lat=$lat&lon=$lon&appid=$openWeatherKey&units=metric',
     );
 
     final response = await http.get(url);
@@ -27,28 +24,53 @@ class WeatherService {
 
     final data = jsonDecode(response.body);
 
-    double windSpeed = (data['wind']?['speed'] ?? 0.0) * 3.6; // m/s → km/h
-    String weatherDesc = data['weather']?[0]?['main'] ?? 'Unknown';
-    double waveHeight = _estimateWaveHeight(windSpeed);
-    String windCategory = _mapWindSpeed(windSpeed);
-    String waveCategory = _mapWaveHeight(waveHeight);
-    String weatherCategory = _mapWeather(weatherDesc);
+    // Traitement des données pour 7 jours
+    return _processForecastData(data, location);
+  }
 
+  List<Map<String, dynamic>> _processForecastData(
+    Map<String, dynamic> data,
+    String location,
+  ) {
     final today = DateTime.now();
+    final dailyData = <Map<String, dynamic>>[];
 
-    return List.generate(7, (i) {
+    // Groupement par jour
+    final Map<String, List<dynamic>> days = {};
+    for (final forecast in data['list']) {
+      final date = DateTime.parse(forecast['dt_txt']).toString().split(' ')[0];
+      days.putIfAbsent(date, () => []).add(forecast);
+    }
+
+    // Pour chaque jour des 7 prochains jours
+    for (int i = 0; i < 7; i++) {
       final day = today.add(Duration(days: i));
-      return {
-        "Wind Speed": windCategory,
-        "Wave Height": waveCategory,
-        "Weather": weatherCategory,
-        "Day of the Week": _mapDayCategory(day),
-        "Full Date": "${_mapDayName(day.weekday)}, ${_formatDate(day)}",
-        "Location": location,
-        "Temperature": (data['main']?['temp'] ?? 20.0).toString(),
-        "Humidity": (data['main']?['humidity'] ?? 60).toString(),
-      };
-    });
+      final dayStr = day.toString().split(' ')[0];
+
+      if (days.containsKey(dayStr)) {
+        final dayForecasts = days[dayStr]!;
+        final midDayForecast = dayForecasts.firstWhere(
+          (f) => DateTime.parse(f['dt_txt']).hour >= 12,
+          orElse: () => dayForecasts[dayForecasts.length ~/ 2],
+        );
+
+        double windSpeed = (midDayForecast['wind']['speed'] ?? 0.0) * 3.6;
+        String weatherDesc = midDayForecast['weather'][0]['main'] ?? 'Unknown';
+
+        dailyData.add({
+          "Wind Speed": _mapWindSpeed(windSpeed),
+          "Wave Height": _mapWaveHeight(_estimateWaveHeight(windSpeed)),
+          "Weather": _mapWeather(weatherDesc),
+          "Day of the Week": _mapDayCategory(day),
+          "Full Date": "${_mapDayName(day.weekday)}, ${_formatDate(day)}",
+          "Location": location,
+          "Temperature": (midDayForecast['main']['temp'] ?? 20.0).toString(),
+          "Humidity": (midDayForecast['main']['humidity'] ?? 60).toString(),
+        });
+      }
+    }
+
+    return dailyData;
   }
 
   double _estimateWaveHeight(double windSpeed) {
@@ -110,18 +132,6 @@ class WeatherService {
       "December",
     ];
     return "${months[date.month - 1]} ${date.day}";
-  }
-
-  Future<Map<String, dynamic>> fetchWeatherDataForDay(
-    String dayCategory,
-  ) async {
-    final allData = await fetchWeatherDataFor7Days();
-    return allData.firstWhere(
-      (entry) => entry['Day of the Week'] == dayCategory,
-      orElse:
-          () =>
-              throw Exception('Aucune donnée météo trouvée pour $dayCategory'),
-    );
   }
 
   Future<String> _getLocationFromCoordinates(double lat, double lon) async {

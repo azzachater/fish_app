@@ -4,6 +4,7 @@ import 'package:fish_app/screens/prediction_ia/location_picker_page.dart';
 import 'package:fish_app/service/api_weather_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -42,7 +43,6 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
   @override
   void initState() {
     super.initState();
-    _loadWeatherDays();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -52,9 +52,43 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
       begin: 0.3,
       end: 1.0,
     ).animate(_animationController);
+
+    // Chargement séquentiel
+    _initLocationAndWeather();
   }
 
   //nouveau travaille
+
+  Future<void> _initLocationAndWeather() async {
+    await _getCurrentLocation(); // Attend la position actuelle
+    await _loadWeatherDays(); // Puis charge la météo
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (!serviceEnabled || permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return; // Garde la position par défaut
+        }
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
+
+      setState(() {
+        currentLocation = LatLng(position.latitude, position.longitude);
+        selectedLocationName = "Position actuelle"; // Texte temporaire
+      });
+    } catch (e) {
+      print("Erreur GPS: $e");
+      // Conserve la position par défaut
+    }
+  }
 
   void _chooseLocationManually() async {
     final LatLng? selected = await Navigator.push(
@@ -76,7 +110,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
 
   Future<void> fetchRecommendedSpots() async {
     try {
-      final url = Uri.parse('http://192.168.1.52:5000/recommend');
+      final url = Uri.parse('http://192.168.1.57:5000/recommend');
       final response = await http
           .post(
             url,
@@ -84,34 +118,48 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
             body: jsonEncode({
               "lat": currentLocation.latitude,
               "lon": currentLocation.longitude,
-              "temp":
-                  double.tryParse(temperature ?? '20') ?? 20, // 🧠 temp réelle
+              "temp": double.tryParse(temperature ?? '20') ?? 20,
               "wind": double.tryParse(windSpeed ?? '5') ?? 5,
               "humidity": double.tryParse(humidity ?? '60') ?? 60,
-              "radius": selectedRadius, // Rayon sélectionné par slider
+              "radius": selectedRadius,
             }),
           )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final spotData = jsonDecode(response.body);
-        print('Recommended Spot: $spotData');
+
+        if (spotData.containsKey('error') || spotData['best_spot'] == null) {
+          setState(() {
+            fishingSpots = [];
+            showMap = false;
+            // Ajoutez ce message à votre prédiction existante
+            if (prediction != null) {
+              prediction =
+                  '$prediction\n\nAucun spot recommandé trouvé près de votre position actuelle.';
+            }
+          });
+          return;
+        }
 
         setState(() {
           fishingSpots = [
             {
-              "latitude": spotData['spot']['lat'],
-              "longitude": spotData['spot']['lon'],
-              "distance": spotData['distance_km'],
+              "latitude": spotData['best_spot']['latitude'],
+              "longitude": spotData['best_spot']['longitude'],
+              "distance": spotData['best_spot']['distance'],
+              "is_best": true,
             },
+            ...(spotData['other_spots'] as List).map(
+              (spot) => ({
+                "latitude": spot['latitude'],
+                "longitude": spot['longitude'],
+                "distance": spot['distance'],
+                "is_best": false,
+              }),
+            ),
           ];
-          showMap = true;
-        });
-      } else if (response.statusCode == 404) {
-        setState(() {
-          fishingSpots = [];
-          showMap = false;
-          prediction = "Aucun spot trouvé proche de votre position 😔";
+          showMap = fishingSpots.isNotEmpty;
         });
       } else {
         throw Exception('Erreur serveur: ${response.statusCode}');
@@ -120,7 +168,10 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
       setState(() {
         fishingSpots = [];
         showMap = false;
-        error = 'Erreur recommandation: ${e.toString()}';
+        if (prediction != null) {
+          prediction =
+              '$prediction\n\nImpossible de charger les spots recommandés.';
+        }
       });
     }
   }
@@ -132,7 +183,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     });
 
     try {
-      final url = Uri.parse('http://192.168.1.52:5000/weather/predict');
+      final url = Uri.parse('http://192.168.1.57:5000/weather/predict');
       final response = await http
           .post(
             url,
@@ -179,38 +230,44 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
   }
 
   Future<void> _loadWeatherDays() async {
+  if (currentLocation == null) {
     setState(() {
-      isLoading = true;
-      error = null;
+      error = 'Aucune position disponible';
+      isLoading = false;
+    });
+    return;
+  }
+
+  setState(() {
+    isLoading = true;
+    error = null;
+  });
+
+  try {
+    final data = await widget._weatherService.fetchWeatherDataFor7Days(
+      lat: currentLocation.latitude, // Pas de null ici
+      lon: currentLocation.longitude,
+    );
+
+    final today = DateTime.now();
+    final todayCategory = (today.weekday >= 6) ? 'Weekend' : 'Weekday';
+    final todayFormatted = "${_weekdayName(today.weekday)}, ${_formatDate(today)}";
+
+    setState(() {
+      daysData = data;
+      selectedDayCategory = todayCategory;
+      selectedFullDate = todayFormatted;
+      selectedLocationName = data.isNotEmpty ? data[0]['Location'] : "Position actuelle";
     });
 
-    try {
-      final data = await widget._weatherService.fetchWeatherDataFor7Days(
-        lat: currentLocation?.latitude,
-        lon: currentLocation?.longitude,
-      );
-
-      final today = DateTime.now();
-      final todayCategory = (today.weekday >= 6) ? 'Weekend' : 'Weekday';
-      final todayFormatted =
-          "${_weekdayName(today.weekday)}, ${_formatDate(today)}";
-
-      setState(() {
-        daysData = data;
-        selectedDayCategory = todayCategory;
-        selectedFullDate = todayFormatted;
-        selectedLocationName =
-            data.isNotEmpty ? data[0]['Location'] : 'Inconnue';
-      });
-
-      _loadWeatherDataForSelectedDate(todayFormatted);
-    } catch (e) {
-      setState(() {
-        error = 'Erreur de chargement météo : $e';
-        isLoading = false;
-      });
-    }
+    _loadWeatherDataForSelectedDate(todayFormatted);
+  } catch (e) {
+    setState(() {
+      error = 'Erreur de chargement météo : $e';
+      isLoading = false;
+    });
   }
+}
 
   Future<void> _loadWeatherDataForSelectedDate(String fullDate) async {
     setState(() {
@@ -250,7 +307,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     });
 
     try {
-      final url = Uri.parse('http://192.168.1.52:5000/combined/predict');
+      final url = Uri.parse('http://192.168.1.57:5000/combined/predict');
       final response = await http
           .post(
             url,
@@ -297,7 +354,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
   void _showFishingStats() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.52:5000/api/session-stats'),
+        Uri.parse('http://192.168.1.57:5000/api/session-stats'),
       );
 
       if (response.statusCode == 200) {
@@ -349,6 +406,16 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
 
   @override
   Widget build(BuildContext context) {
+    // Styles locaux pour les cartes et listes
+    final cardTheme = CardTheme(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.all(8),
+    );
+
+    final listTileTheme = const ListTileThemeData(
+      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+    );
     List<LatLng> routePoints = [];
 
     if (fishingSpots.isNotEmpty) {
@@ -566,154 +633,273 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                     // Affichage de la prédiction
                     if (prediction != null)
                       Card(
-                        color: Colors.blue[50],
+                        color:
+                            prediction!.contains('✅')
+                                ? Colors.green[50]
+                                : Colors.orange[100],
                         elevation: 3,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            '🔮 Prédiction: $prediction',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                prediction!.split(
+                                  '\n',
+                                )[0], // Première ligne (titre)
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      prediction!.contains('✅')
+                                          ? Colors.green
+                                          : Colors.orange[800],
+                                ),
+                              ),
+                              if (prediction!.contains('\n')) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  prediction!
+                                      .split('\n')
+                                      .skip(1)
+                                      .join('\n'), // Lignes suivantes
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),
-
                     // Affichage de la carte si prédiction favorable
                     if (showMap)
                       Padding(
                         padding: const EdgeInsets.only(top: 16.0),
                         child: Card(
                           elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: Column(
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.all(12),
+                              Padding(
+                                padding: const EdgeInsets.all(12),
                                 child: Text(
-                                  '🎯 Spots recommandés autour de vous',
-                                  style: TextStyle(
+                                  fishingSpots.isNotEmpty &&
+                                          fishingSpots[0]['is_best']
+                                      ? '⭐ Spot Premium à ${fishingSpots[0]['distance'].toStringAsFixed(1)} km'
+                                      : '🎯 Spots recommandés',
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
-
                               SizedBox(
-                                height: 250,
+                                height: 300, // Augmenter la hauteur
                                 child: FlutterMap(
                                   options: MapOptions(
                                     center: currentLocation,
-                                    zoom: 12.0,
+                                    zoom: 12.5,
+                                    interactiveFlags:
+                                        InteractiveFlag.all &
+                                        ~InteractiveFlag.rotate,
                                   ),
                                   children: [
                                     TileLayer(
                                       urlTemplate:
-                                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                      subdomains: const ['a', 'b', 'c'],
+                                      userAgentPackageName: 'com.example.app',
+                                    ),
+                                    PolylineLayer(
+                                      polylines: [
+                                        if (routePoints.isNotEmpty)
+                                          Polyline(
+                                            points: routePoints,
+                                            color: Colors.blue.withOpacity(0.7),
+                                            strokeWidth: 4,
+                                            borderStrokeWidth: 2,
+                                            borderColor: Colors.white,
+                                          ),
+                                      ],
                                     ),
                                     MarkerLayer(
                                       markers: [
-                                        // 🛑 Marqueur pour TA LOCALISATION
+                                        // Votre position actuelle
                                         Marker(
-                                          width: 80.0,
-                                          height: 80.0,
                                           point: currentLocation,
+                                          width: 50,
+                                          height: 50,
                                           builder:
                                               (ctx) => const Icon(
-                                                Icons
-                                                    .my_location, // 🧠 Icône différente
-                                                color:
-                                                    Colors
-                                                        .red, // 🛑 Couleur rouge pour toi
+                                                Icons.sailing,
+                                                color: Colors.red,
                                                 size: 40,
                                               ),
                                         ),
-
-                                        // 🎯 Marqueurs pour les SPOTS RECOMMANDÉS
-                                        ...fishingSpots.map((spot) {
-                                          return Marker(
-                                            width: 80.0,
-                                            height: 80.0,
-                                            point: LatLng(
-                                              spot['latitude'],
-                                              spot['longitude'],
-                                            ),
-                                            builder:
-                                                (ctx) => const Icon(
-                                                  Icons
-                                                      .location_on, // 🎣 Icône classique
-                                                  color:
-                                                      Colors
-                                                          .blue, // 🔵 Couleur bleu pour spot
-                                                  size: 40,
+                                        // Spots recommandés
+                                        ...fishingSpots
+                                            .map(
+                                              (spot) => Marker(
+                                                point: LatLng(
+                                                  spot['latitude'],
+                                                  spot['longitude'],
                                                 ),
-                                          );
-                                        }).toList(),
-                                      ],
-                                    ),
-                                    if (routePoints.isNotEmpty)
-                                      AnimatedBuilder(
-                                        animation: _animationController,
-                                        builder: (context, child) {
-                                          return PolylineLayer(
-                                            polylines: [
-                                              Polyline(
-                                                points: routePoints,
-                                                strokeWidth: 5.0,
-                                                color: Colors.blueAccent
-                                                    .withOpacity(
-                                                      _opacityAnimation.value,
+                                                width: 50,
+                                                height: 50,
+                                                builder:
+                                                    (ctx) => Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          spot['is_best']
+                                                              ? Icons.flag
+                                                              : Icons
+                                                                  .location_pin,
+                                                          color:
+                                                              spot['is_best']
+                                                                  ? Colors.green
+                                                                  : Colors.blue,
+                                                          size: 40,
+                                                        ),
+                                                        if (spot['distance'] !=
+                                                            null)
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets.all(
+                                                                  4,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  Colors.white,
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    10,
+                                                                  ),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                  color: Colors
+                                                                      .black
+                                                                      .withOpacity(
+                                                                        0.2,
+                                                                      ),
+                                                                  blurRadius: 2,
+                                                                  spreadRadius:
+                                                                      1,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Text(
+                                                              '${spot['distance'].toStringAsFixed(1)} km',
+                                                              style: const TextStyle(
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                      ],
                                                     ),
                                               ),
-                                            ],
-                                          );
-                                        },
+                                            )
+                                            .toList(),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Légende améliorée
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 16,
+                                ),
+                                child: Wrap(
+                                  spacing: 16,
+                                  runSpacing: 8,
+                                  alignment: WrapAlignment.center,
+                                  children: [
+                                    _buildMapLegend(
+                                      Icons.sailing,
+                                      'Votre position',
+                                      Colors.red,
+                                    ),
+                                    _buildMapLegend(
+                                      Icons.flag,
+                                      'Meilleur spot',
+                                      Colors.green,
+                                    ),
+                                    _buildMapLegend(
+                                      Icons.location_pin,
+                                      'Autres spots',
+                                      Colors.blue,
+                                    ),
+                                    if (routePoints.isNotEmpty)
+                                      _buildMapLegend(
+                                        Icons.alt_route,
+                                        'Itinéraire',
+                                        Colors.blue,
                                       ),
                                   ],
                                 ),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 8,
+                              // Liste des spots avec détails
+                              if (fishingSpots.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Détails des spots:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      ...fishingSpots
+                                          .take(3)
+                                          .map(
+                                            (spot) => ListTile(
+                                              leading: Icon(
+                                                spot['is_best']
+                                                    ? Icons.star
+                                                    : Icons.location_on,
+                                                color:
+                                                    spot['is_best']
+                                                        ? Colors.amber
+                                                        : Colors.blue,
+                                              ),
+                                              title: Text(
+                                                spot['is_best']
+                                                    ? 'Spot premium'
+                                                    : 'Spot à ${spot['distance'].toStringAsFixed(1)} km',
+                                              ),
+                                              subtitle: Text(
+                                                'Coordonnées: ${spot['latitude'].toStringAsFixed(4)}, '
+                                                '${spot['longitude'].toStringAsFixed(4)}',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              trailing: Text(
+                                                '${spot['distance'].toStringAsFixed(1)} km',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                    ],
+                                  ),
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Row(
-                                      children: const [
-                                        Icon(
-                                          Icons.my_location,
-                                          color: Colors.red,
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Vous êtes ici',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(width: 16),
-                                    Row(
-                                      children: const [
-                                        Icon(
-                                          Icons.location_on,
-                                          color: Colors.blue,
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Spot recommandé',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ],
                           ),
                         ),
@@ -794,20 +980,30 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
 
   //pour chargr la route
   Future<void> _fetchAndDisplayRoute() async {
-    if (currentLocation != null && fishingSpots.isNotEmpty) {
-      final spot = LatLng(
-        fishingSpots[0]['latitude'],
-        fishingSpots[0]['longitude'],
-      );
-
+    if (fishingSpots.isNotEmpty && fishingSpots[0]['latitude'] != null) {
       try {
-        final points = await fetchRoute(currentLocation!, spot);
+        final spot = LatLng(
+          fishingSpots[0]['latitude'] as double,
+          fishingSpots[0]['longitude'] as double,
+        );
+        final points = await fetchRoute(currentLocation, spot);
         setState(() {
           routePoints = points;
         });
       } catch (e) {
-        print('Erreur chargement route: $e');
+        print('Erreur itinéraire: $e');
       }
     }
+  }
+
+  Widget _buildMapLegend(IconData icon, String text, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 4),
+        Text(text, style: const TextStyle(fontSize: 12)),
+      ],
+    );
   }
 }
