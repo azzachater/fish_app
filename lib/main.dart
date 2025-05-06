@@ -1,3 +1,4 @@
+import 'package:fish_app/controller/order_controller.dart';
 import 'package:fish_app/controllers/notification_controller.dart';
 import 'package:fish_app/controllers/profile_controller.dart';
 import 'package:fish_app/controllers/user_controller.dart';
@@ -11,6 +12,7 @@ import 'package:fish_app/screens/Authentification/signup_page.dart';
 import 'package:fish_app/screens/Authentification/verify_code_page.dart';
 import 'package:fish_app/screens/marketplace/product_detail_page.dart';
 import 'package:fish_app/screens/prediction_ia/weather_predict_form.dart';
+import 'package:fish_app/service/order_notification_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -31,6 +33,8 @@ void main() async {
   Get.put(AddJournalController());
   Get.put(JournalController());
   Get.put(ForecastController());
+  Get.put(OrderController());
+  Get.put(OrderNotificationListener());
   await Get.putAsync(() => PusherService().init());
 
   Get.put(UserController());
