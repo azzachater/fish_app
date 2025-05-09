@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_picture_service.dart';
+import '../../constants/theme.dart';
 
 class PredictPage extends StatefulWidget {
   @override
@@ -45,7 +46,7 @@ class _PredictPageState extends State<PredictPage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: primaryBlue,
+        backgroundColor: AppTheme.primaryColor,
         elevation: 0,
         titleSpacing: 0,
         leading: IconButton(
@@ -104,7 +105,7 @@ class _PredictPageState extends State<PredictPage> {
                       icon: Icon(Icons.photo_library),
                       label: Text('Choisir une image 📂'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryBlue,
+                        backgroundColor: AppTheme.primaryColor,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: EdgeInsets.symmetric(vertical: 14, horizontal: 24),
@@ -123,7 +124,7 @@ class _PredictPageState extends State<PredictPage> {
                             )
                           : Text('Lancer la prédiction 🔍'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryBlue,
+                        backgroundColor: AppTheme.primaryColor,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: EdgeInsets.symmetric(vertical: 14, horizontal: 24),
@@ -145,7 +146,7 @@ class _PredictPageState extends State<PredictPage> {
                   ),
                   child: Text(
                     "🎯 Espèce prédite : $_prediction",
-                    style: TextStyle(fontSize: 18, color: primaryBlue, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 18, color: AppTheme.primaryColor, fontWeight: FontWeight.w600),
                     textAlign: TextAlign.center,
                   ),
                 ),

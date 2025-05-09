@@ -32,6 +32,7 @@ class CreateSearchGroup extends StatelessWidget {
     });
 
     return Scaffold(
+      backgroundColor: Colors.white, // fond blanc
       appBar: AppBar(
         title: TextField(
           controller: searchController,

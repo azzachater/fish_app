@@ -5,7 +5,7 @@ import 'api_auth_service.dart';
 
 class CartService {
   final ApiAuthService _authService = ApiAuthService();
-  //final String baseUrl = 'http:// 192.168.1.13:8000/api/cart';
+  //final String baseUrl = 'http:// 10.0.2.2:8000/api/cart';
 final String baseUrl = 'http://10.0.2.2:8000/api/api/cart';
 
   Future<Map<String, String>> _getAuthHeaders() async {

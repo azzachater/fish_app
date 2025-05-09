@@ -48,7 +48,7 @@ class SocialHomePage extends StatelessWidget {
           },
         ),
         title: const Text(
-          'FishNet',
+          'Catchy',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,

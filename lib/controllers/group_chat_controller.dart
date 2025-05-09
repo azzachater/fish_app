@@ -162,7 +162,7 @@ class GroupChatController extends GetxController {
         if (groupIndex != -1) {
           allGroups[groupIndex].messages.add(newMessage);
         }
-        
+        groupMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
         // Forcer le rafraîchissement
         update(['group_messages_$groupId']);
         debugPrint('✅ Message ajouté - ID: ${newMessage.id}');
@@ -227,19 +227,23 @@ class GroupChatController extends GetxController {
   Future<void> _loadMessagesForGroup(int groupId) async {
   try {
     final messages = await _apiGroupChatService.getGroupMessages(groupId);
+    // Tri par date croissante
     messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    
+
     // Mettre à jour groupMessages
     groupMessages.removeWhere((msg) => msg.groupConversationId == groupId);
     groupMessages.addAll(messages);
     
+    // Tri global après ajout
+    groupMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
     // Mettre à jour les messages du groupe
     final groupIndex = allGroups.indexWhere((g) => g.id == groupId);
     if (groupIndex != -1) {
       allGroups[groupIndex].messages = messages;
     }
-    
-    update(); // Notifier les observateurs
+
+    update(['group_messages_$groupId']); // Mise à jour ciblée
   } catch (e) {
     Get.snackbar('Error', 'Failed to load messages for group $groupId');
   }

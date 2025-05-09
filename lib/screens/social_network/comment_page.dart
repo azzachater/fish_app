@@ -33,9 +33,16 @@ class CommentPage extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       commentController.loadComments(post.id);
     });
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Commentaires')),
+return Scaffold(
+  backgroundColor: Colors.white, // fond blanc
+  appBar: AppBar(
+    backgroundColor: AppTheme.primaryColor, // couleur de fond
+    title: const Text(
+      'Commentaires',
+      style: TextStyle(color: Colors.white), // couleur du texte
+    ),
+    iconTheme: const IconThemeData(color: Colors.white), // couleur de l’icône de retour (flèche)
+  ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(

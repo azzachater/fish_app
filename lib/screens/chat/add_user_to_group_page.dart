@@ -27,6 +27,7 @@ class AddUserToGroupPage extends StatelessWidget {
     final GroupChatController controller = Get.find<GroupChatController>();
 
     return Scaffold(
+      backgroundColor: Colors.white, // fond blanc
       appBar: AppBar(
         title: const Text('Add Members', style: TextStyle(color: Colors.white)),
         backgroundColor: AppTheme.primaryColor,
@@ -43,13 +44,11 @@ class AddUserToGroupPage extends StatelessWidget {
 
         return Column(
           children: [
-            // Section d'ajout
             Container(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Barre de recherche
                   TextField(
                     controller: controller.searchController,
                     decoration: InputDecoration(

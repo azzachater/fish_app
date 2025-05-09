@@ -10,6 +10,7 @@ class NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white, // Utilise 'color' au lieu de 'backgroundColor'
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ListTile(
         leading: const Text('🔔', style: TextStyle(fontSize: 24)),
