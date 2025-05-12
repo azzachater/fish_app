@@ -6,7 +6,7 @@ import 'api_auth_service.dart';
 
 class ApiEventService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.52:8000/api';
+  final String baseUrl = 'http://192.168.1.76:8000/api';
 
   // Headers
   Map<String, String> get headers => {
@@ -22,40 +22,45 @@ class ApiEventService {
   }
 
   Future<List<Event>> getEvents() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/events'),
-        headers: await _getAuthHeaders(),
-      );
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/events'),
+      headers: await _getAuthHeaders(),
+    );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final eventsList = data['data'] as List;
+    print('API Response: ${response.statusCode} - ${response.body}');
 
-        return eventsList.map((json) {
-          // Normalisation des participants si nécessaire
-          if (json['participants'] is List &&
-              json['participants'].isNotEmpty &&
-              json['participants'][0] is int) {
-            json['participants'] =
-                json['participants']
-                    .map(
-                      (id) => {
-                        'user_id': id,
-                        'user': {'id': id, 'name': 'Participant', 'avatar': ''},
-                      },
-                    )
-                    .toList();
-          }
-          return Event.fromJson(json);
-        }).toList();
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      
+      if (data == null || data['data'] == null) {
+        return [];
       }
-      throw Exception('Failed to load events');
-    } catch (e) {
-      print('❌ getEvents error: $e');
-      throw Exception('Check your API response format');
+
+      final eventsList = (data['data'] as List).map((json) {
+        // Nettoyez les participants null
+        if (json['participants'] is List) {
+          json['participants'] = (json['participants'] as List)
+              .where((p) => p != null) // Filtre les participants null
+              .map((p) => {
+                'user_id': p is int ? p : p['user_id'],
+                'user': p is Map ? p['user'] : {'id': p, 'name': 'Participant'}
+              })
+              .toList();
+        }
+        
+        return Event.fromJson(json);
+      }).toList();
+
+      return eventsList;
+    } else {
+      throw Exception('Failed to load events: ${response.statusCode}');
     }
+  } catch (e) {
+    print('❌ getEvents error: $e');
+    throw Exception('Failed to fetch events: ${e.toString()}');
   }
+}
 
   Future<Event> createEvent(Event event) async {
     try {
@@ -68,6 +73,7 @@ class ApiEventService {
           'location': event.location,
           'description': event.description,
           'date': DateFormat('yyyy-MM-dd').format(event.date),
+          'user_id': event.userId,
         }),
       );
 
@@ -99,6 +105,7 @@ class ApiEventService {
         'description': event.description,
         'date': DateFormat('yyyy-MM-dd').format(event.date), // Format cohérent
         'participants': event.participants,
+        'user_id': event.userId,
       }),
     );
 
@@ -163,12 +170,11 @@ class ApiEventService {
     }
   }
 
-  Future<Event> joinEvent(String eventId, String userId) async {
+  Future<Event> joinEvent(String eventId) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/events/$eventId/join'),
         headers: await _getAuthHeaders(),
-        body: jsonEncode({}),
       );
 
       if (response.statusCode == 201) {

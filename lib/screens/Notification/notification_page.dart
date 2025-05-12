@@ -1,9 +1,8 @@
-import 'package:fish_app/screens/Notification/order_notification_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/notification_controller.dart';
 import '../../widgets/notification/notification_card.dart';
-
+import 'package:fish_app/constants/theme.dart';
 class NotificationPage extends StatelessWidget {
   NotificationPage({super.key});
 
@@ -17,7 +16,15 @@ class NotificationPage extends StatelessWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+  backgroundColor: Colors.white, // fond blanc
+  appBar: AppBar(
+    backgroundColor: AppTheme.primaryColor,
+    title: const Text(
+      'Notifications',
+      style: TextStyle(color: Colors.white),
+    ),
+    iconTheme: const IconThemeData(color: Colors.white), // Pour la flèche retour en blanc
+  ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -28,15 +35,10 @@ class NotificationPage extends StatelessWidget {
             itemCount: controller.notifications.length,
             itemBuilder: (context, index) {
               final notif = controller.notifications[index];
-              return notif.type == 'new_order'
-              ? OrderNotificationCard(
-                  notification: notif,
-                  onDelete: () => controller.deleteNotification(notif.id),
-                )
-              : NotificationCard( // Votre widget existant pour les messages
-                  notification: notif,
-                  onDelete: () => controller.deleteNotification(notif.id),
-                );
+              return NotificationCard(
+                notification: notif,
+                onDelete: () => controller.deleteNotification(notif.id),
+              );
             },
           );
         }

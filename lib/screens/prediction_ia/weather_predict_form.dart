@@ -1,5 +1,4 @@
 import 'package:fish_app/constants/theme.dart';
-import 'package:fish_app/screens/prediction_ia/LiveFishingScreen.dart';
 import 'package:fish_app/screens/prediction_ia/location_picker_page.dart';
 import 'package:fish_app/service/api_weather_service.dart';
 import 'package:flutter/material.dart';
@@ -110,7 +109,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
 
   Future<void> fetchRecommendedSpots() async {
     try {
-      final url = Uri.parse('http://192.168.1.57:5000/recommend');
+      final url = Uri.parse('http://192.168.1.76:5000/recommend');
       final response = await http
           .post(
             url,
@@ -183,7 +182,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     });
 
     try {
-      final url = Uri.parse('http://192.168.1.57:5000/weather/predict');
+      final url = Uri.parse('http://192.168.1.76:5000/weather/predict');
       final response = await http
           .post(
             url,
@@ -208,7 +207,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
           prediction =
               goodTime
                   ? '✅ Bon moment pour pêcher aujourd\'hui !'
-                  : '⚠️ Conditions difficiles, soyez prudent.';
+                  : ' Conditions difficiles, soyez prudent.';
         });
 
         // ➡️ Peu importe "goodTime" => on essaye quand même de chercher des spots !
@@ -230,44 +229,46 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
   }
 
   Future<void> _loadWeatherDays() async {
-  if (currentLocation == null) {
+    if (currentLocation == null) {
+      setState(() {
+        error = 'Aucune position disponible';
+        isLoading = false;
+      });
+      return;
+    }
+
     setState(() {
-      error = 'Aucune position disponible';
-      isLoading = false;
+      isLoading = true;
+      error = null;
     });
-    return;
+
+    try {
+      final data = await widget._weatherService.fetchWeatherDataFor7Days(
+        lat: currentLocation.latitude, // Pas de null ici
+        lon: currentLocation.longitude,
+      );
+
+      final today = DateTime.now();
+      final todayCategory = (today.weekday >= 6) ? 'Weekend' : 'Weekday';
+      final todayFormatted =
+          "${_weekdayName(today.weekday)}, ${_formatDate(today)}";
+
+      setState(() {
+        daysData = data;
+        selectedDayCategory = todayCategory;
+        selectedFullDate = todayFormatted;
+        selectedLocationName =
+            data.isNotEmpty ? data[0]['Location'] : "Position actuelle";
+      });
+
+      _loadWeatherDataForSelectedDate(todayFormatted);
+    } catch (e) {
+      setState(() {
+        error = 'Erreur de chargement météo : $e';
+        isLoading = false;
+      });
+    }
   }
-
-  setState(() {
-    isLoading = true;
-    error = null;
-  });
-
-  try {
-    final data = await widget._weatherService.fetchWeatherDataFor7Days(
-      lat: currentLocation.latitude, // Pas de null ici
-      lon: currentLocation.longitude,
-    );
-
-    final today = DateTime.now();
-    final todayCategory = (today.weekday >= 6) ? 'Weekend' : 'Weekday';
-    final todayFormatted = "${_weekdayName(today.weekday)}, ${_formatDate(today)}";
-
-    setState(() {
-      daysData = data;
-      selectedDayCategory = todayCategory;
-      selectedFullDate = todayFormatted;
-      selectedLocationName = data.isNotEmpty ? data[0]['Location'] : "Position actuelle";
-    });
-
-    _loadWeatherDataForSelectedDate(todayFormatted);
-  } catch (e) {
-    setState(() {
-      error = 'Erreur de chargement météo : $e';
-      isLoading = false;
-    });
-  }
-}
 
   Future<void> _loadWeatherDataForSelectedDate(String fullDate) async {
     setState(() {
@@ -307,7 +308,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     });
 
     try {
-      final url = Uri.parse('http://192.168.1.57:5000/combined/predict');
+      final url = Uri.parse('http://192.168.1.76:5000/combined/predict');
       final response = await http
           .post(
             url,
@@ -354,7 +355,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
   void _showFishingStats() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.57:5000/api/session-stats'),
+        Uri.parse('http://192.168.1.76:5000/api/session-stats'),
       );
 
       if (response.statusCode == 200) {
@@ -579,32 +580,6 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Center(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LiveFishingScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.sailing_rounded),
-                        label: const Text('🎣 Mode Pêche Live'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 24,
-                          ),
-                          textStyle: const TextStyle(fontSize: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -860,43 +835,100 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                                         'Détails des spots:',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
+                                          fontSize: 16,
                                         ),
                                       ),
-                                      ...fishingSpots
-                                          .take(3)
-                                          .map(
-                                            (spot) => ListTile(
-                                              leading: Icon(
-                                                spot['is_best']
-                                                    ? Icons.star
-                                                    : Icons.location_on,
-                                                color:
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        constraints: BoxConstraints(
+                                          maxHeight:
+                                              MediaQuery.of(
+                                                context,
+                                              ).size.height *
+                                              0.3, // 30% de l'écran
+                                        ),
+                                        child: ListView.separated(
+                                          physics:
+                                              const ClampingScrollPhysics(),
+                                          shrinkWrap: true,
+                                          itemCount:
+                                              fishingSpots.take(3).length,
+                                          separatorBuilder:
+                                              (context, index) =>
+                                                  const Divider(height: 8),
+                                          itemBuilder: (context, index) {
+                                            final spot = fishingSpots[index];
+                                            return Container(
+                                              margin:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 4,
+                                                  ),
+                                              child: ListTile(
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                    ),
+                                                leading: Container(
+                                                  width: 36,
+                                                  height: 36,
+                                                  alignment: Alignment.center,
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        spot['is_best']
+                                                            ? Colors.amber
+                                                                .withOpacity(
+                                                                  0.2,
+                                                                )
+                                                            : Colors.blue
+                                                                .withOpacity(
+                                                                  0.2,
+                                                                ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  child: Icon(
                                                     spot['is_best']
-                                                        ? Colors.amber
-                                                        : Colors.blue,
-                                              ),
-                                              title: Text(
-                                                spot['is_best']
-                                                    ? 'Spot premium'
-                                                    : 'Spot à ${spot['distance'].toStringAsFixed(1)} km',
-                                              ),
-                                              subtitle: Text(
-                                                'Coordonnées: ${spot['latitude'].toStringAsFixed(4)}, '
-                                                '${spot['longitude'].toStringAsFixed(4)}',
-                                                style: const TextStyle(
-                                                  fontSize: 12,
+                                                        ? Icons.star
+                                                        : Icons.location_on,
+                                                    color:
+                                                        spot['is_best']
+                                                            ? Colors.amber
+                                                            : Colors.blue,
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                                title: Text(
+                                                  spot['is_best']
+                                                      ? 'Spot premium'
+                                                      : 'Spot à ${spot['distance'].toStringAsFixed(1)} km',
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                subtitle: Text(
+                                                  '${spot['latitude'].toStringAsFixed(4)}, ${spot['longitude'].toStringAsFixed(4)}',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                trailing: Text(
+                                                  '${spot['distance'].toStringAsFixed(1)} km',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color:
+                                                        Theme.of(
+                                                          context,
+                                                        ).primaryColor,
+                                                  ),
                                                 ),
                                               ),
-                                              trailing: Text(
-                                                '${spot['distance'].toStringAsFixed(1)} km',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
+                                            );
+                                          },
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),

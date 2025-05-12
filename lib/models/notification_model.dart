@@ -22,20 +22,27 @@ class NotificationModel {
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
-  return NotificationModel(
-    id: json['id'] as int? ?? 0,
-    senderId: json['sender_id'] as int? ?? 0,
-    receiverId: int.tryParse(json['receiver_id'].toString()) ?? 0, // Conversion robuste
-    message: json['message'] as String? ?? '',
-    type: json['type'] as String? ?? 'message',
-    conversationId: json['conversation_id'] as int?,
-    groupConversationId: json['group_conversation_id'] as int?,
-    isRead: (json['is_read'] as int?) == 1,
-    createdAt: json['created_at'] != null 
-        ? DateTime.parse(json['created_at'] as String) 
-        : DateTime.now(),
-  );
-}
+    try {
+      return NotificationModel(
+        id: json['id'] as int? ?? 0,
+        senderId: json['sender_id'] as int? ?? 0,
+        receiverId: json['receiver_id'] as int? ?? 0,
+        message: json['message'] as String? ?? 'No message',
+        type: json['type'] as String? ?? 'generic',
+        conversationId: json['conversation_id'] as int?,
+        groupConversationId: json['group_conversation_id'] as int?,
+        isRead: (json['is_read'] as int?) == 1,
+        createdAt:
+            json['created_at'] != null
+                ? DateTime.parse(json['created_at'] as String)
+                : DateTime.now(),
+      );
+    } catch (e) {
+      print('Error parsing NotificationModel: $e');
+      print('Problematic JSON: $json');
+      rethrow;
+    }
+  }
 
   Map<String, dynamic> toJson() {
     return {

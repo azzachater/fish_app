@@ -1,4 +1,3 @@
-import 'package:get/get.dart';
 import 'order_item.dart';
 
 class Order {

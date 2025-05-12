@@ -28,10 +28,7 @@ class EventPage extends StatelessWidget {
         ),
         backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: Colors.white,
-          ), // <-- couleur de l’icône
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         elevation: 3,
@@ -79,96 +76,153 @@ class EventPage extends StatelessWidget {
                   left: BorderSide(color: AppTheme.primaryColor, width: 5),
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.title,
-                      style: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 6),
-                    Row(
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 16,
-                          color: AppTheme.textDark,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                event.title,
+                                style: GoogleFonts.poppins(
+                                  textStyle: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Obx(() {
+                              final currentUser =
+                                  Get.find<UserController>().currentUser.value;
+                              print(
+                                'Current User ID: ${currentUser?.id}, Event User ID: ${event.userId}',
+                              ); // Debug
+                              if (currentUser?.id.toString() ==
+                                  event.userId.toString()) {
+                                return PopupMenuButton<String>(
+                                  icon: Icon(
+                                    Icons.more_vert,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                  onSelected: (value) {
+                                    if (value == 'edit') {
+                                      Get.to(
+                                        () => CreateEventPage(event: event),
+                                      );
+                                    } else if (value == 'delete') {
+                                      _showDeleteDialog(event.id!);
+                                    }
+                                  },
+                                  itemBuilder: (BuildContext context) {
+                                    return [
+                                      PopupMenuItem<String>(
+                                        value: 'edit',
+                                        child: Text('Modifier'),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'delete',
+                                        child: Text(
+                                          'Supprimer',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ];
+                                  },
+                                );
+                              }
+                              return SizedBox.shrink();
+                            }),
+                          ],
                         ),
-                        SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            DateFormat('yyyy-MM-dd').format(event.date),
-                            style: TextStyle(color: AppTheme.textDark),
-                            overflow: TextOverflow.ellipsis,
+                        SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: AppTheme.textDark,
+                            ),
+                            SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                DateFormat('yyyy-MM-dd').format(event.date),
+                                style: TextStyle(color: AppTheme.textDark),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(
+                              Icons.place,
+                              size: 16,
+                              color: AppTheme.textDark,
+                            ),
+                            SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                event.location,
+                                style: TextStyle(color: AppTheme.textDark),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          event.description,
+                          style: GoogleFonts.poppins(
+                            textStyle: TextStyle(color: Colors.grey[800]),
                           ),
                         ),
-                        SizedBox(width: 8),
-                        Icon(Icons.place, size: 16, color: AppTheme.textDark),
-                        SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            event.location,
-                            style: TextStyle(color: AppTheme.textDark),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        SizedBox(height: 10),
+                        _buildParticipantsSection(event),
+                        SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Obx(() {
+                            final currentUser =
+                                Get.find<UserController>().currentUser.value;
+                            final isParticipating = event.participants.any(
+                              (p) => p.user.id == currentUser?.id,
+                            );
+
+                            return ElevatedButton.icon(
+                              onPressed:
+                                  isParticipating
+                                      ? null
+                                      : () =>
+                                          eventController.joinEvent(event.id!),
+                              icon: Icon(Icons.person_add, size: 18),
+                              label: Text(
+                                isParticipating ? 'Déjà inscrit' : 'Rejoindre',
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    isParticipating
+                                        ? Colors.grey
+                                        : AppTheme.primaryColor,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 10,
+                                ),
+                              ),
+                            );
+                          }),
                         ),
                       ],
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      event.description,
-                      style: GoogleFonts.poppins(
-                        textStyle: TextStyle(color: Colors.grey[800]),
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    _buildParticipantsSection(event),
-                    SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Obx(() {
-                        final currentUser =
-                            Get.find<UserController>().currentUser.value;
-                        final isParticipating = event.participants.any(
-                          (p) => p.user.id == currentUser?.id,
-                        );
-
-                        return ElevatedButton.icon(
-                          onPressed:
-                              isParticipating
-                                  ? null
-                                  : () => eventController.joinEvent(index),
-                          icon: Icon(Icons.person_add, size: 18),
-                          label: Text(
-                            isParticipating ? 'Déjà inscrit' : 'Rejoindre',
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                isParticipating
-                                    ? Colors.grey
-                                    : AppTheme.primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           },
@@ -184,16 +238,31 @@ class EventPage extends StatelessWidget {
             child: FloatingActionButton(
               onPressed: () => Get.to(() => CreateEventPage()),
               backgroundColor: AppTheme.primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 6,
-              child: Icon(Icons.add, size: 28),
+              child: const Icon(Icons.add, color: Colors.white),
             ),
           );
         },
       ),
       backgroundColor: AppTheme.lightPrimary,
+    );
+  }
+
+  void _showDeleteDialog(String eventId) {
+    Get.defaultDialog(
+      title: "Confirmer la suppression",
+      middleText: "Voulez-vous vraiment supprimer cet événement?",
+      textConfirm: "Oui",
+      textCancel: "Non",
+      confirmTextColor: Colors.white,
+      onConfirm: () async {
+        try {
+          await Get.find<EventController>().deleteEvent(eventId);
+          Get.back();
+          Get.snackbar('Succès', 'Événement supprimé');
+        } catch (e) {
+          Get.snackbar('Erreur', 'Échec de la suppression: ${e.toString()}');
+        }
+      },
     );
   }
 
