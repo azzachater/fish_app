@@ -1,3 +1,4 @@
+import 'package:fish_app/screens/Authentification/forgot_password_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../widgets/custom_text_field.dart';
@@ -58,7 +59,9 @@ class LoginPage extends StatelessWidget {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/Authentification/login_background.png'),
+                image: AssetImage(
+                  'assets/images/Authentification/login_background.png',
+                ),
                 fit: BoxFit.cover,
               ),
             ),
@@ -85,12 +88,13 @@ class LoginPage extends StatelessWidget {
                     obscureText: false,
                   ),
                   Obx(
-                    () => emailError.value.isNotEmpty
-                        ? Text(
-                            emailError.value,
-                            style: const TextStyle(color: Colors.red),
-                          )
-                        : Container(),
+                    () =>
+                        emailError.value.isNotEmpty
+                            ? Text(
+                              emailError.value,
+                              style: const TextStyle(color: Colors.red),
+                            )
+                            : Container(),
                   ),
                   CustomTextField(
                     label: "Password",
@@ -99,12 +103,13 @@ class LoginPage extends StatelessWidget {
                     obscureText: true,
                   ),
                   Obx(
-                    () => passwordError.value.isNotEmpty
-                        ? Text(
-                            passwordError.value,
-                            style: const TextStyle(color: Colors.red),
-                          )
-                        : Container(),
+                    () =>
+                        passwordError.value.isNotEmpty
+                            ? Text(
+                              passwordError.value,
+                              style: const TextStyle(color: Colors.red),
+                            )
+                            : Container(),
                   ),
                   const SizedBox(height: 20),
                   CustomButton(
@@ -113,6 +118,13 @@ class LoginPage extends StatelessWidget {
                     isPrimary: true,
                   ),
                   const SizedBox(height: 20),
+                  TextButton(
+                    onPressed:
+                        () => Get.to(
+                          () => ForgotPasswordScreen(),
+                        ), // Navigation GetX
+                    child: const Text('Mot de passe oublié ?'),
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

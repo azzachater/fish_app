@@ -7,6 +7,7 @@ class Event {
   final String location;
   final DateTime date;
   List<EventParticipant> participants;
+  final String userId;
 
   Event({
     this.id,
@@ -14,6 +15,7 @@ class Event {
     required this.description,
     required this.location,
     required this.date,
+    required this.userId,
     List<EventParticipant>? participants,
   }) : participants = participants ?? [];
 
@@ -23,10 +25,16 @@ class Event {
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       location: json['location'] ?? '',
-      date: DateTime.parse(json['date'].toString()),
-      participants: (json['participants'] as List?)
-          ?.map((p) => EventParticipant.fromJson(p))
-          .toList() ?? [],
+      date: DateTime.parse(
+        json['date']?.toString() ?? DateTime.now().toString(),
+      ),
+      userId: json['user_id']?.toString() ?? '',
+      participants:
+          (json['participants'] as List?)
+              ?.where((p) => p != null) // Filtre supplémentaire
+              ?.map((p) => EventParticipant.fromJson(p))
+              ?.toList() ??
+          [],
     );
   }
 }
@@ -35,18 +43,20 @@ class EventParticipant {
   final String userId;
   final User user;
 
-  EventParticipant({
-    required this.userId,
-    required this.user,
-  });
+  EventParticipant({required this.userId, required this.user});
 
   factory EventParticipant.fromJson(Map<String, dynamic> json) {
+    // Gestion des cas où json serait null
+    if (json == null) {
+      return EventParticipant(
+        userId: '',
+        user: User.fromJson({'id': 0, 'name': 'Inconnu'}),
+      );
+    }
+
     return EventParticipant(
       userId: json['user_id']?.toString() ?? '',
-      user: User.fromJson({
-        'id': json['user_id'] ?? 0, // Utilise user_id comme fallback
-        ...?json['user'], // Spread operator pour les données user complètes
-      }),
+      user: User.fromJson(json['user'] ?? {'id': json['user_id'] ?? 0}),
     );
   }
 }

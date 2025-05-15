@@ -122,48 +122,49 @@ class ApiProductService {
   }
 
   // Dans ApiProductService
-Future<Product> updateProduct(Product product, {File? imageFile}) async {
-  try {
-    final headers = await _getAuthHeaders();
-    headers.remove('Content-Type');
+  Future<Product> updateProduct(Product product, {File? imageFile}) async {
+    try {
+      final headers = await _getAuthHeaders();
+      headers.remove('Content-Type');
 
-    var request = http.MultipartRequest(
-      'POST', // Ou 'PUT' selon votre API
-      Uri.parse('$baseUrl/products/${product.id}'),
-    );
-    request.headers.addAll(headers);
-
-    request.fields.addAll({
-      'name': product.name,
-      'description': product.description,
-      'price': product.price.toString(),
-      'unit': product.unit,
-      'stock': product.stock.toString(),
-      'category': product.category,
-      '_method': 'PUT', // Si votre API nécessite cette méthode
-    });
-
-    if (imageFile != null) {
-      request.files.add(
-        await http.MultipartFile.fromPath('image', imageFile.path),
+      var request = http.MultipartRequest(
+        'POST', // Ou 'PUT' selon votre API
+        Uri.parse('$baseUrl/products/${product.id}'),
       );
-    }
+      request.headers.addAll(headers);
 
-    final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
+      request.fields.addAll({
+        'name': product.name,
+        'description': product.description,
+        'price': product.price.toString(),
+        'unit': product.unit,
+        'stock': product.stock.toString(),
+        'category': product.category,
+        '_method': 'PUT', // Si votre API nécessite cette méthode
+      });
 
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(responseBody);
-      return Product.fromJson(responseData['data']);
-    } else {
-      throw Exception(_handleError(http.Response(responseBody, response.statusCode)));
+      if (imageFile != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('image', imageFile.path),
+        );
+      }
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(responseBody);
+        return Product.fromJson(responseData['data']);
+      } else {
+        throw Exception(
+          _handleError(http.Response(responseBody, response.statusCode)),
+        );
+      }
+    } catch (e) {
+      print('❌ Error updating product: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('❌ Error updating product: $e');
-    rethrow;
   }
-}
-  
 
   Future<void> deleteProduct(String id) async {
     if (id.isEmpty) {
@@ -202,5 +203,4 @@ Future<Product> updateProduct(Product product, {File? imageFile}) async {
       return 'Something went wrong';
     }
   }
-  
 }

@@ -5,8 +5,8 @@ import 'api_auth_service.dart';
 
 class MapService {
   final ApiAuthService _authService = ApiAuthService();
-  //final String baseUrl = 'http://192.168.3.18:8000/api/spots';
-final String baseUrl = 'http://10.0.2.2:8000/api/spots';
+  final String baseUrl = 'http://10.0.2.2:8000/api/spots';
+
   // Headers for requests
   Map<String, String> get headers => {
     'Accept': 'application/json',
@@ -21,17 +21,17 @@ final String baseUrl = 'http://10.0.2.2:8000/api/spots';
   }
 
   Future<List<Spot>> getAllSpots() async {
-  final response = await http.get(
-    Uri.parse(baseUrl),
-    headers: await _getAuthHeaders(),
-  );
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: await _getAuthHeaders(),
+    );
 
-  if (response.statusCode == 200) {
-    final List<dynamic> data = jsonDecode(response.body);
-    return data.map((json) => Spot.fromJson(json)).toList();
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => Spot.fromJson(json)).toList();
+    }
+    throw Exception('Failed to load spots');
   }
-  throw Exception('Failed to load spots');
-}
 
   Future<bool> addSpot(Spot spot) async {
     try {

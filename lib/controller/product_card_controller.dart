@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fish_app/service/api_marketplace_service.dart';
+import 'package:fish_app/service/api_product_service.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
 import 'package:fish_app/controller/cart_controller.dart';

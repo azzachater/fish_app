@@ -37,7 +37,7 @@ class JournalScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppTheme.primaryColor,
         child: const Icon(
-          Icons.note_add,
+          Icons.add,
           size: 60,
           color: AppTheme.lightPrimary,
         ),
