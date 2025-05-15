@@ -5,7 +5,7 @@ import 'api_auth_service.dart';
 
 class MapService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.52:8000/api/spots';
+  final String baseUrl = 'http://192.168.1.77:8000/api/spots';
 
   // Headers for requests
   Map<String, String> get headers => {
@@ -63,5 +63,21 @@ class MapService {
     } catch (_) {
       return 'Something went wrong';
     }
+  }
+
+  Future<bool> voteOnSpot({
+    required int spotId,
+    required bool isUpvote,
+    required int userId,
+  }) async {
+    final headers =
+        await _getAuthHeaders(); // Utilisez les headers d'authentification
+    final response = await http.post(
+      Uri.parse('$baseUrl/$spotId/vote'),
+      headers: headers,
+      body: jsonEncode({'is_upvote': isUpvote, 'user_id': userId}),
+    );
+
+    return response.statusCode == 200;
   }
 }

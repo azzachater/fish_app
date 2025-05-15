@@ -1,4 +1,4 @@
-import 'package:fish_app/controller/favorite_controller.dart';
+import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
@@ -10,18 +10,20 @@ class FavoriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FavoriteController favoriteController =
-        Get.find<FavoriteController>();
+    final productController = Get.find<ProductController>();
 
     return Obx(() {
-      final isFavorite = favoriteController.favoriteItems.contains(product);
+      final isFavorite = productController.isFavorite(product.id);
       return IconButton(
         onPressed: () {
-          favoriteController.toggleFavorite(product);
+          productController.toggleFavorite(product.id);
+          // Mise à jour immédiate de l'état visuel
+          product.isFavorite = !isFavorite; 
         },
         icon: Icon(
           isFavorite ? Icons.favorite : Icons.favorite_border,
           color: isFavorite ? Colors.red : Colors.grey,
+          size: 24,
         ),
       );
     });

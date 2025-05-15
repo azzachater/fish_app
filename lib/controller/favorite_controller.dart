@@ -2,23 +2,23 @@ import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
 
+// Dans FavoriteController.dart
 class FavoriteController extends GetxController {
-  var favoriteItems = <Product>[].obs;
+  final productController = Get.find<ProductController>();
+  var favorites = <Product>[].obs;
 
-  // Ajouter ou retirer un produit des favoris
-  void toggleFavorite(Product product) {
-    final existingIndex = favoriteItems.indexWhere((p) => p.id == product.id);
+  @override
+  void onReady() {
+    super.onReady();
+    ever(productController.favoriteIds, (_) => _syncFavorites());
+    _syncFavorites();
+  }
 
-    if (existingIndex >= 0) {
-      // Retirer des favoris
-      favoriteItems.removeAt(existingIndex);
-    } else {
-      // Ajouter aux favoris
-      favoriteItems.add(product.copyWith(isFavorite: true));
-    }
-
-    // Mettre à jour l'état du produit dans le ProductController
-    final productController = Get.find<ProductController>();
-    productController.toggleFavorite(product as String);
+  void _syncFavorites() {
+    favorites.assignAll(
+      productController.products.where(
+        (p) => productController.isFavorite(p.id)
+      ).toList()
+    );
   }
 }

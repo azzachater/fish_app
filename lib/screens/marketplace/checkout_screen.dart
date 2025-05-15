@@ -25,16 +25,16 @@ class CheckoutScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor:AppTheme.primaryColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Get.back(),
         ),
         title: const Text(
           "Checkout",
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),

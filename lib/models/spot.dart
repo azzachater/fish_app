@@ -3,12 +3,16 @@ import 'package:latlong2/latlong.dart';
 class Spot {
   final int? id;
   final String name;
-  final LatLng position; // Utilisez LatLng directement
+  final LatLng position;
   final String description;
   final String fishSpecies;
   final String recommendedTechniques;
   final double? depth;
   final double? score;
+  final int upvotes;
+  final int downvotes;
+  final List<String> voterIds;
+  final bool isHidden;
 
   Spot({
     this.id,
@@ -19,7 +23,11 @@ class Spot {
     required this.recommendedTechniques,
     this.depth,
     this.score,
-  });
+    this.upvotes = 0,
+    this.downvotes = 0,
+    List<String>? voterIds,
+    this.isHidden = false,
+  }) : voterIds = voterIds ?? [];
 
   factory Spot.fromJson(Map<String, dynamic> json) {
     return Spot(
@@ -34,6 +42,10 @@ class Spot {
       recommendedTechniques: json['recommended_techniques']?.toString() ?? '',
       depth: _convertToDouble(json['depth']),
       score: _convertToDouble(json['score']),
+      upvotes: (json['upvotes'] ?? 0) as int, // Conversion sécurisée
+      downvotes: (json['downvotes'] ?? 0) as int,
+      voterIds: List<String>.from(json['voter_ids'] ?? []),
+      isHidden: json['is_hidden'] ?? false,
     );
   }
 
@@ -47,13 +59,52 @@ class Spot {
     return {
       if (id != null) 'id': id,
       'name': name,
-      'position' : position,
+      'latitude': position.latitude,
+      'longitude': position.longitude,
       'description': description,
       'fish_species': fishSpecies,
       'recommended_techniques': recommendedTechniques,
       if (depth != null) 'depth': depth,
+      'upvotes': upvotes,
+      'downvotes': downvotes,
+      'voter_ids': voterIds,
+      'is_hidden': isHidden,
     };
   }
 
-  String get displayScore => score != null ? '${(score! * 100).round()}%' : 'N/A';
+  int get voteScore => upvotes - downvotes;
+
+  String get displayScore =>
+      score != null ? '${(score! * 100).round()}%' : 'N/A';
+
+  Spot copyWith({
+    int? id,
+    String? name,
+    LatLng? position,
+    String? description,
+    String? fishSpecies,
+    String? recommendedTechniques,
+    double? depth,
+    double? score,
+    int? upvotes,
+    int? downvotes,
+    List<String>? voterIds,
+    bool? isHidden,
+  }) {
+    return Spot(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      position: position ?? this.position,
+      description: description ?? this.description,
+      fishSpecies: fishSpecies ?? this.fishSpecies,
+      recommendedTechniques:
+          recommendedTechniques ?? this.recommendedTechniques,
+      depth: depth ?? this.depth,
+      score: score ?? this.score,
+      upvotes: upvotes ?? this.upvotes,
+      downvotes: downvotes ?? this.downvotes,
+      voterIds: voterIds ?? this.voterIds,
+      isHidden: isHidden ?? this.isHidden,
+    );
+  }
 }

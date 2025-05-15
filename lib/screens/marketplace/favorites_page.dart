@@ -1,18 +1,25 @@
 import 'package:fish_app/constants/theme.dart';
-import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
+
+ImageProvider _getImageProvider(String imagePath) {
+  if (imagePath.startsWith('http')) {
+    return NetworkImage(imagePath);
+  } else if (imagePath.startsWith('assets/')) {
+    return AssetImage(imagePath);
+  } else {
+    return NetworkImage('http://192.168.1.77:8000/storage/$imagePath');
+  }
+}
 
 class FavoritesPage extends StatelessWidget {
   const FavoritesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final FavoriteController favoriteController =
-        Get.find<FavoriteController>();
-    final ProductController productController = Get.find<ProductController>();
+    final productController = Get.find<ProductController>();
 
     return Scaffold(
       appBar: AppBar(
@@ -32,12 +39,12 @@ class FavoritesPage extends StatelessWidget {
         ),
       ),
       body: Obx(() {
-        // Synchroniser avec les produits favoris actuels
-        favoriteController.favoriteItems.assignAll(
-          productController.products.where((p) => p.isFavorite).toList(),
-        );
+        final favorites =
+            productController.products
+                .where((p) => productController.isFavorite(p.id))
+                .toList();
 
-        return favoriteController.favoriteItems.isEmpty
+        return favorites.isEmpty
             ? _buildEmptyState()
             : GridView.builder(
               padding: const EdgeInsets.all(16),
@@ -47,9 +54,9 @@ class FavoritesPage extends StatelessWidget {
                 mainAxisSpacing: 16,
                 childAspectRatio: 0.75,
               ),
-              itemCount: favoriteController.favoriteItems.length,
+              itemCount: favorites.length,
               itemBuilder: (context, index) {
-                final product = favoriteController.favoriteItems[index];
+                final product = favorites[index];
                 return _buildFavoriteItem(product);
               },
             );
@@ -79,7 +86,7 @@ class FavoritesPage extends StatelessWidget {
   }
 
   Widget _buildFavoriteItem(Product product) {
-    final favoriteController = Get.find<FavoriteController>();
+    final productController = Get.find<ProductController>();
 
     return Card(
       elevation: 2,
@@ -92,7 +99,6 @@ class FavoritesPage extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image du produit
                 Container(
                   height: 120,
                   decoration: BoxDecoration(
@@ -100,12 +106,12 @@ class FavoritesPage extends StatelessWidget {
                       top: Radius.circular(12),
                     ),
                     image: DecorationImage(
-                      image: AssetImage(product.image),
-                      fit: BoxFit.cover,
+                      image: _getImageProvider(
+                        product.image,
+                      ), // Utilisez la méthode helper
                     ),
                   ),
                 ),
-                // Détails du produit
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: Column(
@@ -134,7 +140,6 @@ class FavoritesPage extends StatelessWidget {
                 ),
               ],
             ),
-            // Bouton de suppression
             Positioned(
               top: 8,
               right: 8,
@@ -143,7 +148,7 @@ class FavoritesPage extends StatelessWidget {
                 radius: 16,
                 child: IconButton(
                   icon: const Icon(Icons.favorite, size: 18, color: Colors.red),
-                  onPressed: () => favoriteController.toggleFavorite(product),
+                  onPressed: () => productController.toggleFavorite(product.id),
                   padding: EdgeInsets.zero,
                 ),
               ),

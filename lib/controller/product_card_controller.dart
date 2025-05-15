@@ -1,9 +1,10 @@
 import 'dart:io';
 
-import 'package:fish_app/service/api_marketplace_service.dart';
+import 'package:fish_app/service/api_product_service.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
 import 'package:fish_app/controller/cart_controller.dart';
+import 'package:get_storage/get_storage.dart';
 
 class ProductController extends GetxController {
   var products = <Product>[].obs;
@@ -13,29 +14,37 @@ class ProductController extends GetxController {
   final RxList<String> favoriteIds = <String>[].obs;
 
   final ApiProductService apiService = ApiProductService();
-
+  final storage = GetStorage();
   @override
   void onInit() {
     super.onInit();
+    _loadFavorites();
     fetchProducts();
+  }
+  void _loadFavorites() {
+    final saved = storage.read<List>('favorites');
+    if (saved != null) {
+      favoriteIds.assignAll(saved.cast<String>());
+    }
   }
 
   // Méthode pour récupérer les produits
   Future<void> fetchProducts() async {
     try {
       isLoading(true);
-      error('');
+    error('');
 
-      final List<Product> fetchedProducts = await apiService.getProduct();
+    final List<Product> fetchedProducts = await apiService.getProduct();
+    
+    // Mettre à jour le statut isFavorite pour chaque produit
+    for (var product in fetchedProducts) {
+      product.isFavorite = favoriteIds.contains(product.id);
+    }
 
-      if (fetchedProducts.isEmpty) {
-        Get.snackbar('Info', 'Aucun produit trouvé');
-      }
+    products.assignAll(fetchedProducts);
+    filteredProducts.assignAll(products);
 
-      products.assignAll(fetchedProducts);
-      filteredProducts.assignAll(products);
-
-      print('✅ ${products.length} produits chargés');
+    print('✅ ${products.length} produits chargés');
     } catch (e) {
       error(e.toString());
       Get.snackbar(
@@ -97,29 +106,23 @@ class ProductController extends GetxController {
       );
     }
   }
-
+   List<Product> get favoriteProducts => 
+      products.where((p) => isFavorite(p.id)).toList();
   // Méthode pour ajouter/retirer un favori
   void toggleFavorite(String productId) {
-    try {
-      if (favoriteIds.contains(productId)) {
-        favoriteIds.remove(productId);
-      } else {
-        favoriteIds.add(productId);
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Erreur',
-        'Impossible de mettre à jour les favoris',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+    if (favoriteIds.contains(productId)) {
+      favoriteIds.remove(productId);
+    } else {
+      favoriteIds.add(productId);
     }
+    storage.write('favorites', favoriteIds); // Persist localement
+    update(); // Force le refresh
   }
+  bool isFavorite(String productId) => favoriteIds.contains(productId);
 
   // Récupérer le nombre de favoris
   int get favoriteCount => favoriteIds.length;
 
-  // Vérifier si un produit est favori
-  bool isFavorite(String productId) => favoriteIds.contains(productId);
 
   // Récupérer le nombre d'articles dans le panier
   int get cartCount {
@@ -176,4 +179,5 @@ Future<void> updateProduct(Product product, {File? imageFile}) async {
     isLoading(false);
   }
 }
+
 }

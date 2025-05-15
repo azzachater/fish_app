@@ -144,7 +144,7 @@ class CartPage extends StatelessWidget {
 
   Widget _buildCartItem(Product product, BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(10), // Ajout de padding
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -157,100 +157,117 @@ class CartPage extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Stack(
+        // Utilisation d'un Stack pour positionner l'icône absolument
         children: [
-          // Image du produit - Correction ici
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child:
-                product.image.startsWith('http')
-                    ? Image.network(
-                      product.image,
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                      errorBuilder:
-                          (context, error, stackTrace) => Container(
-                            width: 100,
-                            height: 100,
-                            color: Colors.grey,
-                            child: const Icon(Icons.error),
-                          ),
-                    )
-                    : Image.asset(
-                      product.image,
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
+          Row(
+            children: [
+              // Image du produit
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child:
+                    product.image.startsWith('http')
+                        ? Image.network(
+                          product.image,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (context, error, stackTrace) => Container(
+                                width: 100,
+                                height: 100,
+                                color: Colors.grey,
+                                child: const Icon(Icons.error),
+                              ),
+                        )
+                        : Image.asset(
+                          product.image,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+              ),
+              const SizedBox(width: 15),
+
+              // Détails du produit
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-          ),
-          const SizedBox(width: 15),
+                    const SizedBox(height: 5),
+                    Text(
+                      "\$${product.price.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-          // Détails du produit
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                  maxLines: 1, // Empêche le débordement de texte
-                  overflow: TextOverflow.ellipsis,
+              // Contrôle de quantité
+              Container(
+                constraints: const BoxConstraints(maxWidth: 120),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  "\$${product.price.toStringAsFixed(2)}",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove, size: 18),
+                      onPressed: () async {
+                        if (product.quantity > 1) {
+                          await cartController.updateCartItem(
+                            product,
+                            product.quantity - 1,
+                          );
+                        } else {
+                          await cartController.removeFromCart(product);
+                        }
+                      },
+                    ),
+                    Text(
+                      "${product.quantity}",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add, size: 18),
+                      onPressed: () async {
+                        await cartController.updateCartItem(
+                          product,
+                          product.quantity + 1,
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
 
-          // Contrôle de quantité - Correction du débordement ici
-          // Contrôle de quantité - Version corrigée
-          Container(
-            constraints: BoxConstraints(maxWidth: 120),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove, size: 18),
-                  onPressed: () async {
-                    if (product.quantity > 1) {
-                      await cartController.updateCartItem(
-                        product,
-                        product.quantity - 1,
-                      );
-                    } else {
-                      await cartController.removeFromCart(product);
-                    }
-                  },
-                ),
-                Text(
-                  "${product.quantity}",
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add, size: 18),
-                  onPressed: () async {
-                    await cartController.updateCartItem(
-                      product,
-                      product.quantity + 1,
-                    );
-                  },
-                ),
-              ],
+          // Bouton de suppression positionné absolument
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: const Icon(Icons.close, size: 20),
+              color: Colors.grey.shade600,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              onPressed: () => cartController.removeFromCart(product),
             ),
           ),
         ],

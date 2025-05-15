@@ -1,5 +1,6 @@
 // cart_controller.dart
 import 'package:fish_app/screens/marketplace/payment_success_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/models/product.dart';
 import 'package:fish_app/service/api_cart_service.dart';
@@ -73,12 +74,37 @@ class CartController extends GetxController {
 
   Future<void> removeFromCart(Product product) async {
     try {
-      final success = await _cartService.removeFromCart(product);
-      if (success) {
-        cartItems.removeWhere((p) => p.id == product.id);
+      isLoading(true);
+      // Suppression optimiste (retire d'abord de la liste visuelle)
+      cartItems.removeWhere((p) => p.id == product.id);
+
+      final success = await _cartService.removeFromCart(product.id.toString());
+
+      if (!success) {
+        // Si échec, remet le produit dans la liste
+        cartItems.add(product);
+        throw Exception('Failed to remove from server');
       }
+
+      Get.snackbar(
+        'Success',
+        'Product removed from cart',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
     } catch (e) {
-      Get.snackbar('Error', 'Failed to remove product');
+      Get.snackbar(
+        'Error',
+        'Failed to remove product: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+      // Réajouter le produit si erreur
+      if (!cartItems.any((p) => p.id == product.id)) {
+        cartItems.add(product);
+      }
+    } finally {
+      isLoading(false);
     }
   }
 
@@ -101,19 +127,55 @@ class CartController extends GetxController {
     }
   }
 
-  Future<Map<String, dynamic>> checkStock(String productId, int quantity) async {
-  try {
-    final stockData = await _cartService.checkStock(productId, quantity);
-    return stockData;
-  } catch (e) {
-    Get.snackbar('Error', 'Could not verify stock availability');
-    return {'available': false, 'current_stock': 0};
+  Future<Map<String, dynamic>> checkStock(
+    String productId,
+    int quantity,
+  ) async {
+    try {
+      // Log de début
+      debugPrint('🔄 Checking stock for product $productId (qty: $quantity)');
+
+      final stockData = await _cartService.checkStock(productId, quantity);
+
+      // Log de réussite
+      debugPrint(
+        '✅ Stock check successful - Available: ${stockData['available']}, Current stock: ${stockData['current_stock']}',
+      );
+
+      return stockData;
+    } catch (e, stackTrace) {
+      // Log d'erreur complet dans le terminal
+      debugPrint('❌ Stock check ERROR for product $productId');
+      debugPrint('Error type: ${e.runtimeType}');
+      debugPrint('Error message: $e');
+      debugPrint('Stack trace: $stackTrace');
+
+      return {'available': false, 'current_stock': 0, 'error': e.toString()};
+    }
   }
-}
 
   Future<void> placeOrder() async {
     try {
       isLoading(true);
+
+      // Vérification finale des stocks avant paiement
+      for (var product in cartItems) {
+        final stockCheck = await _cartService.checkStock(
+          product.id.toString(),
+          product.quantity,
+        );
+
+        if (!stockCheck['available']) {
+          Get.snackbar(
+            'Stock insuffisant',
+            '${product.name} - Il ne reste que ${stockCheck['current_stock']} unité(s)',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          isLoading(false);
+          return;
+        }
+      }
+
       final response = await _cartService.placeOrder(
         phone: checkoutPhone.value,
         address: checkoutAddress.value,
@@ -125,7 +187,11 @@ class CartController extends GetxController {
         clearCart();
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to place order: ${e.toString()}');
+      Get.snackbar(
+        'Error',
+        'Failed to place order: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading(false);
     }

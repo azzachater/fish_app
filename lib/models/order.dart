@@ -2,10 +2,11 @@ import 'order_item.dart';
 
 class Order {
   final int id;
-  final int buyerId;
+  // ignore: non_constant_identifier_names
+  final int buyer_id;
   final String status;
   final String paymentMethod;
-  final String shippingAddress;
+  final String address;
   final String phone;
   final double total;
   final DateTime? createdAt;
@@ -13,10 +14,11 @@ class Order {
 
   Order({
     required this.id,
-    required this.buyerId,
+    // ignore: non_constant_identifier_names
+    required this.buyer_id,
     this.status = 'pending',
     required this.paymentMethod,
-    required this.shippingAddress,
+    required this.address,
     required this.phone,
     required this.total,
     this.createdAt,
@@ -24,20 +26,42 @@ class Order {
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
-    return Order(
-      id: json['id'] as int,
-      buyerId: json['buyer_id'] as int,
-      status: json['status'] as String? ?? 'pending',
-      paymentMethod: json['payment_method'] as String,
-      shippingAddress: json['shipping_address'] as String,
-      phone: json['phone'] as String,
-      total: (json['total'] as num).toDouble(),
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at'] as String)
-          : null,
-      items: (json['items'] as List<dynamic>)
-          .map((item) => OrderItem.fromJson(item))
-          .toList(),
-    );
+  double parseTotal(dynamic totalValue) {
+    if (totalValue is String) {
+      return double.tryParse(totalValue) ?? 0.0;
+    } else if (totalValue is num) {
+      return totalValue.toDouble();
+    } else {
+      return 0.0;
+    }
   }
+
+  String parseString(dynamic value) {
+    if (value == null) {
+      return '';
+    } else if (value is String) {
+      return value;
+    } else {
+      return value.toString();
+    }
+  }
+
+  return Order(
+    id: json['id'] as int,
+    buyer_id: json['buyer_id'] as int,
+    status: parseString(json['status']).isNotEmpty ? parseString(json['status']) : 'pending',
+    paymentMethod: parseString(json['payment_method']),
+    address: parseString(json['address']),
+    phone: parseString(json['phone']),
+    total: parseTotal(json['total']),
+    createdAt: json['created_at'] != null 
+        ? DateTime.tryParse(json['created_at'] as String) 
+        : null,
+    items: (json['items'] as List<dynamic>?)
+        ?.map((item) => OrderItem.fromJson(item))
+        .toList() ?? [],
+  );
+}
+
+
 }
