@@ -1,32 +1,28 @@
+import 'dart:convert';
 import 'package:get/get.dart';
+import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 import '../../models/message_model.dart';
 import '../../models/conversation_model.dart';
 import '../../models/user_model.dart';
 import '../../services/api_chat_service.dart';
 import '../../services/api_user_service.dart';
-import '../../service/api_auth_service.dart';
-import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-
+import '../../services/api_push_notif_service.dart';
 
 class ChatController extends GetxController {
   final ApiChatService _apiChatService = ApiChatService();
   final ApiUserService _apiUserService = ApiUserService();
-  final ApiAuthService _apiAuthService = ApiAuthService();
+  final PusherService _pusherService = Get.find<PusherService>();
 
-  var conversations = <Conversation>[].obs;
-  var conversationMessages = <Message>[].obs;
-  var filteredUsers = <User>[].obs;
-  var currentUser = Rxn<User>();
-  var isLoading = false.obs;
-  var allUsers = <User>[].obs;
-  var unreadCounts = <int, int>{}.obs;
-  RxInt currentConversationId = 0.obs;
-  Map<int, String> activeChannels = {};  // Suivi des canaux actifs
-
-
-  late PusherChannelsFlutter pusher;
+  // Observables
+  final RxList<Conversation> conversations = <Conversation>[].obs;
+  final RxList<Message> conversationMessages = <Message>[].obs;
+  final RxList<User> filteredUsers = <User>[].obs;
+  final Rxn<User> currentUser = Rxn<User>();
+  final RxBool isLoading = false.obs;
+  final RxList<User> allUsers = <User>[].obs;
+  final RxMap<int, int> unreadCounts = <int, int>{}.obs;
+  final RxInt currentConversationId = 0.obs;
+  final Map<int, String> _activeChannels = {};
 
   @override
   void onInit() {
@@ -34,137 +30,99 @@ class ChatController extends GetxController {
     loadCurrentUser();
     loadAllUsers();
     loadConversations();
-    initPusher(); // <-- ici
+    _setupPusher();
   }
 
-   // Initialisation de Pusher
-  Future<void> initPusher() async {
-    pusher = PusherChannelsFlutter.getInstance();
-
-    await pusher.init(
-      apiKey: '2798f826b9ce70d037b5',
-      cluster: 'eu',
-      authEndpoint: 'http://10.0.2.2:8000/api/broadcasting/auth',
-      onAuthorizer: (channelName, socketId, options) async {
-        return await buildChannelAuthorizer(channelName, socketId);
-      },
-      onConnectionStateChange: (currentState, previousState) {
-        print("🔌 Connexion: $previousState => $currentState");
-      },
-      onError: (message, code, exception) {
-        print("❌ Erreur: $message");
-      },
-    );
-
-    await pusher.connect();
+  @override
+  void onClose() {
+    _cleanupPusher();
+    super.onClose();
   }
 
-  // Authentificateur de canal privé
-  Future<String> buildChannelAuthorizer(String channelName, String socketId) async {
-    final token = await _apiAuthService.getToken();
-    final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/api/broadcasting/auth'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode({
-        'channel_name': channelName,
-        'socket_id': socketId,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      return response.body;
-    } else {
-      throw Exception('Erreur d’authentification : ${response.statusCode}');
-    }
+  void _setupPusher() {
+    _pusherService.addEventHandler('chat_events', _handlePusherEvent);
   }
 
-  // Souscrire au canal de conversation
-  Future<void> subscribeToConversationChannel(int conversationId) async {
-    //String channel = 'private-chat.chat.$conversationId';
-    currentConversationId.value = conversationId;
-    await pusher.subscribe(channelName: 'private-chat.chat.$conversationId');
-
-  pusher.onEvent = (PusherEvent event) {
-  print("📡 [onEvent] ${event.channelName} - ${event.eventName}: ${event.data}");
-
-  if (event.eventName == 'new-message' && event.data != null) {
-    final data = jsonDecode(event.data!);
-
-    final newMessage = Message(
-      id: data['id'],
-      content: data['content'],
-      createdAt: DateTime.parse(data['created_at']),
-      sender: User(
-        id: data['sender_id'],
-        name: 'Unknown', // Récupère le nom si disponible
-        email: '',
-        avatar: '',
-        bio: '',
-      ),
-      isRead: false,
-    );
-
-    if (currentConversationId.value == data['conversation_id'] &&
-        !conversationMessages.any((m) => m.id == newMessage.id)) {
-      conversationMessages.insert(0, newMessage);
-    }
-  }
-};
-
+  void _cleanupPusher() {
+    _pusherService.removeEventHandler('chat_events');
+    // Désabonner de tous les canaux actifs
+    _activeChannels.forEach((conversationId, channel) async {
+      await _pusherService.unsubscribeFromChannel(channel);
+    });
   }
 
- /* // Gestion des événements Pusher
   void _handlePusherEvent(PusherEvent event) {
-    print('📡 [onEvent] ${event.channelName} - ${event.eventName} => ${event.data}');
+    print('📡 [Chat] Event received [${event.channelName}] - ${event.eventName}');
+    
+    if (event.eventName == 'new-message' && 
+        event.channelName.startsWith('private-chat.chat.') &&
+        event.data != null) {
+      try {
+        final data = jsonDecode(event.data!);
+        
+        final newMessage = Message(
+          id: data['id'],
+          content: data['content'],
+          createdAt: DateTime.parse(data['created_at']),
+          sender: User(
+            id: data['sender_id'],
+            name: 'Unknown',
+            email: '',
+            avatar: '',
+            bio: '',
+          ),
+          isRead: false,
+        );
 
-    if (event.eventName == 'new-message' && event.data != null) {
-      final data = jsonDecode(event.data!);
-
-      final newMessage = Message(
-        id: data['id'],
-        content: data['content'],
-        createdAt: DateTime.parse(data['created_at']),
-        sender: User(
-          id: data['sender_id'],
-          name: 'Unknown', // Tu peux récupérer le nom si dispo
-          email: '',
-          avatar: '',
-          bio: '',
-        ),
-        isRead: false,
-      );
-
-      if (currentConversationId.value == data['conversation_id'] &&
-          !conversationMessages.any((m) => m.id == newMessage.id)) {
-        conversationMessages.insert(0, newMessage);
+        if (currentConversationId.value == data['conversation_id'] &&
+            !conversationMessages.any((m) => m.id == newMessage.id)) {
+          conversationMessages.insert(0, newMessage);
+        }
+      } catch (e) {
+        print('❌ Error processing message: $e');
       }
     }
   }
-*/
-  // Envoyer un message
+
+  Future<void> subscribeToConversationChannel(int conversationId) async {
+    final channelName = 'private-chat.chat.$conversationId';
+    currentConversationId.value = conversationId;
+    
+    if (_activeChannels[conversationId] == channelName) {
+      return;
+    }
+
+    try {
+      // Désabonner de l'ancien canal si existe
+      if (_activeChannels.containsKey(conversationId)) {
+        await _pusherService.unsubscribeFromChannel(_activeChannels[conversationId]!);
+        _activeChannels.remove(conversationId);
+      }
+
+      await _pusherService.subscribeToChannel(channelName);
+      _activeChannels[conversationId] = channelName;
+    } catch (e) {
+      print('❌ Error subscribing to conversation channel: $e');
+    }
+  }
+
   Future<void> sendMessage(String content, int receiverId) async {
     try {
       isLoading(true);
-
       final response = await _apiChatService.sendMessage(receiverId, content);
 
       if (response.containsKey('data')) {
-        //conversationMessages.insert(0, serverMessage);
         await loadConversations();
       }
     } catch (e) {
-      print('❌ Erreur lors de l\'envoi du message: $e');
-      Get.snackbar('Erreur', 'Échec de l\'envoi du message');
+      print('❌ Error sending message: $e');
+      Get.snackbar('Error', 'Failed to send message');
     } finally {
       isLoading(false);
     }
   }
 
-  //reste de code 
+  // ... (les autres méthodes restent inchangées)
   
   List<Conversation> get sortedConversations {
     return conversations.toList()
@@ -209,43 +167,39 @@ class ChatController extends GetxController {
   }
 
   Future<void> loadConversations() async {
-  try {
-    isLoading(true);
-    final data = await _apiChatService.getMyConversations();
+    try {
+      isLoading(true);
+      final data = await _apiChatService.getMyConversations();
 
-    print("✅ Raw data type: ${data.runtimeType}");
-    print("✅ Data content: $data");
+      conversations.assignAll(data.map((json) {
+        try {
+          return Conversation.fromJson(json is Map ? Map<String, dynamic>.from(json) : {});
+        } catch (e) {
+          print('❌ Error parsing conversation: $e');
+          return Conversation(
+            id: 0,
+            userOne: User.empty(),
+            userTwo: User.empty(),
+          );
+        }
+      }).where((conv) => conv.id != 0).toList());
 
-    conversations.assignAll(data.map((json) {
-      try {
-        return Conversation.fromJson(json is Map ? Map<String, dynamic>.from(json) : {});
-      } catch (e) {
-        print('❌ Error parsing individual conversation: $e');
-        return Conversation(
-          id: 0,
-          userOne: User.empty(),
-          userTwo: User.empty(),
-        );
+      for (var conv in conversations) {
+        unreadCounts[conv.id] = conv.unreadCount;
       }
-    }).where((conv) => conv.id != 0).toList());
-
-    for (var conv in conversations) {
-      unreadCounts[conv.id] = conv.unreadCount;
-    }
     } catch (e) {
-    print('❌ Detailed error: $e');
-    print('❌ Stack trace: ${e is Error ? e.stackTrace : ''}');
-    Get.snackbar('Error', 'Failed to load conversations: ${e.toString()}');
-  } finally {
-    isLoading(false);
+      print('❌ Error loading conversations: $e');
+      Get.snackbar('Error', 'Failed to load conversations');
+    } finally {
+      isLoading(false);
+    }
   }
-}
+
   Future<void> loadMessages(int conversationId) async {
     try {
       isLoading(true);
       conversationMessages.clear();
       
-      // Marquer comme lus avant de charger
       await _markMessagesAsRead(conversationId);
       
       final json = await _apiChatService.getMessages(conversationId);
@@ -272,7 +226,6 @@ class ChatController extends GetxController {
       await _apiChatService.markMessagesAsRead(conversationId);
       unreadCounts[conversationId] = 0;
       
-      // Mise à jour locale
       for (var msg in conversationMessages) {
         if (msg.sender.id != currentUser.value?.id) {
           msg.isRead = true;
@@ -282,8 +235,6 @@ class ChatController extends GetxController {
       print('Error marking messages as read: $e');
     }
   }
-
-  
 
   void filterUsers(String query) {
     if (query.isEmpty) {
@@ -306,7 +257,4 @@ class ChatController extends GetxController {
   int getUnreadCountForConversation(int conversationId) {
     return unreadCounts[conversationId] ?? 0;
   }
-
-  
 }
-

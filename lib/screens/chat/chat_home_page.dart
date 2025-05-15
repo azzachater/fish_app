@@ -7,7 +7,6 @@ import 'search_users_page.dart';
 import 'create_search_group.dart';
 import '../../widgets/chat/my_tab_bar.dart';
 import '../../controllers/tab_bar_controller.dart'; // Import du contrôleur
-import '../../services/api_push_notif_service.dart';
 
 
 class ChatHomePage extends StatelessWidget {
@@ -22,7 +21,6 @@ class ChatHomePage extends StatelessWidget {
         backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
   onPressed: () async {
-   await PusherService.to.connect(); // si nécessaire
     Get.back(); // reviens sans détruire MainScreen
   },
   icon: Icon(Icons.arrow_back, color:Colors.white),

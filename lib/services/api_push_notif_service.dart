@@ -14,6 +14,7 @@ class PusherService extends GetxService {
 
   final PusherChannelsFlutter _pusher = PusherChannelsFlutter.getInstance();
   final ApiAuthService _authService = ApiAuthService();
+  final Map<String, Function(PusherEvent)> _eventHandlers = {};
 
   bool _isConnected = false;
   bool _isInitialized = false;
@@ -50,10 +51,8 @@ class PusherService extends GetxService {
           }
         },
       );
-      
-      // Configurer le handler d'événements après l'initialisation
+
       _pusher.onEvent = _handlePusherEvent;
-      
       print('🟢 Initialisation de Pusher terminée avec succès');
     } catch (e) {
       print('❌ Erreur initialisation Pusher: $e');
@@ -61,6 +60,133 @@ class PusherService extends GetxService {
         print('Détails: ${e.message}, Code: ${e.code}');
       }
       rethrow;
+    }
+  }
+
+  void addEventHandler(String handlerName, Function(PusherEvent) handler) {
+    _eventHandlers[handlerName] = handler;
+  }
+
+  void removeEventHandler(String handlerName) {
+    _eventHandlers.remove(handlerName);
+  }
+
+  Future<void> connect() async {
+    try {
+      final userController = Get.find<UserController>();
+      await userController.fetchCurrentUser();
+      final currentUser = userController.currentUser.value;
+
+      if (currentUser == null) {
+        print('⛔ Aucun utilisateur connecté');
+        return;
+      }
+
+      if (_pusher.connectionState == "CONNECTED") return;
+
+      print('🔌 Connexion au serveur Pusher...');
+      await _pusher.connect();
+      await Future.delayed(Duration(seconds: 1));
+      _isConnected = true;
+
+      final privateChannel = 'private-notifications.${currentUser.id}';
+      await subscribeToChannel(privateChannel);
+    } catch (e) {
+      print('❌ Erreur connexion Pusher: $e');
+      _isConnected = false;
+      Future.delayed(Duration(seconds: 5), () => connect());
+    }
+  }
+
+  Future<void> subscribeToChannel(String channelName) async {
+    try {
+      if (_pusher.getChannel(channelName) != null) {
+        print('ℹ️ Déjà abonné au canal $channelName');
+        return;
+      }
+
+      print('🔄 Abonnement au canal $channelName');
+      await _pusher.subscribe(channelName: channelName);
+      _currentChannel = channelName;
+      _isConnected = true;
+      print('✅ Abonnement réussi à $channelName');
+    } catch (e) {
+      print('❌ Erreur lors de l\'abonnement à $channelName: $e');
+      throw e;
+    }
+  }
+
+  Future<void> unsubscribeFromChannel(String channelName) async {
+    try {
+      await _pusher.unsubscribe(channelName: channelName);
+      if (_currentChannel == channelName) {
+        _currentChannel = null;
+      }
+      print('✅ Désabonnement réussi de $channelName');
+    } catch (e) {
+      print('❌ Erreur lors du désabonnement de $channelName: $e');
+    }
+  }
+
+  void _handlePusherEvent(PusherEvent event) {
+    try {
+      print("\n🔔 Événement reçu [${event.channelName}]");
+      print("🔖 Nom de l'événement: ${event.eventName}");
+      print("📦 Type de données: ${event.data.runtimeType}");
+      print("📝 Données brutes: ${event.data}");
+
+      // Appeler tous les handlers enregistrés
+      _eventHandlers.forEach((name, handler) {
+        handler(event);
+      });
+
+      // Traitement spécifique des notifications
+      if (event.eventName == 'new-message-notification' && event.data != null) {
+        _handleNewNotification(event.data!);
+      }
+    } catch (e) {
+      print('❌ Erreur dans _handlePusherEvent: $e');
+    }
+  }
+
+  void _handleNewNotification(String eventData) {
+    try {
+      final data = jsonDecode(eventData);
+      final notifController = Get.find<NotificationController>();
+
+      final receiverId = int.tryParse(data['receiver_id'].toString()) ?? 0;
+
+      final notification = NotificationModel(
+        id: data['id'] ?? 0,
+        senderId: data['sender_id'] ?? 0,
+        receiverId: receiverId,
+        message: data['message'] ?? 'Nouveau message',
+        type: data['type'] ?? 'message',
+        conversationId: data['conversation_id'],
+        groupConversationId: data['group_conversation_id'],
+        isRead: data['is_read'] == 1,
+        createdAt: data['created_at'] != null
+            ? DateTime.parse(data['created_at'])
+            : DateTime.now(),
+      );
+
+      notifController.addNotification(notification);
+
+      Future.delayed(Duration(milliseconds: 500), () {
+        Get.rawSnackbar(
+          title: 'Nouvelle notification',
+          message: notification.message,
+          snackPosition: SnackPosition.TOP,
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.green[400] ?? Colors.green,
+          borderRadius: 10,
+          margin: EdgeInsets.all(10),
+        );
+      });
+    } catch (e) {
+      print('❌ Erreur traitement notification: $e');
+      print('Données reçues: ${eventData}');
+      print('Stack trace: ${StackTrace.current}');
     }
   }
 
@@ -85,8 +211,6 @@ class PusherService extends GetxService {
 
       if (response.statusCode == 200) {
         print('📦 Réponse de l\'authorizer: ${response.bodyString}');
-        
-        // Retourner directement la réponse JSON décodée
         final authResponse = jsonDecode(response.bodyString!);
         return authResponse.cast<String, String>();
       } else {
@@ -103,7 +227,6 @@ class PusherService extends GetxService {
     _isConnected = currentState == 'CONNECTED';
 
     if (_isConnected && _currentChannel != null) {
-      // Réessayer de s'abonner si on se reconnecte
       subscribeToChannel(_currentChannel!);
     }
 
@@ -119,113 +242,6 @@ class PusherService extends GetxService {
       print("Détails: $e");
     }
   }
-
-  Future<void> connect() async {
-    try {
-      final userController = Get.find<UserController>();
-      await userController.fetchCurrentUser();
-      final currentUser = userController.currentUser.value;
-
-      if (currentUser == null) {
-        print('⛔ Aucun utilisateur connecté');
-        return;
-      }
-
-      if (_pusher.connectionState != "CONNECTED") {
-        print('🔌 Connexion au serveur Pusher...');
-        await _pusher.connect();
-        await Future.delayed(Duration(seconds: 1));
-      }
-
-      final privateChannel = 'private-notifications.${currentUser.id}';
-      await subscribeToChannel(privateChannel);
-
-    } catch (e) {
-      print('❌ Erreur connexion Pusher: $e');
-      _isConnected = false;
-      Future.delayed(Duration(seconds: 5), () => connect());
-    }
-  }
-
-  Future<void> subscribeToChannel(String channelName) async {
-    try {
-      if (_pusher.getChannel(channelName) != null) {
-        print('ℹ️ Déjà abonné au canal $channelName');
-        return;
-      }
-
-      print('🔄 Abonnement au canal $channelName');
-      await _pusher.subscribe(channelName: channelName);
-      _currentChannel = channelName;
-      _isConnected = true;
-      
-      print('✅ Abonnement réussi à $channelName');
-    } catch (e) {
-      print('❌ Erreur lors de l\'abonnement à $channelName: $e');
-      throw e;
-    }
-  }
-
-  void _handlePusherEvent(PusherEvent event) {
-    try {
-      print("\n🔔 Événement reçu [${event.channelName}]");
-      print("🔖 Nom de l'événement: ${event.eventName}");
-      print("📦 Type de données: ${event.data.runtimeType}");
-      print("📝 Données brutes: ${event.data}");
-
-      if (event.eventName == 'new-message-notification' && event.data != null) {
-        _handleNewNotification(event.data!);
-      }
-    } catch (e) {
-      print('❌ Erreur dans _handlePusherEvent: $e');
-    }
-  }
-
-  void _handleNewNotification(String eventData) {
-  try {
-    final data = jsonDecode(eventData);
-    final notifController = Get.find<NotificationController>();
-
-    // Conversion sécurisée du receiver_id
-    final receiverId = int.tryParse(data['receiver_id'].toString()) ?? 0;
-
-    final notification = NotificationModel(
-      id: data['id'] ?? 0,
-      senderId: data['sender_id'] ?? 0,
-      receiverId: receiverId, // Utilisez la valeur convertie
-      message: data['message'] ?? 'Nouveau message',
-      type: data['type'] ?? 'message',
-      conversationId: data['conversation_id'],
-      groupConversationId: data['group_conversation_id'],
-      isRead: data['is_read'] == 1,
-      createdAt: data['created_at'] != null
-          ? DateTime.parse(data['created_at'])
-          : DateTime.now(),
-    );
-
-    //notifController.notifications.insert(0, notification);
-    notifController.addNotification(notification);
-
-
-    Future.delayed(Duration(milliseconds: 500), () {
-  Get.rawSnackbar(
-    title: 'Nouvelle notification',
-    message: notification.message,
-    snackPosition: SnackPosition.TOP,
-    duration: Duration(seconds: 3),
-    backgroundColor: Colors.green[400] ?? Colors.green,
-    borderRadius: 10,
-    margin: EdgeInsets.all(10),
-  );
-});
-
-
-  } catch (e) {
-    print('❌ Erreur traitement notification: $e');
-    print('Données reçues: ${eventData}');
-    print('Stack trace: ${StackTrace.current}');
-  }
-}
 
   Future<void> disconnect() async {
     try {
@@ -245,4 +261,8 @@ class PusherService extends GetxService {
     disconnect();
     super.onClose();
   }
+
+  // Méthodes utilitaires
+  String? getCurrentChannel() => _currentChannel;
+  bool isConnected() => _isConnected;
 }

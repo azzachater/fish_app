@@ -1,19 +1,19 @@
-import 'package:fish_app/service/api_auth_service.dart';
-import 'package:get/get.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 import '../../models/user_model.dart';
 import '../../models/group_message_model.dart';
 import '../../models/group_conversation_model.dart';
 import '../services/api_groupChat_service.dart';
 import '../controllers/user_controller.dart';
-import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../../services/api_push_notif_service.dart';
 
 class GroupChatController extends GetxController {
   final ApiGroupChatService _apiGroupChatService = ApiGroupChatService();
   final UserController _userController = Get.find<UserController>();
-  final ApiAuthService _apiAuthService = ApiAuthService();
+  final PusherService _pusherService = Get.find<PusherService>();
 
   // Observables
   final RxList<User> selectedUsers = <User>[].obs;
@@ -24,8 +24,6 @@ class GroupChatController extends GetxController {
 
   // Unread counts
   final RxMap<int, int> unreadCounts = <int, int>{}.obs;
-
-  late PusherChannelsFlutter pusher;
   RxInt currentGroupId = 0.obs;
   final Map<int, String> _activeChannels = {};
 
@@ -36,179 +34,112 @@ class GroupChatController extends GetxController {
   User get currentUser => _userController.currentUser.value!;
   
   List<GroupConversation> get filteredGroups {
-    final sorted = allGroups.toList()
-      ..sort((a, b) {
-        final aLast = a.messages.isNotEmpty ? a.messages.last.createdAt : DateTime.fromMillisecondsSinceEpoch(0);
-        final bLast = b.messages.isNotEmpty ? b.messages.last.createdAt : DateTime.fromMillisecondsSinceEpoch(0);
-        return bLast.compareTo(aLast);
-      });
-    return sorted.take(3).toList();
+    final groups = allGroups.toList();
+    groups.sort((a, b) {
+      final aLast = a.messages.isNotEmpty ? a.messages.last.createdAt : DateTime.fromMillisecondsSinceEpoch(0);
+      final bLast = b.messages.isNotEmpty ? b.messages.last.createdAt : DateTime.fromMillisecondsSinceEpoch(0);
+      return bLast.compareTo(aLast);
+    });
+    return groups.take(3).toList();
   }
 
   @override
   void onInit() {
     super.onInit();
     _initializeData();
-    initPusher();
+    _setupPusher();
   }
 
   @override
   void onClose() {
     searchController.dispose();
-    disconnectPusher();
+    _cleanupPusher();
     super.onClose();
   }
 
-  Future<void> initPusher() async {
-    pusher = PusherChannelsFlutter.getInstance();
-
-    try {
-      await pusher.init(
-        apiKey: '2798f826b9ce70d037b5',
-        cluster: 'eu',
-        authEndpoint: 'http://10.0.2.2:8000/api/broadcasting/auth',
-        onAuthorizer: (channelName, socketId, options) async {
-          return await _buildChannelAuthorizer(channelName, socketId);
-        },
-        onConnectionStateChange: (current, previous) {
-          debugPrint("🔌 Pusher Group: $previous ➜ $current");
-        },
-        onError: (message, code, exception) {
-          debugPrint("❌ Pusher Error: $message (code: $code)");
-          if (exception != null) debugPrint("Exception: $exception");
-        },
-      );
-
-      pusher.onEvent = _handlePusherEvent;
-      await pusher.connect();
-      debugPrint("🟢 Pusher connecté avec succès");
-    } catch (e) {
-      debugPrint("❌ Erreur d'initialisation Pusher: $e");
-    }
+  void _setupPusher() {
+    _pusherService.addEventHandler('group_chat_events', _handlePusherEvent);
   }
 
-  // Authentification du canal privé
-  Future<Map<String, dynamic>> _buildChannelAuthorizer(String channelName, String socketId) async {
-    debugPrint("🛂 Channel: $channelName, Socket: $socketId");
-    try {
-      final token = await _apiAuthService.getToken();
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/broadcasting/auth'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'channel_name': channelName,
-          'socket_id': socketId,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Erreur auth : ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint("❌ Erreur d'authentification: $e");
-      rethrow;
-    }
+  void _cleanupPusher() {
+    _pusherService.removeEventHandler('group_chat_events');
+    // Désabonner de tous les canaux actifs
+    _activeChannels.forEach((groupId, channel) async {
+      await _pusherService.unsubscribeFromChannel(channel);
+    });
   }
 
-  // Gérer les événements Pusher
   void _handlePusherEvent(PusherEvent event) {
-  debugPrint('📡 [onEvent] ${event.channelName} - ${event.eventName}');
-  debugPrint('Data received: ${event.data}'); // Ajouté pour le débogage
-  
-  if (event.eventName == 'new-group-message' &&
-      event.channelName.startsWith('private-group.group.') == true &&
-      event.data != null) {
-    try {
-      final data = jsonDecode(event.data!);
-      debugPrint('Decoded data: $data'); // Pour voir la structure exacte
-      
-      // Vérification complète des données requises
-      if (data['group_conversation_id'] == null || data['id'] == null) {
-        debugPrint('❌ Données manquantes dans le message');
-        return;
-      }
-
-      final newMessage = GroupMessage(
-        id: data['id'],
-        content: data['content'] ?? '',
-      senderId: data['sender']['id'],
-        sender: User(
-          id: data['sender']['id'],
-          name: data['sender']['name'] ?? 'Inconnu',
-          avatar: data['sender']['avatar'] ?? '', email: '', bio: '',
-        ),
-        groupConversationId: data['group_conversation_id'],
-        createdAt: DateTime.parse(data['created_at']), isReadBy: [],
-      );
-
-      final groupId = newMessage.groupConversationId;
-      debugPrint('Processing message for group: $groupId');
-
-      // Vérifier si le message existe déjà
-      final messageExists = groupMessages.any((m) => m.id == newMessage.id);
-      
-      if (!messageExists) {
-        // Ajouter le message
-        groupMessages.add(newMessage);
+    debugPrint('📡 [GroupChat] Event received [${event.channelName}] - ${event.eventName}');
+    
+    if (event.eventName == 'new-group-message' &&
+        event.channelName.startsWith('private-group.group.') &&
+        event.data != null) {
+      try {
+        final data = jsonDecode(event.data!);
         
-        // Mettre à jour le groupe spécifique
-        final groupIndex = allGroups.indexWhere((g) => g.id == groupId);
-        if (groupIndex != -1) {
-          allGroups[groupIndex].messages.add(newMessage);
+        if (data['group_conversation_id'] == null || data['id'] == null) {
+          return;
         }
-        groupMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-        // Forcer le rafraîchissement
-        update(['group_messages_$groupId']);
-        debugPrint('✅ Message ajouté - ID: ${newMessage.id}');
+
+        final newMessage = GroupMessage(
+          id: data['id'],
+          content: data['content'] ?? '',
+          senderId: data['sender']['id'],
+          sender: User(
+            id: data['sender']['id'],
+            name: data['sender']['name'] ?? 'Inconnu',
+            avatar: data['sender']['avatar'] ?? '', 
+            email: '', 
+            bio: '',
+          ),
+          groupConversationId: data['group_conversation_id'],
+          createdAt: DateTime.parse(data['created_at']), 
+          isReadBy: [],
+        );
+
+        final groupId = newMessage.groupConversationId;
+        
+        if (!groupMessages.any((m) => m.id == newMessage.id)) {
+          groupMessages.add(newMessage);
+          
+          final groupIndex = allGroups.indexWhere((g) => g.id == groupId);
+          if (groupIndex != -1) {
+            allGroups[groupIndex].messages.add(newMessage);
+          }
+          
+          groupMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          update(['group_messages_$groupId']);
+        }
+      } catch (e, stack) {
+        debugPrint('❌ Error processing group message: $e');
+        debugPrint('Stack trace: $stack');
       }
-    } catch (e, stack) {
-      debugPrint('❌ Erreur de traitement: $e');
-      debugPrint('Stack trace: $stack');
     }
   }
-}
-  // Souscrire à un canal de groupe
+
   Future<void> subscribeToGroupChannel(int groupId) async {
-    final channel = 'private-group.group.$groupId';
+    final channelName = 'private-group.group.$groupId';
     currentGroupId.value = groupId;
-    // Ne pas se réabonner si déjà abonné
-  if (_activeChannels[groupId] == channel) {
-    debugPrint('⚠️ Déjà abonné à $channel');
-    return;
-  }
+    
+    if (_activeChannels[groupId] == channelName) {
+      return;
+    }
 
     try {
-      // Désabonner l'ancien canal s'il existe
+      // Désabonner de l'ancien canal si existe
       if (_activeChannels.containsKey(groupId)) {
-        await pusher.unsubscribe(channelName: _activeChannels[groupId]!);
+        await _pusherService.unsubscribeFromChannel(_activeChannels[groupId]!);
         _activeChannels.remove(groupId);
       }
 
-      await pusher.subscribe(channelName: channel);
-      _activeChannels[groupId] = channel;
-
-      debugPrint("✅ Abonné au canal: $channel");
+      await _pusherService.subscribeToChannel(channelName);
+      _activeChannels[groupId] = channelName;
     } catch (e) {
-      debugPrint("❌ Erreur d'abonnement: $e");
+      debugPrint("❌ Error subscribing to group channel: $e");
     }
   }
 
- 
-  // Déconnexion de Pusher
-  Future<void> disconnectPusher() async {
-    try {
-      await pusher.disconnect();
-      debugPrint("🔴 Pusher déconnecté");
-    } catch (e) {
-      debugPrint("❌ Erreur déconnexion Pusher: $e");
-    }
-  }
   Future<void> sendMessage(int groupId, String content) async {
     if (content.trim().isEmpty) return;
 
@@ -224,39 +155,26 @@ class GroupChatController extends GetxController {
       Get.snackbar('Error', 'Failed to send message: ${e.toString()}');
     }
   }
+
   Future<void> _loadMessagesForGroup(int groupId) async {
-  try {
-    final messages = await _apiGroupChatService.getGroupMessages(groupId);
-    // Tri par date croissante
-    messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    try {
+      final messages = await _apiGroupChatService.getGroupMessages(groupId);
+      messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-    // Mettre à jour groupMessages
-    groupMessages.removeWhere((msg) => msg.groupConversationId == groupId);
-    groupMessages.addAll(messages);
-    
-    // Tri global après ajout
-    groupMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      groupMessages.removeWhere((msg) => msg.groupConversationId == groupId);
+      groupMessages.addAll(messages);
+      groupMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-    // Mettre à jour les messages du groupe
-    final groupIndex = allGroups.indexWhere((g) => g.id == groupId);
-    if (groupIndex != -1) {
-      allGroups[groupIndex].messages = messages;
+      final groupIndex = allGroups.indexWhere((g) => g.id == groupId);
+      if (groupIndex != -1) {
+        allGroups[groupIndex].messages = messages;
+      }
+
+      update(['group_messages_$groupId']);
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load messages for group $groupId');
     }
-
-    update(['group_messages_$groupId']); // Mise à jour ciblée
-  } catch (e) {
-    Get.snackbar('Error', 'Failed to load messages for group $groupId');
   }
-}
-  void _associateMessagesToGroup(int groupId) {
-    final group = allGroups.firstWhere((g) => g.id == groupId);
-    final messagesForGroup = groupMessages
-        .where((m) => m.groupConversationId == groupId)
-        .toList();
-    group.messages = messagesForGroup;
-  }
-
-//le reste de méthodes
 
   Future<void> _initializeData() async {
     await loadAllUsers();
@@ -290,7 +208,14 @@ class GroupChatController extends GetxController {
     }
   }
 
-  
+  void _associateMessagesToGroup(int groupId) {
+    final group = allGroups.firstWhere((g) => g.id == groupId);
+    final messagesForGroup = groupMessages
+        .where((m) => m.groupConversationId == groupId)
+        .toList();
+    group.messages = messagesForGroup;
+  }
+
   Future<void> loadUnreadCount(int groupId) async {
     try {
       final count = await _apiGroupChatService.getGroupUnreadCount(groupId);
@@ -331,7 +256,6 @@ class GroupChatController extends GetxController {
     }
   }
 
-  
   Future<void> addUserToGroup(int groupId, int userId) async {
     try {
       await _apiGroupChatService.addUserToGroup(groupId, userId);
@@ -364,7 +288,8 @@ class GroupChatController extends GetxController {
       selectedUsers.add(user);
     }
   }
+
   void resetSelectedUsers() {
-  selectedUsers.clear();
-}
+    selectedUsers.clear();
+  }
 }
