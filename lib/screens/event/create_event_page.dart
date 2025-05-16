@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/controller/event_controller.dart';
 import 'package:intl/intl.dart';
+import 'package:fish_app/models/event.dart';
 
 class CreateEventPage extends StatefulWidget {
+  final Event? event; // pour savoir si c’est une édition
+
+  const CreateEventPage({super.key, this.event});
+
   @override
   _CreateEventPageState createState() => _CreateEventPageState();
 }
@@ -27,7 +32,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: AppTheme.primaryColor!,
+              primary: AppTheme.primaryColor,
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,

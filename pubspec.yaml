@@ -109,6 +109,10 @@ flutter:
     - assets/images/default_avatar.png
     - assets/images/cover_default_image.png
     - assets/images/default_group_avatar.png
+    - assets/images/markers/trout_fish.png
+    - assets/images/markers/perch_fish.png
+    - assets/images/markers/pike_fish.png
+    - assets/images/markers/default_fish.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

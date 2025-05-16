@@ -29,7 +29,7 @@ class EventPage extends StatelessWidget {
         backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.pop(context),
         ),
         elevation: 3,
         centerTitle: true,
@@ -114,7 +114,7 @@ class EventPage extends StatelessWidget {
                                   onSelected: (value) {
                                     if (value == 'edit') {
                                       Get.to(
-                                        () => CreateEventPage(),
+                                        () => CreateEventPage(event: event),
                                       );
                                     } else if (value == 'delete') {
                                       _showDeleteDialog(event.id!);

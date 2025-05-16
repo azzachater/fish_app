@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/models/spot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
@@ -250,32 +248,54 @@ class MapControllerX extends GetxController {
     // Logique pour mettre à jour les marqueurs de la carte avec les spots filtrés
   }
   MarkerIcon _getFishMarkerIcon(String fishSpecies) {
-  String assetPath;
+    String assetPath;
 
-  // Convertir en minuscules pour la comparaison
-  final species = fishSpecies.toLowerCase();
+    // Convertir en minuscules pour la comparaison
+    final species = fishSpecies.toLowerCase();
 
-  if (species.contains('truite')) {
-    assetPath = 'assets/images/markers/trout_fish.png';
-  } else if (species.contains('perche')) {
-    assetPath = 'assets/images/markers/perch_fish.png';
-  } else if (species.contains('brochet')) {
-    assetPath = 'assets/images/markers/pike_fish.png';
-  } else {
-    assetPath = 'assets/images/markers/default_fish.png';
+    if (species.contains('truite')) {
+      assetPath = 'assets/images/markers/trout_fish.png';
+    } else if (species.contains('perche')) {
+      assetPath = 'assets/images/markers/perch_fish.png';
+    } else if (species.contains('brochet')) {
+      assetPath = 'assets/images/markers/pike_fish.png';
+    } else {
+      assetPath = 'assets/images/markers/default_fish.png';
+    }
+
+    return MarkerIcon(
+      iconWidget: Image.asset(
+        assetPath,
+        width: 48,
+        height: 48,
+        errorBuilder:
+            (context, error, stackTrace) =>
+                Icon(Icons.location_pin, color: Colors.red, size: 48),
+      ),
+    );
   }
 
-  return MarkerIcon(
-    iconWidget: Image.asset(
-      assetPath, 
-      width: 48, 
-      height: 48,
-      errorBuilder: (context, error, stackTrace) => Icon(
-        Icons.location_pin,
-        color: Colors.red,
-        size: 48,
-      ),
-    ),
-  );
-}
+  Future<bool> voteOnSpot({
+    required int spotId,
+    required int userId,
+    required bool isUpvote,
+  }) async {
+    try {
+      final success = await mapService.voteOnSpot(
+        spotId: spotId,
+        userId: userId,
+        isUpvote: isUpvote,
+      );
+
+      if (success) {
+        // Rafraîchir les spots après le vote
+        await fetchFishingSpots();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      Get.snackbar("Erreur", "Échec lors du vote: ${e.toString()}");
+      return false;
+    }
+  }
 }

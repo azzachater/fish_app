@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 class MapPage extends StatelessWidget {
   final MapControllerX controller = Get.put(MapControllerX());
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -54,7 +54,11 @@ class MapPage extends StatelessWidget {
               ),
               userLocationMarker: UserLocationMaker(
                 personMarker: MarkerIcon(
-                  icon: Icon(Icons.location_history_rounded, color: Colors.red, size: 48),
+                  icon: Icon(
+                    Icons.location_history_rounded,
+                    color: Colors.red,
+                    size: 48,
+                  ),
                 ),
                 directionArrowMarker: MarkerIcon(
                   icon: Icon(Icons.double_arrow, size: 48),
@@ -79,23 +83,27 @@ class MapPage extends StatelessWidget {
               backgroundColor: AppTheme.primaryColor,
             ),
           ),
-          Obx(() => controller.isLoading.value
-              ? Center(child: CircularProgressIndicator())
-              : SizedBox.shrink()),
-          Positioned(
-            top: 80,
-            right: 10,
-            child: _buildLegend(),
+          Obx(
+            () =>
+                controller.isLoading.value
+                    ? Center(child: CircularProgressIndicator())
+                    : SizedBox.shrink(),
           ),
+          Positioned(top: 80, right: 10, child: _buildLegend()),
         ],
       ),
     );
   }
 
   void _showSpotDetails(Map<String, dynamic> spotInfo) {
+    final spotId = spotInfo['id']; // Ajoutez cette ligne
+    final userId = 1; // Remplacez par l'ID utilisateur réel
     Get.dialog(
       AlertDialog(
-        title: Text("Détails du Spot", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          "Détails du Spot",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,14 +114,37 @@ class MapPage extends StatelessWidget {
               _buildDetailRow("Espèces", spotInfo['fish_species']),
               _buildDetailRow("Techniques", spotInfo['recommended_techniques']),
               _buildDetailRow("Profondeur", "${spotInfo['depth']}m"),
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.thumb_up),
+                    onPressed: () => _handleVote(spotId, userId, true),
+                  ),
+                  Text(
+                    '${spotInfo['upvotes']?.toString() ?? '0'}',
+                  ), // Affichage sécurisé
+                  SizedBox(width: 20),
+                  Text('${spotInfo['downvotes']?.toString() ?? '0'}'),
+                  IconButton(
+                    icon: Icon(Icons.thumb_down),
+                    onPressed: () => _handleVote(spotId, userId, false),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text("Fermer", style: TextStyle(color: AppTheme.primaryColor)),
-      ),],
+            child: Text(
+              "Fermer",
+              style: TextStyle(color: AppTheme.primaryColor),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -125,7 +156,10 @@ class MapPage extends StatelessWidget {
         text: TextSpan(
           style: TextStyle(color: Colors.black87, fontSize: 14),
           children: [
-            TextSpan(text: "$label: ", style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(
+              text: "$label: ",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             TextSpan(text: value ?? 'Non spécifié'),
           ],
         ),
@@ -151,43 +185,63 @@ class MapPage extends StatelessWidget {
           _buildLegendItem('Truite', 'assets/images/markers/trout_marker.png'),
           _buildLegendItem('Perche', 'assets/images/markers/perch_marker.png'),
           _buildLegendItem('Brochet', 'assets/images/markers/pike_marker.png'),
-          _buildLegendItem('Autre', 'assets/images/markers/default_fish_marker.png'),
+          _buildLegendItem(
+            'Autre',
+            'assets/images/markers/default_fish_marker.png',
+          ),
         ],
       ),
     );
   }
 
   Widget _buildLegendItem(String text, String iconPath) {
-  // Mappez les noms de fichiers
-  String actualPath;
-  switch (text) {
-    case 'Truite':
-      actualPath = 'assets/images/markers/trout_fish.png';
-      break;
-    case 'Perche':
-      actualPath = 'assets/images/markers/perch_fish.png';
-      break;
-    case 'Brochet':
-      actualPath = 'assets/images/markers/pike_fish.png';
-      break;
-    default:
-      actualPath = 'assets/images/markers/default_fish.png';
+    // Mappez les noms de fichiers
+    String actualPath;
+    switch (text) {
+      case 'Truite':
+        actualPath = 'assets/images/markers/trout_fish.png';
+        break;
+      case 'Perche':
+        actualPath = 'assets/images/markers/perch_fish.png';
+        break;
+      case 'Brochet':
+        actualPath = 'assets/images/markers/pike_fish.png';
+        break;
+      default:
+        actualPath = 'assets/images/markers/default_fish.png';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Image.asset(
+            actualPath,
+            width: 24,
+            height: 24,
+            errorBuilder:
+                (context, error, stackTrace) =>
+                    Icon(Icons.location_pin, size: 24),
+          ),
+          SizedBox(width: 8),
+          Text(text, style: TextStyle(fontSize: 12)),
+        ],
+      ),
+    );
   }
 
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Row(
-      children: [
-        Image.asset(
-          actualPath,
-          width: 24,
-          height: 24,
-          errorBuilder: (context, error, stackTrace) => Icon(Icons.location_pin, size: 24),
-        ),
-        SizedBox(width: 8),
-        Text(text, style: TextStyle(fontSize: 12)),
-      ],
-    ),
-  );
-}
+  Future<void> _handleVote(int spotId, int userId, bool isUpvote) async {
+    final success = await Get.find<MapControllerX>().voteOnSpot(
+      spotId: spotId,
+      userId: userId,
+      isUpvote: isUpvote,
+    );
+
+    if (success) {
+      Get.back(); // Ferme le dialogue
+      Get.snackbar('Succès', 'Votre vote a été enregistré');
+    } else {
+      Get.snackbar('Erreur', 'Échec du vote');
+    }
+  }
 }

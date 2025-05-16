@@ -64,4 +64,20 @@ class MapService {
       return 'Something went wrong';
     }
   }
+
+  Future<bool> voteOnSpot({
+    required int spotId,
+    required bool isUpvote,
+    required int userId,
+  }) async {
+    final headers =
+        await _getAuthHeaders(); // Utilisez les headers d'authentification
+    final response = await http.post(
+      Uri.parse('$baseUrl/$spotId/vote'),
+      headers: headers,
+      body: jsonEncode({'is_upvote': isUpvote, 'user_id': userId}),
+    );
+
+    return response.statusCode == 200;
+  }
 }
