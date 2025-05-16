@@ -11,6 +11,7 @@ class Product {
   final bool isPopular;
   bool isFavorite;
   int quantity;
+  
 
   Product({
     required this.id,
@@ -93,7 +94,7 @@ class Product {
       imageUrl =
           json['image'].toString().contains('http')
               ? json['image'].toString()
-              : 'http://10.0.2.2:8000/storage/${json['image']}';
+              : 'http://192.168.1.13:8000/storage/${json['image']}';
     }
 
     return Product(

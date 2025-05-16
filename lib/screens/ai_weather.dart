@@ -88,7 +88,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm> {
       return;
     }
 
-    final url = Uri.parse('http://10.0.2.2:5000/predict');
+    final url = Uri.parse('http://192.168.1.13:5000/predict');
     final headers = {'Content-Type': 'application/json'};
     final body = jsonEncode({
       "Wind Speed": windSpeed,

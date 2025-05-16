@@ -1,4 +1,5 @@
 import 'package:fish_app/controller/order_controller.dart';
+import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:fish_app/controllers/notification_controller.dart';
 import 'package:fish_app/controllers/profile_controller.dart';
 import 'package:fish_app/controllers/user_controller.dart';
@@ -15,6 +16,7 @@ import 'package:fish_app/screens/prediction_ia/weather_predict_form.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'screens/Authentification/home_page.dart';
 import 'screens/Authentification/login_page.dart';
 import 'package:fish_app/main_screen.dart';
@@ -23,8 +25,10 @@ import 'package:fish_app/controller/favorite_controller.dart';
 import 'package:fish_app/services/api_push_notif_service.dart';
 
 void main() async {
+  await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
   Get.put(AuthController());
+  Get.put(ProductController());
   Get.put(CartController());
   Get.put(FavoriteController());
   Get.put(EventController());

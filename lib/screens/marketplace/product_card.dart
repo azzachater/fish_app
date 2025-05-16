@@ -95,7 +95,11 @@ class ProductCard extends StatelessWidget {
               child: Obx(() {
                 final isFav = productController.isFavorite(product.id);
                 return GestureDetector(
-                  onTap: () => productController.toggleFavorite(product.id),
+                  onTap: () {
+                    productController.toggleFavorite(product.id);
+                    // Mettre à jour localement l'état du produit
+                    product.isFavorite = !isFav;
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
@@ -118,24 +122,24 @@ class ProductCard extends StatelessWidget {
                 bottom: 8,
                 right: 8,
                 child: IconButton(
-                  icon: const Icon(Icons.add, size: 18),
+                  icon: Icon(Icons.add),
                   onPressed: () async {
-                    final newQuantity = product.quantity + 1;
-
-                    // Appel corrigé
-                    final stockCheck = await cartController.checkStock(
-                      product.id.toString(), // Passe l'ID comme String
-                      newQuantity,
-                    );
-
-                    if (stockCheck['available'] == true) {
-                      await cartController.updateCartItem(product, newQuantity);
-                    } else {
-                      Get.snackbar(
-                        'Stock insuffisant',
-                        'Quantité maximale disponible: ${stockCheck['current_stock']}',
-                        snackPosition: SnackPosition.BOTTOM,
+                    try {
+                      final stockCheck = await cartController.checkStock(
+                        product.id.toString(),
+                        1, // quantité à ajouter
                       );
+
+                      if (stockCheck['available']) {
+                        await cartController.addToCart(product);
+                      } else {
+                        Get.snackbar(
+                          'Stock insuffisant',
+                          'Il ne reste que ${stockCheck['current_stock']} unités',
+                        );
+                      }
+                    } catch (e) {
+                      Get.snackbar('Erreur', 'Impossible de vérifier le stock');
                     }
                   },
                 ),
@@ -245,7 +249,7 @@ class ProductCard extends StatelessWidget {
     } else if (imagePath.startsWith('assets/')) {
       return AssetImage(imagePath);
     } else {
-      return NetworkImage('http://10.0.2.2:8000/storage/$imagePath');
+      return NetworkImage('http://192.168.1.13:8000/storage/$imagePath');
     }
   }
 }

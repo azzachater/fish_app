@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fish_app/models/product.dart';
 import 'api_auth_service.dart';
 
 class CartService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://10.0.2.2:8000/api/cart';
+  final String baseUrl = 'http://192.168.1.13:8000/api/cart';
 
   Future<Map<String, String>> _getAuthHeaders() async {
     final headers = await _authService.getAuthHeaders();
@@ -63,19 +64,49 @@ class CartService {
     }
   }
 
-  Future<bool> removeFromCart(Product product) async {
-    try {
-      final response = await http.delete(
-        Uri.parse('$baseUrl/${product.id}'),
-        headers: await _getAuthHeaders(),
-      );
+  Future<bool> removeFromCart(String productId) async {
+  debugPrint('🔄 Attempting to remove product $productId from cart');
+  try {
+    // D'abord récupérer les items du panier pour trouver le cart_id correspondant
+    final cartItemsResponse = await http.get(
+      Uri.parse(baseUrl),
+      headers: await _getAuthHeaders(),
+    );
 
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Error removing from cart: $e');
-      return false;
+    if (cartItemsResponse.statusCode != 200) {
+      throw Exception('Failed to fetch cart items');
     }
+
+    final cartData = jsonDecode(cartItemsResponse.body);
+    final cartItems = (cartData['cart'] as List);
+    
+    // Trouver l'item correspondant au productId
+    final cartItem = cartItems.firstWhere(
+      (item) => item['product']['id'].toString() == productId,
+      orElse: () => null,
+    );
+
+    if (cartItem == null) {
+      throw Exception('Product not found in cart');
+    }
+
+    final cartId = cartItem['id'];
+    debugPrint('🔍 Found cart ID: $cartId for product $productId');
+
+    // Maintenant faire la suppression avec le cart_id
+    final response = await http.delete(
+      Uri.parse('$baseUrl/$cartId'),
+      headers: await _getAuthHeaders(),
+    );
+
+    debugPrint('🗑️ Remove response: ${response.statusCode} - ${response.body}');
+
+    return response.statusCode == 200;
+  } catch (e) {
+    debugPrint('❌ Error removing from cart: $e');
+    rethrow;
   }
+}
 
   Future<bool> placeOrder({
     required String phone,
@@ -85,7 +116,7 @@ class CartService {
     try {
       final headers = await _getAuthHeaders();
       final response = await http.post(
-        Uri.parse('$baseUrl/orders'),
+        Uri.parse('$baseUrl/checkout'),
         headers: headers,
         body: jsonEncode({
           'phone': phone,
@@ -97,6 +128,11 @@ class CartService {
       if (response.statusCode == 200) {
         return true;
       } else {
+        // Gestion des erreurs spécifiques
+        final errorData = jsonDecode(response.body);
+        if (errorData.containsKey('product_id')) {
+          throw Exception('Stock insuffisant pour un produit');
+        }
         throw Exception('Failed to place order: ${response.body}');
       }
     } catch (e) {
@@ -104,23 +140,30 @@ class CartService {
       rethrow;
     }
   }
-  //pour verifier le stock 9bal manhotouh fel cart
-  Future<Map<String, dynamic>> checkStock(String productId, int quantity) async {
-  try {
-    final headers = await _getAuthHeaders();
-    final response = await http.get(
-      Uri.parse('$baseUrl/products/$productId/check-stock/$quantity'),
-      headers: headers,
-    );
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to check stock');
+  //pour verifier le stock 9bal manhotouh fel cart
+  Future<Map<String, dynamic>> checkStock(
+    String productId,
+    int quantity,
+  ) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'http://192.168.1.13:8000/api/products/$productId/check-stock/$quantity',
+        ),
+        headers: await _getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        debugPrint('✅ Stock check response: $data'); // Log important
+        return data;
+      } else {
+        throw Exception('HTTP ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ Check stock error: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('Check stock error: $e');
-    rethrow;
   }
-}
 }

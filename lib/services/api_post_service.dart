@@ -5,7 +5,7 @@ import '../service/api_auth_service.dart';
 
 class ApiPostService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://10.0.2.2:8000/api';
+  final String baseUrl = 'http://192.168.1.13:8000/api';
 
   // Headers for requests
   Map<String, String> get headers => {

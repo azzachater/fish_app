@@ -109,7 +109,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
 
   Future<void> fetchRecommendedSpots() async {
     try {
-      final url = Uri.parse('http://10.0.2.2:5000/recommend');
+      final url = Uri.parse('http://192.168.1.13:5000/recommend');
       final response = await http
           .post(
             url,
@@ -182,7 +182,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     });
 
     try {
-      final url = Uri.parse('http://10.0.2.2:5000/weather/predict');
+      final url = Uri.parse('http://192.168.1.13:5000/weather/predict');
       final response = await http
           .post(
             url,
@@ -308,7 +308,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     });
 
     try {
-      final url = Uri.parse('http://10.0.2.2:5000/combined/predict');
+      final url = Uri.parse('http://192.168.1.13:5000/combined/predict');
       final response = await http
           .post(
             url,
@@ -355,7 +355,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
   void _showFishingStats() async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:5000/api/session-stats'),
+        Uri.parse('http://192.168.1.13:5000/api/session-stats'),
       );
 
       if (response.statusCode == 200) {
