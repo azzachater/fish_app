@@ -40,7 +40,6 @@ class _PredictPageState extends State<PredictPage> {
 
   @override
   Widget build(BuildContext context) {
-    final primaryBlue = Colors.blue.shade600;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(

@@ -1,4 +1,3 @@
-import 'package:fish_app/service/api_auth_service.dart';
 import 'package:fish_app/service/api_order_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

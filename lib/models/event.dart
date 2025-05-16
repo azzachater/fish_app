@@ -32,8 +32,8 @@ class Event {
       participants:
           (json['participants'] as List?)
               ?.where((p) => p != null) // Filtre supplémentaire
-              ?.map((p) => EventParticipant.fromJson(p))
-              ?.toList() ??
+              .map((p) => EventParticipant.fromJson(p))
+              .toList() ??
           [],
     );
   }
@@ -47,13 +47,6 @@ class EventParticipant {
 
   factory EventParticipant.fromJson(Map<String, dynamic> json) {
     // Gestion des cas où json serait null
-    if (json == null) {
-      return EventParticipant(
-        userId: '',
-        user: User.fromJson({'id': 0, 'name': 'Inconnu'}),
-      );
-    }
-
     return EventParticipant(
       userId: json['user_id']?.toString() ?? '',
       user: User.fromJson(json['user'] ?? {'id': json['user_id'] ?? 0}),

@@ -4,7 +4,6 @@ import 'package:fish_app/screens/marketplace/cart_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/controller/category_controller.dart';
-import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:fish_app/screens/marketplace/add_product_page.dart';
 import 'package:fish_app/screens/marketplace/category_chip.dart';
 import 'package:fish_app/screens/marketplace/favorites_page.dart';

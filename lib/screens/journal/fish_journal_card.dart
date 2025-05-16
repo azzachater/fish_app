@@ -1,6 +1,5 @@
 import 'package:fish_app/constants/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:fish_app/models/fishingJournal.dart';
 
 class FishJournalCard extends StatelessWidget {

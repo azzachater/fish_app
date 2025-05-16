@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:fish_app/models/product.dart';
 import 'package:http/http.dart' as http;
 import 'api_auth_service.dart';
-import 'package:http_parser/http_parser.dart';
 
 class ApiProductService {
   final ApiAuthService _authService = ApiAuthService();

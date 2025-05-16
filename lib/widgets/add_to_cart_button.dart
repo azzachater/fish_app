@@ -1,5 +1,4 @@
 import 'package:fish_app/constants/theme.dart';
-import 'package:fish_app/controller/add_cart_controller.dart';
 import 'package:fish_app/controller/cart_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

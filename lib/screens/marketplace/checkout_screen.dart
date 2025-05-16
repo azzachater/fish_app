@@ -1,6 +1,5 @@
 import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/controller/cart_controller.dart';
-import 'package:fish_app/screens/marketplace/payment_success_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fish_app/controllers/user_controller.dart';
