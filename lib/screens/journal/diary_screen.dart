@@ -22,7 +22,7 @@ class JournalScreen extends StatelessWidget {
       appBar: JournalAppBar(onViewChange: (String view) {}, selectedView: ''),
       body: Column(
         children: [
-          DateSelector(),
+          DateSelector(), // Nouveau sélecteur amélioré
           Expanded(
             child: Obx(() {
               if (controller.filteredEntries.isEmpty) {
@@ -36,11 +36,7 @@ class JournalScreen extends StatelessWidget {
       // Modifiez le FloatingActionButton :
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppTheme.primaryColor,
-        child: const Icon(
-          Icons.add,
-          size: 60,
-          color: AppTheme.lightPrimary,
-        ),
+        child: const Icon(Icons.add, size: 60, color: AppTheme.lightPrimary),
         onPressed: () async {
           final result = await Get.to(() => AddJournalPage());
           if (result != null) {

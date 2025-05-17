@@ -1,3 +1,4 @@
+import 'package:fish_app/controller/data_selector_controller.dart';
 import 'package:fish_app/controller/order_controller.dart';
 import 'package:fish_app/controller/product_card_controller.dart';
 import 'package:fish_app/controllers/notification_controller.dart';
@@ -33,8 +34,9 @@ void main() async {
   Get.put(FavoriteController());
   Get.put(EventController());
   Get.put(TaskController());
-  Get.put(AddJournalController());
   Get.put(JournalController());
+  Get.put(DateSelectorController());
+  Get.put(AddJournalController());
   Get.put(ForecastController());
   Get.put(OrderController());
   await Get.putAsync(() => PusherService().init());
