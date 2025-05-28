@@ -223,36 +223,58 @@ class CartPage extends StatelessWidget {
                   color: Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.remove, size: 18),
-                      onPressed: () async {
-                        if (product.quantity > 1) {
+                child: Obx(
+                  () => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon:
+                            cartController.isLoading.value
+                                ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : const Icon(Icons.remove, size: 18),
+                        onPressed: () async {
+                          if (cartController.isLoading.value) return;
+                          if (product.quantity > 1) {
+                            await cartController.updateCartItem(
+                              product,
+                              product.quantity - 1,
+                            );
+                          } else {
+                            await cartController.removeFromCart(product);
+                          }
+                        },
+                      ),
+                      Text(
+                        "${product.quantity}",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      IconButton(
+                        icon:
+                            cartController.isLoading.value
+                                ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : const Icon(Icons.add, size: 18),
+                        onPressed: () async {
+                          if (cartController.isLoading.value) return;
                           await cartController.updateCartItem(
                             product,
-                            product.quantity - 1,
+                            product.quantity + 1,
                           );
-                        } else {
-                          await cartController.removeFromCart(product);
-                        }
-                      },
-                    ),
-                    Text(
-                      "${product.quantity}",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add, size: 18),
-                      onPressed: () async {
-                        await cartController.updateCartItem(
-                          product,
-                          product.quantity + 1,
-                        );
-                      },
-                    ),
-                  ],
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
