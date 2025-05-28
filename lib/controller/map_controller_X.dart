@@ -11,6 +11,8 @@ import 'package:latlong2/latlong.dart';
 class MapControllerX extends GetxController {
   late MapController mapController;
   var fishingSpots = <GeoPoint, Map<String, dynamic>>{}.obs;
+  //utiliser cette liste bech naamlou logique mtaa nfaskhou les marqueurs
+  final List<GeoPoint> _activeMarkers = [];
   final MapService mapService = MapService();
   final isLoading = false.obs;
   bool _isMapInitialized = false;
@@ -74,11 +76,15 @@ class MapControllerX extends GetxController {
         );
 
         fishingSpots[point] = {
+          'id': spot.id, // ✅ Ajout essentiel
           'name': spot.name,
           'description': spot.description,
           'fish_species': spot.fishSpecies,
           'recommended_techniques': spot.recommendedTechniques,
           'depth': spot.depth,
+          'upvotes': spot.upvotes,
+          'downvotes': spot.downvotes,
+          'voter_ids': spot.voterIds,
         };
 
         await mapController.addMarker(
@@ -134,6 +140,7 @@ class MapControllerX extends GetxController {
             icon: Icon(Icons.location_pin, color: Colors.red, size: 48),
           ),
         );
+        _activeMarkers.add(point);
 
         Get.snackbar("Succès", "Spot ajouté avec succès!");
       }
@@ -246,9 +253,6 @@ class MapControllerX extends GetxController {
     updateMapMarkers(filteredSpots);
   }*/
 
-  void updateMapMarkers(List<Map<String, dynamic>> filteredSpots) {
-    // Logique pour mettre à jour les marqueurs de la carte avec les spots filtrés
-  }
   MarkerIcon _getFishMarkerIcon(String fishSpecies) {
     String assetPath;
 
@@ -277,20 +281,16 @@ class MapControllerX extends GetxController {
     );
   }
 
-  Future<bool> voteOnSpot({
-    required int spotId,
-    required int userId,
-    required bool isUpvote,
-  }) async {
+  Future<bool> voteOnSpot({required int spotId, required bool isUpvote}) async {
     try {
+      final userId = 1; // À remplacer par l'ID utilisateur réel
       final success = await mapService.voteOnSpot(
         spotId: spotId,
-        userId: userId,
         isUpvote: isUpvote,
+        userId: userId,
       );
 
       if (success) {
-        // Rafraîchir les spots après le vote
         await fetchFishingSpots();
         return true;
       }
@@ -299,5 +299,59 @@ class MapControllerX extends GetxController {
       Get.snackbar("Erreur", "Échec lors du vote: ${e.toString()}");
       return false;
     }
+  }
+
+  void applyFilters() {
+    if (selectedSpecies.value.isEmpty) {
+      // Si aucun filtre, afficher tous les spots
+      updateMapMarkers(fishingSpots.values.toList());
+      return;
+    }
+
+    // Filtrer les spots selon l'espèce sélectionnée
+    var filteredSpots =
+        fishingSpots.values.where((spot) {
+          final species = spot['fish_species']?.toString().toLowerCase() ?? '';
+          return species.contains(selectedSpecies.value.toLowerCase());
+        }).toList();
+
+    updateMapMarkers(filteredSpots);
+  }
+
+  Future<void> updateMapMarkers(
+    List<Map<String, dynamic>> filteredSpots,
+  ) async {
+    await clearAllMarkers(); // ✅ suppression manuelle
+
+    mapController.clearAllRoads(); // routes seulement
+
+    for (var spot in filteredSpots) {
+      final point = GeoPoint(
+        latitude: _convertToDouble(spot['latitude']),
+        longitude: _convertToDouble(spot['longitude']),
+      );
+
+      await mapController.addMarker(
+        point,
+        markerIcon: _getFishMarkerIcon(spot['fish_species'] ?? ''),
+      );
+
+      _activeMarkers.add(point); // ✅ suivi du marqueur
+    }
+  }
+
+  // Helper function
+  double _convertToDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
+  //methode pour supprimer tous les marquers
+  Future<void> clearAllMarkers() async {
+    for (var point in _activeMarkers) {
+      await mapController.removeMarker(point);
+    }
+    _activeMarkers.clear();
   }
 }

@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:fish_app/models/spot.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:http/http.dart' as http;
 import 'api_auth_service.dart';
 
 class MapService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.77:8000/api/spots';
+  final String baseUrl = 'http://192.168.1.80:8000/api/spots';
 
   // Headers for requests
   Map<String, String> get headers => {
@@ -70,14 +72,26 @@ class MapService {
     required bool isUpvote,
     required int userId,
   }) async {
-    final headers =
-        await _getAuthHeaders(); // Utilisez les headers d'authentification
-    final response = await http.post(
-      Uri.parse('$baseUrl/$spotId/vote'),
-      headers: headers,
-      body: jsonEncode({'is_upvote': isUpvote, 'user_id': userId}),
-    );
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/$spotId/vote'),
+        headers: headers,
+        body: jsonEncode({'is_upvote': isUpvote}),
+      );
 
-    return response.statusCode == 200;
+      if (response.statusCode == 409) {
+        Get.snackbar('Info', 'Vous avez déjà voté pour ce spot');
+        return false;
+      } else if (response.statusCode == 410) {
+        Get.snackbar('Info', 'Ce spot a été supprimé');
+        return false;
+      }
+
+      return response.statusCode == 200;
+    } catch (e) {
+      Get.snackbar('Erreur', 'Échec lors du vote: ${e.toString()}');
+      return false;
+    }
   }
 }

@@ -30,24 +30,32 @@ class Spot {
   }) : voterIds = voterIds ?? [];
 
   factory Spot.fromJson(Map<String, dynamic> json) {
-    return Spot(
-      id: int.tryParse(json['id']?.toString() ?? ''),
-      name: json['name']?.toString() ?? 'Sans nom',
-      position: LatLng(
-        _convertToDouble(json['latitude']),
-        _convertToDouble(json['longitude']),
-      ),
-      description: json['description']?.toString() ?? '',
-      fishSpecies: json['fish_species']?.toString() ?? '',
-      recommendedTechniques: json['recommended_techniques']?.toString() ?? '',
-      depth: _convertToDouble(json['depth']),
-      score: _convertToDouble(json['score']),
-      upvotes: (json['upvotes'] ?? 0) as int, // Conversion sécurisée
-      downvotes: (json['downvotes'] ?? 0) as int,
-      voterIds: List<String>.from(json['voter_ids'] ?? []),
-      isHidden: json['is_hidden'] ?? false,
-    );
+  // Fonction de conversion générique
+  dynamic _parseId(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    return null;
   }
+
+  return Spot(
+    id: _parseId(json['id']),
+    name: json['name']?.toString() ?? 'Sans nom',
+    position: LatLng(
+      _convertToDouble(json['latitude']),
+      _convertToDouble(json['longitude']),
+    ),
+    description: json['description']?.toString() ?? '',
+    fishSpecies: json['fish_species']?.toString() ?? '',
+    recommendedTechniques: json['recommendedTechniques']?.toString() ?? '',
+    depth: _convertToDouble(json['depth']),
+    score: _convertToDouble(json['score']),
+    upvotes: (json['upvotes'] is int) ? json['upvotes'] : int.tryParse(json['upvotes']?.toString() ?? '0') ?? 0,
+    downvotes: (json['downvotes'] is int) ? json['downvotes'] : int.tryParse(json['downvotes']?.toString() ?? '0') ?? 0,
+    voterIds: List<String>.from(json['voter_ids']?.map((id) => id.toString()) ?? []),
+    isHidden: json['is_hidden'] ?? false,
+  );
+}
 
   static double _convertToDouble(dynamic value) {
     if (value == null) return 0.0;
@@ -63,7 +71,7 @@ class Spot {
       'longitude': position.longitude,
       'description': description,
       'fish_species': fishSpecies,
-      'recommended_techniques': recommendedTechniques,
+      'recommendedTechniques': recommendedTechniques,
       if (depth != null) 'depth': depth,
       'upvotes': upvotes,
       'downvotes': downvotes,
