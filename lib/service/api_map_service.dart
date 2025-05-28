@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:fish_app/models/spot.dart';
+import 'package:fish_app/services/api_user_service.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:http/http.dart' as http;
@@ -7,7 +8,8 @@ import 'api_auth_service.dart';
 
 class MapService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.80:8000/api/spots';
+  final ApiUserService apiUserService = ApiUserService();
+  final String baseUrl = 'http://192.168.1.115:8000/api/spots';
 
   // Headers for requests
   Map<String, String> get headers => {

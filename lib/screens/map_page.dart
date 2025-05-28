@@ -273,6 +273,7 @@ class MapPage extends StatelessWidget {
     }
   }
 
+  // Modifiez _showFilterSheet pour mieux gérer l'état
   void _showFilterSheet() {
     Get.bottomSheet(
       Container(
@@ -309,12 +310,9 @@ class MapPage extends StatelessWidget {
                     Icons.arrow_drop_down,
                     color: AppTheme.primaryColor,
                   ),
-                  value:
-                      controller.selectedSpecies.value.isEmpty
-                          ? null
-                          : controller.selectedSpecies.value,
+                  value: controller.selectedSpecies.value,
                   hint: Text(
-                    'Sélectionnez une espèce',
+                    'Toutes les espèces',
                     style: GoogleFonts.poppins(color: Colors.grey),
                   ),
                   items: [
@@ -335,12 +333,23 @@ class MapPage extends StatelessWidget {
                   onChanged: (String? newValue) {
                     controller.selectedSpecies.value = newValue ?? '';
                     controller.applyFilters();
-                    Get.back();
                   },
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                controller.selectedSpecies.value = '';
+                controller.applyFilters();
+                Get.back();
+              },
+              child: Text('Réinitialiser'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor, backgroundColor: Colors.white,
+              ),
+            ),
+            SizedBox(height: 10),
           ],
         ),
       ),

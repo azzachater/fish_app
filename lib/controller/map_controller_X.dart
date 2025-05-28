@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:fish_app/constants/theme.dart';
 import 'package:fish_app/models/spot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
@@ -23,9 +21,14 @@ class MapControllerX extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    initializeMap();
 
     Timer.periodic(Duration(seconds: 30), (_) => fetchFishingSpots());
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    initializeMap(); // après que GetX soit prêt
   }
 
   Future<void> initializeMap() async {
@@ -64,43 +67,37 @@ class MapControllerX extends GetxController {
   }
 
   Future<void> fetchFishingSpots() async {
-    try {
-      isLoading(true);
-      final spots = await mapService.getAllSpots();
-      fishingSpots.clear();
+  try {
+    isLoading(true);
+    final spots = await mapService.getAllSpots();
+    fishingSpots.clear();
+    _activeMarkers.clear();
 
-      for (var spot in spots) {
-        final point = GeoPoint(
-          latitude: spot.position.latitude,
-          longitude: spot.position.longitude,
-        );
+    for (var spot in spots) {
+      final point = GeoPoint(
+        latitude: spot.position.latitude,
+        longitude: spot.position.longitude,
+      );
 
-        fishingSpots[point] = {
-          'id': spot.id, // ✅ Ajout essentiel
-          'name': spot.name,
-          'description': spot.description,
-          'fish_species': spot.fishSpecies,
-          'recommended_techniques': spot.recommendedTechniques,
-          'depth': spot.depth,
-          'upvotes': spot.upvotes,
-          'downvotes': spot.downvotes,
-          'voter_ids': spot.voterIds,
-        };
+      // Stocker toutes les données du spot
+      fishingSpots[point] = spot.toJson();
 
+      // Appliquer le filtre si un est sélectionné
+      if (selectedSpecies.value.isEmpty || 
+          spot.fishSpecies.toLowerCase().contains(selectedSpecies.value.toLowerCase())) {
         await mapController.addMarker(
           point,
-          markerIcon: _getFishMarkerIcon(spot.fishSpecies), // Utilisation ici
+          markerIcon: _getFishMarkerIcon(spot.fishSpecies),
         );
+        _activeMarkers.add(point);
       }
-    } catch (e) {
-      Get.snackbar(
-        "Erreur",
-        "Impossible de charger les spots: ${e.toString()}",
-      );
-    } finally {
-      isLoading(false);
     }
+  } catch (e) {
+    Get.snackbar("Erreur", "Impossible de charger les spots: ${e.toString()}");
+  } finally {
+    isLoading(false);
   }
+}
 
   Future<void> addMarkerAtLocation(GeoPoint point) async {
     final spotData = await Get.bottomSheet<Map<String, String>>(
@@ -283,7 +280,16 @@ class MapControllerX extends GetxController {
 
   Future<bool> voteOnSpot({required int spotId, required bool isUpvote}) async {
     try {
-      final userId = 1; // À remplacer par l'ID utilisateur réel
+      final user =
+          await mapService.apiUserService
+              .getCurrentUser(); // ✅ récupère l'objet User
+      final userId = user.id;
+
+      if (userId == null) {
+        Get.snackbar("Erreur", "Utilisateur invalide ou non authentifié");
+        return false;
+      }
+
       final success = await mapService.voteOnSpot(
         spotId: spotId,
         isUpvote: isUpvote,
@@ -302,29 +308,31 @@ class MapControllerX extends GetxController {
   }
 
   void applyFilters() {
-    if (selectedSpecies.value.isEmpty) {
-      // Si aucun filtre, afficher tous les spots
-      updateMapMarkers(fishingSpots.values.toList());
-      return;
-    }
+  if (!_isMapInitialized) return;
 
-    // Filtrer les spots selon l'espèce sélectionnée
-    var filteredSpots =
-        fishingSpots.values.where((spot) {
-          final species = spot['fish_species']?.toString().toLowerCase() ?? '';
-          return species.contains(selectedSpecies.value.toLowerCase());
-        }).toList();
-
-    updateMapMarkers(filteredSpots);
+  // Si aucun filtre, afficher tous les spots
+  if (selectedSpecies.value.isEmpty) {
+    fetchFishingSpots(); // Recharge tous les spots
+    return;
   }
 
-  Future<void> updateMapMarkers(
-    List<Map<String, dynamic>> filteredSpots,
-  ) async {
-    await clearAllMarkers(); // ✅ suppression manuelle
+  // Filtrer les spots selon l'espèce sélectionnée
+  var filteredSpots = fishingSpots.values.where((spot) {
+    final species = spot['fish_species']?.toString().toLowerCase() ?? '';
+    return species.contains(selectedSpecies.value.toLowerCase());
+  }).toList();
 
-    mapController.clearAllRoads(); // routes seulement
+  updateMapMarkers(filteredSpots);
+}
 
+  Future<void> updateMapMarkers(List<Map<String, dynamic>> filteredSpots) async {
+  try {
+    isLoading(true);
+    
+    // Supprimer seulement les marqueurs existants
+    await clearAllMarkers();
+    
+    // Ajouter les nouveaux marqueurs filtrés
     for (var spot in filteredSpots) {
       final point = GeoPoint(
         latitude: _convertToDouble(spot['latitude']),
@@ -335,10 +343,14 @@ class MapControllerX extends GetxController {
         point,
         markerIcon: _getFishMarkerIcon(spot['fish_species'] ?? ''),
       );
-
-      _activeMarkers.add(point); // ✅ suivi du marqueur
+      _activeMarkers.add(point);
     }
+  } catch (e) {
+    Get.snackbar("Erreur", "Échec de la mise à jour des marqueurs: ${e.toString()}");
+  } finally {
+    isLoading(false);
   }
+}
 
   // Helper function
   double _convertToDouble(dynamic value) {
@@ -354,4 +366,11 @@ class MapControllerX extends GetxController {
     }
     _activeMarkers.clear();
   }
+  Future<void> refreshMap() async {
+  if (selectedSpecies.value.isEmpty) {
+    await fetchFishingSpots();
+  } else {
+    applyFilters();
+  }
+}
 }
