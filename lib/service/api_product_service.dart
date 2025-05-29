@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:fish_app/models/product.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'api_auth_service.dart';
+import 'package:http_parser/http_parser.dart';
 
 class ApiProductService {
   final ApiAuthService _authService = ApiAuthService();
@@ -156,7 +156,7 @@ class ApiProductService {
             ), // Adaptez selon le type d'image
           ),
         );
-}
+      }
 
       print('🔄 Sending update request for product ${product.id}');
       final response = await request.send();
@@ -173,7 +173,10 @@ class ApiProductService {
       }
     } catch (e) {
       print('❌ Error updating product: $e');
-      rethrow;}}
+      rethrow;
+    }
+  }
+
   Future<void> deleteProduct(String id) async {
     if (id.isEmpty) {
       throw Exception("ID du produit invalide");

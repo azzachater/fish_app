@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:fish_app/controllers/user_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:fish_app/models/product.dart';
 import 'api_auth_service.dart';
@@ -36,10 +38,17 @@ class CartService {
 
   Future<bool> addToCart(Product product, int quantity) async {
     try {
+      final userId = Get.find<UserController>().currentUser.value?.id;
+      if (userId == null) throw Exception('User not logged in');
+
       final response = await http.post(
         Uri.parse('$baseUrl/add'),
         headers: await _getAuthHeaders(),
-        body: jsonEncode({'product_id': product.id, 'quantity': quantity}),
+        body: jsonEncode({
+          'product_id': product.id,
+          'quantity': quantity,
+          'user_id': userId, // Envoyer l'ID utilisateur
+        }),
       );
 
       return response.statusCode == 200;
@@ -50,60 +59,69 @@ class CartService {
   }
 
   Future<bool> updateQuantity(Product product, int newQuantity) async {
-  try {
-    debugPrint('🔄 Attempting to update quantity for product ${product.id} to $newQuantity');
-    
-    // 1. D'abord récupérer le panier complet pour trouver le cart_id
-    final cartResponse = await http.get(
-      Uri.parse(baseUrl),
-      headers: await _getAuthHeaders(),
-    );
+    try {
+      final userId = Get.find<UserController>().currentUser.value?.id;
+      if (userId == null) throw Exception('User not logged in');
+      debugPrint(
+        '🔄 Attempting to update quantity for product ${product.id} to $newQuantity',
+      );
 
-    if (cartResponse.statusCode != 200) {
-      throw Exception('Failed to fetch cart items');
-    }
+      // 1. D'abord récupérer le panier complet pour trouver le cart_id
+      final cartResponse = await http.get(
+        Uri.parse(baseUrl),
+        headers: await _getAuthHeaders(),
+      );
 
-    final cartData = jsonDecode(cartResponse.body);
-    final cartItem = (cartData['cart'] as List).firstWhere(
-      (item) => item['product']['id'].toString() == product.id.toString(),
-      orElse: () => null,
-    );
+      if (cartResponse.statusCode != 200) {
+        throw Exception('Failed to fetch cart items');
+      }
 
-    if (cartItem == null) {
-      throw Exception('Product not found in cart');
-    }
+      final cartData = jsonDecode(cartResponse.body);
+      final cartItem = (cartData['cart'] as List).firstWhere(
+        (item) => item['product']['id'].toString() == product.id.toString(),
+        orElse: () => null,
+      );
 
-    final cartId = cartItem['id'];
-    debugPrint('🔍 Found cart ID: $cartId for product ${product.id}');
+      if (cartItem == null) {
+        throw Exception('Product not found in cart');
+      }
 
-    // 2. Maintenant faire la mise à jour avec le cart_id
-    final response = await http.put(
-      Uri.parse('$baseUrl/$cartId'),
-      headers: await _getAuthHeaders(),
-      body: jsonEncode({
-        'quantity': newQuantity,
-        // Ajoutez d'autres champs requis par votre API
-      }),
-    );
+      final cartId = cartItem['id'];
+      debugPrint('🔍 Found cart ID: $cartId for product ${product.id}');
 
-    debugPrint('📦 Update response: ${response.statusCode} - ${response.body}');
+      // 2. Maintenant faire la mise à jour avec le cart_id
+      final response = await http.put(
+        Uri.parse('$baseUrl/$cartId'),
+        headers: await _getAuthHeaders(),
+        body: jsonEncode({
+          'quantity': newQuantity,
+          'user_id': userId,
+          // Ajoutez d'autres champs requis par votre API
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      throw Exception('Update failed: ${response.body}');
-    }
-  } catch (e, stackTrace) {
-    debugPrint('''
+      debugPrint(
+        '📦 Update response: ${response.statusCode} - ${response.body}',
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception('Update failed: ${response.body}');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('''
 ❌ Critical error updating quantity:
 Error: $e
 Stack trace: $stackTrace
 ''');
-    rethrow;
+      rethrow;
+    }
   }
-}
 
   Future<bool> removeFromCart(String productId) async {
+    final userId = Get.find<UserController>().currentUser.value?.id;
+    if (userId == null) throw Exception('User not logged in');
     debugPrint('🔄 Attempting to remove product $productId from cart');
     try {
       // D'abord récupérer les items du panier pour trouver le cart_id correspondant
@@ -155,6 +173,8 @@ Stack trace: $stackTrace
     required String paymentMethod,
   }) async {
     try {
+      final userId = Get.find<UserController>().currentUser.value?.id;
+      if (userId == null) throw Exception('User not logged in');
       final headers = await _getAuthHeaders();
       final response = await http.post(
         Uri.parse('$baseUrl/checkout'),
@@ -163,6 +183,7 @@ Stack trace: $stackTrace
           'phone': phone,
           'address': address,
           'payment_method': paymentMethod,
+          'user_id': userId,
         }),
       );
 
@@ -188,6 +209,8 @@ Stack trace: $stackTrace
     int quantity,
   ) async {
     try {
+      final userId = Get.find<UserController>().currentUser.value?.id;
+      if (userId == null) throw Exception('User not logged in');
       final response = await http.get(
         Uri.parse(
           'http://192.168.1.13:8000/api/products/$productId/check-stock/$quantity',

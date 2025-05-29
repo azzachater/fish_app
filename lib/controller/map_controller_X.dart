@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:fish_app/models/spot.dart';
 import 'package:flutter/material.dart';

@@ -11,7 +11,6 @@ class Product {
   final bool isPopular;
   bool isFavorite;
   int quantity;
-  
 
   Product({
     required this.id,
