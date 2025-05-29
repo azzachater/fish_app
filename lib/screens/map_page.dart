@@ -74,13 +74,29 @@ class MapPage extends StatelessWidget {
               if (spotInfo != null) _showSpotDetails(spotInfo);
             },
           ),
+          // Remplacer les Positioned existants par :
           Positioned(
             bottom: 20,
             right: 20,
-            child: FloatingActionButton(
-              onPressed: controller.moveToCurrentLocation,
-              child: Icon(Icons.my_location),
-              backgroundColor: AppTheme.primaryColor,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FloatingActionButton(
+                  heroTag: 'filter_button',
+                  onPressed: _showFilterSheet,
+                  child: Icon(Icons.filter_alt, color: Colors.white),
+                  backgroundColor: AppTheme.primaryColor,
+                  elevation: 4,
+                ),
+                SizedBox(height: 15),
+                FloatingActionButton(
+                  heroTag: 'location_button',
+                  onPressed: controller.moveToCurrentLocation,
+                  child: Icon(Icons.my_location, color: Colors.white),
+                  backgroundColor: AppTheme.primaryColor,
+                  elevation: 4,
+                ),
+              ],
             ),
           ),
           Obx(
@@ -96,7 +112,9 @@ class MapPage extends StatelessWidget {
   }
 
   void _showSpotDetails(Map<String, dynamic> spotInfo) {
-    final spotId = spotInfo['id']; // Ajoutez cette ligne
+    final spotId = spotInfo['id'];
+    if (spotId == null)
+      return; // pour éviter une exception // Ajoutez cette ligne
     final userId = 1; // Remplacez par l'ID utilisateur réel
     Get.dialog(
       AlertDialog(
@@ -112,7 +130,12 @@ class MapPage extends StatelessWidget {
               _buildDetailRow("Nom", spotInfo['name']),
               _buildDetailRow("Description", spotInfo['description']),
               _buildDetailRow("Espèces", spotInfo['fish_species']),
-              _buildDetailRow("Techniques", spotInfo['recommended_techniques']),
+              _buildDetailRow(
+                "Techniques",
+                spotInfo['recommendedTechniques']?.isNotEmpty == true
+                    ? spotInfo['recommendedTechniques']
+                    : 'Aucune technique spécifiée',
+              ),
               _buildDetailRow("Profondeur", "${spotInfo['depth']}m"),
               SizedBox(height: 16),
               Row(
@@ -231,17 +254,106 @@ class MapPage extends StatelessWidget {
   }
 
   Future<void> _handleVote(int spotId, int userId, bool isUpvote) async {
-    final success = await Get.find<MapControllerX>().voteOnSpot(
-      spotId: spotId,
-      userId: userId,
-      isUpvote: isUpvote,
-    );
+    try {
+      final success = await Get.find<MapControllerX>().voteOnSpot(
+        spotId: spotId,
+        isUpvote: isUpvote,
+      );
 
-    if (success) {
-      Get.back(); // Ferme le dialogue
-      Get.snackbar('Succès', 'Votre vote a été enregistré');
-    } else {
-      Get.snackbar('Erreur', 'Échec du vote');
+      if (success) {
+        Get.back(); // Ferme le dialogue
+        Get.snackbar('Succès', 'Votre vote a été enregistré');
+        // Rafraîchir les données
+        await Get.find<MapControllerX>().fetchFishingSpots();
+      } else {
+        Get.snackbar('Erreur', 'Échec du vote');
+      }
+    } catch (e) {
+      Get.snackbar('Erreur', 'Une erreur est survenue: ${e.toString()}');
     }
+  }
+
+  // Modifiez _showFilterSheet pour mieux gérer l'état
+  void _showFilterSheet() {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withOpacity(0.95),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'FILTRER PAR ESPÈCE',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+            SizedBox(height: 20),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              child: Obx(
+                () => DropdownButton<String>(
+                  isExpanded: true,
+                  dropdownColor: Colors.white,
+                  style: GoogleFonts.poppins(color: AppTheme.primaryColor),
+                  icon: Icon(
+                    Icons.arrow_drop_down,
+                    color: AppTheme.primaryColor,
+                  ),
+                  value: controller.selectedSpecies.value,
+                  hint: Text(
+                    'Toutes les espèces',
+                    style: GoogleFonts.poppins(color: Colors.grey),
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: '',
+                      child: Text(
+                        'Toutes les espèces',
+                        style: GoogleFonts.poppins(),
+                      ),
+                    ),
+                    ...controller.speciesList.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value, style: GoogleFonts.poppins()),
+                      );
+                    }).toList(),
+                  ],
+                  onChanged: (String? newValue) {
+                    controller.selectedSpecies.value = newValue ?? '';
+                    controller.applyFilters();
+                  },
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                controller.selectedSpecies.value = '';
+                controller.applyFilters();
+                Get.back();
+              },
+              child: Text('Réinitialiser'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: AppTheme.primaryColor, backgroundColor: Colors.white,
+              ),
+            ),
+            SizedBox(height: 10),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
   }
 }

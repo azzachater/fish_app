@@ -27,9 +27,7 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: AppTheme.primaryColor, // Couleur bleue unifiée
       elevation: 0,
       leading: IconButton(
-        onPressed: () async {
-          await Get.offAll(() => SocialHomePage());
-        },
+        onPressed: () => Navigator.pop(context),
         icon: const Icon(Icons.arrow_back, color: Colors.white),
       ),
       actions: [

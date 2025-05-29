@@ -64,7 +64,7 @@ class JournalController extends GetxController {
   // Mettez à jour la méthode filterByDate
   // Améliorez la méthode filterByDate
   void filterByDate(DateTime date) {
-    selectedDate.value = date; // Ajoutez cette ligne
+    selectedDate.value = date;
     final dateStr = DateFormat('yyyy-MM-dd').format(date);
 
     filteredEntries.assignAll(
@@ -80,7 +80,7 @@ class JournalController extends GetxController {
     );
 
     filteredEntries.sort((a, b) => b.time.compareTo(a.time));
-    update();
+    // Supprimer update() car les Rx variables notifient déjà les changements
   }
 
   Future<void> toggleDataMode(bool useApi) async {
@@ -99,14 +99,24 @@ class JournalController extends GetxController {
     try {
       if (useLiveData.value) {
         print('🟢 Attempting to add entry to API');
-        final newEntry = await _apiService.createJournalEntry(entry.toJson());
+        // Convertir en format compatible API
+        final apiData = {
+          'title': entry.title,
+          'date': entry.date,
+          'time': entry.time,
+          'location': entry.location,
+          'species_caught': entry.speciesCaught,
+          'fishing_conditions': entry.fishingConditions,
+          'notes': entry.notes,
+        };
+
+        final newEntry = await _apiService.createJournalEntry(apiData);
         _entries.add(FishingJournal.fromJson(newEntry));
         Get.snackbar('Succès', 'Entrée ajoutée avec succès');
       } else {
         _entries.add(entry);
       }
       filterByDate(DateFormat('yyyy-MM-dd').parse(entry.date));
-      update();
     } catch (e) {
       print('🔴 Error adding entry: $e');
       Get.snackbar(
@@ -122,20 +132,40 @@ class JournalController extends GetxController {
 
   Future<void> updateEntry(String id, FishingJournal newData) async {
     final index = _entries.indexWhere((e) => e.id == id);
-    if (index == -1) return;
-
-    if (useLiveData.value) {
-      try {
-        await _apiService.updateJournalEntry(id, newData.toJson());
-        _entries[index] = newData;
-      } catch (e) {
-        Get.snackbar('Erreur', 'Échec de la mise à jour: ${e.toString()}');
-        return;
-      }
-    } else {
-      _entries[index] = newData;
+    if (index == -1) {
+      Get.snackbar('Erreur', 'Entrée non trouvée');
+      return;
     }
-    filterByDate(DateFormat('yyyy-MM-dd').parse(newData.date));
+
+    try {
+      if (useLiveData.value) {
+        print('🟢 Attempting to update entry in API');
+        await _apiService.updateJournalEntry(id, newData.toJson());
+      }
+
+      // Mise à jour locale seulement après confirmation API (si en mode live)
+      _entries[index] = newData;
+
+      // Filtrage et notification
+      filterByDate(DateFormat('yyyy-MM-dd').parse(newData.date));
+      Get.snackbar(
+        'Succès',
+        'Entrée mise à jour',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      print('🔴 Error updating entry: $e');
+      Get.snackbar(
+        'Erreur',
+        'Échec de la mise à jour: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      rethrow; // Important pour que l'appelant sache qu'il y a eu une erreur
+    }
   }
 
   Future<void> deleteEntry(String id) async {
@@ -154,24 +184,44 @@ class JournalController extends GetxController {
 
   void selectDate(DateTime date) {
     selectedDate.value = date;
+    currentMonth.value = DateTime(
+      date.year,
+      date.month,
+    ); // Synchronise le mois courant
     filterByDate(date);
+    update(); // Force le rafraîchissement des observateurs
   }
 
   void goToPreviousMonth() {
-    currentMonth.value = DateTime(
+    final newMonth = DateTime(
       currentMonth.value.year,
       currentMonth.value.month - 1,
     );
+    currentMonth.value = newMonth;
+    selectDate(DateTime(newMonth.year, newMonth.month, 1));
   }
 
   void goToNextMonth() {
-    currentMonth.value = DateTime(
+    final newMonth = DateTime(
       currentMonth.value.year,
       currentMonth.value.month + 1,
     );
+    currentMonth.value = newMonth;
+    selectDate(DateTime(newMonth.year, newMonth.month, 1));
   }
 
   String getMonthYearText() {
     return DateFormat.yMMMM().format(currentMonth.value);
+  }
+
+  bool hasEntriesForMonth(DateTime month) {
+    return _entries.any((entry) {
+      try {
+        final entryDate = DateFormat('yyyy-MM-dd').parse(entry.date);
+        return entryDate.year == month.year && entryDate.month == month.month;
+      } catch (e) {
+        return false;
+      }
+    });
   }
 }

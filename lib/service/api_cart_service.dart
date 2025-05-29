@@ -50,39 +50,22 @@ class CartService {
   }
 
   Future<bool> updateQuantity(Product product, int newQuantity) async {
-    try {
-      final response = await http.put(
-        Uri.parse('$baseUrl/${product.id}'),
-        headers: await _getAuthHeaders(),
-        body: jsonEncode({'quantity': newQuantity}),
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Error updating quantity: $e');
-      return false;
-    }
-  }
-
-  Future<bool> removeFromCart(String productId) async {
-  debugPrint('🔄 Attempting to remove product $productId from cart');
   try {
-    // D'abord récupérer les items du panier pour trouver le cart_id correspondant
-    final cartItemsResponse = await http.get(
+    debugPrint('🔄 Attempting to update quantity for product ${product.id} to $newQuantity');
+    
+    // 1. D'abord récupérer le panier complet pour trouver le cart_id
+    final cartResponse = await http.get(
       Uri.parse(baseUrl),
       headers: await _getAuthHeaders(),
     );
 
-    if (cartItemsResponse.statusCode != 200) {
+    if (cartResponse.statusCode != 200) {
       throw Exception('Failed to fetch cart items');
     }
 
-    final cartData = jsonDecode(cartItemsResponse.body);
-    final cartItems = (cartData['cart'] as List);
-    
-    // Trouver l'item correspondant au productId
-    final cartItem = cartItems.firstWhere(
-      (item) => item['product']['id'].toString() == productId,
+    final cartData = jsonDecode(cartResponse.body);
+    final cartItem = (cartData['cart'] as List).firstWhere(
+      (item) => item['product']['id'].toString() == product.id.toString(),
       orElse: () => null,
     );
 
@@ -91,22 +74,80 @@ class CartService {
     }
 
     final cartId = cartItem['id'];
-    debugPrint('🔍 Found cart ID: $cartId for product $productId');
+    debugPrint('🔍 Found cart ID: $cartId for product ${product.id}');
 
-    // Maintenant faire la suppression avec le cart_id
-    final response = await http.delete(
+    // 2. Maintenant faire la mise à jour avec le cart_id
+    final response = await http.put(
       Uri.parse('$baseUrl/$cartId'),
       headers: await _getAuthHeaders(),
+      body: jsonEncode({
+        'quantity': newQuantity,
+        // Ajoutez d'autres champs requis par votre API
+      }),
     );
 
-    debugPrint('🗑️ Remove response: ${response.statusCode} - ${response.body}');
+    debugPrint('📦 Update response: ${response.statusCode} - ${response.body}');
 
-    return response.statusCode == 200;
-  } catch (e) {
-    debugPrint('❌ Error removing from cart: $e');
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Update failed: ${response.body}');
+    }
+  } catch (e, stackTrace) {
+    debugPrint('''
+❌ Critical error updating quantity:
+Error: $e
+Stack trace: $stackTrace
+''');
     rethrow;
   }
 }
+
+  Future<bool> removeFromCart(String productId) async {
+    debugPrint('🔄 Attempting to remove product $productId from cart');
+    try {
+      // D'abord récupérer les items du panier pour trouver le cart_id correspondant
+      final cartItemsResponse = await http.get(
+        Uri.parse(baseUrl),
+        headers: await _getAuthHeaders(),
+      );
+
+      if (cartItemsResponse.statusCode != 200) {
+        throw Exception('Failed to fetch cart items');
+      }
+
+      final cartData = jsonDecode(cartItemsResponse.body);
+      final cartItems = (cartData['cart'] as List);
+
+      // Trouver l'item correspondant au productId
+      final cartItem = cartItems.firstWhere(
+        (item) => item['product']['id'].toString() == productId,
+        orElse: () => null,
+      );
+
+      if (cartItem == null) {
+        throw Exception('Product not found in cart');
+      }
+
+      final cartId = cartItem['id'];
+      debugPrint('🔍 Found cart ID: $cartId for product $productId');
+
+      // Maintenant faire la suppression avec le cart_id
+      final response = await http.delete(
+        Uri.parse('$baseUrl/$cartId'),
+        headers: await _getAuthHeaders(),
+      );
+
+      debugPrint(
+        '🗑️ Remove response: ${response.statusCode} - ${response.body}',
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('❌ Error removing from cart: $e');
+      rethrow;
+    }
+  }
 
   Future<bool> placeOrder({
     required String phone,

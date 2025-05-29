@@ -79,13 +79,6 @@ class SidebarPageState extends State<SidebarPage> {
                     selected: selectedIndex == 1,
                   ),
                   _buildDrawerItem(
-                    2,
-                    FontAwesomeIcons.facebookMessenger,
-                    "Messages",
-                    ChatHomePage(),
-                    selected: selectedIndex == 2,
-                  ),
-                  _buildDrawerItem(
                     3,
                     Icons.analytics_outlined,
                     "Predict Species",
@@ -106,19 +99,19 @@ class SidebarPageState extends State<SidebarPage> {
                     EventPage(),
                     selected: selectedIndex == 5,
                   ),
+                   _buildDrawerItem(
+                    7,
+                    Icons.location_on_outlined,
+                    "Spot",
+                    MapPage(),
+                    selected: selectedIndex == 7,
+                  ),
                   _buildDrawerItem(
                     6,
                     Icons.book_outlined,
                     "Journal",
                     JournalScreen(),
                     selected: selectedIndex == 6,
-                  ),
-                  _buildDrawerItem(
-                    7,
-                    Icons.location_on_outlined,
-                    "Spot",
-                    MapPage(),
-                    selected: selectedIndex == 7,
                   ),
                   _buildDrawerItem(
                     8,

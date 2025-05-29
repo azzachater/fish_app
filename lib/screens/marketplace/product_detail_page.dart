@@ -246,13 +246,6 @@ class ProductDetailPage extends StatelessWidget {
           ],
         ),
       ),
-
-      // Bouton flottant pour accéder rapidement au panier
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/cart'),
-        backgroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.shopping_cart, color: Colors.white),
-      ),
     );
   }
 

@@ -109,21 +109,52 @@ class CartController extends GetxController {
   }
 
   Future<void> updateCartItem(Product product, int newQuantity) async {
+    if (isLoading.value) return;
+
     try {
-      if (newQuantity > 0) {
-        final success = await _cartService.updateQuantity(product, newQuantity);
-        if (success) {
-          final index = cartItems.indexWhere((p) => p.id == product.id);
-          if (index >= 0) {
-            cartItems[index].quantity = newQuantity;
-            cartItems.refresh();
-          }
-        }
-      } else {
-        await removeFromCart(product);
+      isLoading(true);
+
+      // Vérification du stock
+      final stockCheck = await checkStock(product.id.toString(), newQuantity);
+      if (!stockCheck['available']) {
+        Get.snackbar(
+          'Stock insuffisant',
+          'Il ne reste que ${stockCheck['current_stock']} unités disponibles',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      // Mise à jour optimiste
+      final index = cartItems.indexWhere((p) => p.id == product.id);
+      if (index >= 0) {
+        cartItems[index] = product.copyWith(quantity: newQuantity);
+        cartItems.refresh();
+      }
+
+      // Appel API
+      final success = await _cartService.updateQuantity(product, newQuantity);
+
+      if (!success) {
+        throw Exception('La mise à jour a échoué côté serveur');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to update quantity');
+      // Rollback en cas d'erreur
+      final index = cartItems.indexWhere((p) => p.id == product.id);
+      if (index >= 0) {
+        cartItems[index] = product; // Revenir à l'ancienne quantité
+        cartItems.refresh();
+      }
+
+      Get.snackbar(
+        'Erreur',
+        e.toString().contains('not found')
+            ? 'Produit introuvable dans le panier'
+            : 'Échec de la mise à jour: ${e.toString().replaceAll('Exception: ', '')}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading(false);
     }
   }
 

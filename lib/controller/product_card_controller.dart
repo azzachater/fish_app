@@ -156,28 +156,37 @@ Future<void> deleteProduct(String productId) async {
   }
 }
 Future<void> updateProduct(Product product, {File? imageFile}) async {
-  try {
-    isLoading(true);
-    final updatedProduct = await apiService.updateProduct(
-      product,
-      imageFile: imageFile,
-    );
+    try {
+      isLoading(true);
 
-    // Mettre à jour la liste
-    final index = products.indexWhere((p) => p.id == product.id);
-    if (index != -1) {
-      products[index] = updatedProduct;
-      filteredProducts.assignAll(products);
-    }
+      // Vérification des champs obligatoires
+      if (product.name.isEmpty) {
+        throw Exception('Le nom du produit est obligatoire');
+      }
 
-    Get.back();
-    Get.snackbar('Succès', 'Produit mis à jour');
-  } catch (e) {
-    Get.snackbar('Erreur', 'Échec de la mise à jour: ${e.toString()}');
-    throw e;
-  } finally {
-    isLoading(false);
-  }
+      final updatedProduct = await apiService.updateProduct(
+        product,
+        imageFile: imageFile,
+      );
+
+      // Mise à jour de la liste locale
+      final index = products.indexWhere((p) => p.id == product.id);
+      if (index != -1) {
+        products[index] = updatedProduct;
+        filteredProducts.assignAll(products);
+      }
+
+      Get.back();
+      Get.snackbar('Succès', 'Produit mis à jour');
+    } catch (e) {
+      Get.snackbar(
+        'Erreur',
+        'Échec de la mise à jour: ${e.toString().replaceAll("Exception: ", "")}',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 3),
+      );
+      rethrow;
+    } finally {
+      isLoading(false);}
 }
-
 }

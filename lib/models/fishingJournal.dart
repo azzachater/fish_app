@@ -26,8 +26,8 @@ class FishingJournal {
       id: json['id']?.toString() ?? '',
       title: json['title'] ?? 'Sans titre',
       location: json['location'] ?? 'Lieu non spécifié',
-      speciesCaught: json['species_caught'] ?? '',
-      fishingConditions: json['fishing_conditions'] ?? '',
+      speciesCaught: json['species_caught'] ?? '', // Adaptation ici
+      fishingConditions: json['fishing_conditions'] ?? '', // Adaptation ici
       notes: json['notes'] ?? '',
       date: json['date'] ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
       time: json['time'] ?? '00:00',
@@ -39,8 +39,8 @@ class FishingJournal {
       'id': id,
       'title': title,
       'location': location,
-      'species_caught': speciesCaught,
-      'fishing_conditions': fishingConditions,
+      'species_caught': speciesCaught, // Adaptation ici
+      'fishing_conditions': fishingConditions, // Adaptation ici
       'notes': notes,
       'date': date,
       'time': time,

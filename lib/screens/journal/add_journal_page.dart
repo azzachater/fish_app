@@ -35,6 +35,37 @@ class _AddJournalPageState extends State<AddJournalPage>
   @override
   void initState() {
     super.initState();
+
+    // Initialise les valeurs si en mode édition
+    if (widget.entry != null) {
+      final entry = widget.entry!;
+      _titleController.text = entry.title;
+      _locationController.text = entry.location;
+      _speciesController.text = entry.speciesCaught;
+      _conditionsController.text = entry.fishingConditions;
+      _notesController.text = entry.notes;
+
+      // Parse le temps existant
+      final timeParts = entry.time.split(':');
+      _selectedTime = TimeOfDay(
+        hour: int.parse(timeParts[0]),
+        minute: int.parse(timeParts[1]),
+      );
+
+      // Parse la date existante
+      try {
+        final entryDate = DateFormat('yyyy-MM-dd').parse(entry.date);
+        _dateSelectorController.selectDate(
+          _dateSelectorController.dates.indexWhere(
+            (d) => DateFormat('yyyy-MM-dd').format(d) == entry.date,
+          ),
+        );
+      } catch (e) {
+        print('Error parsing date: $e');
+      }
+    }
+
+    // Initialise UN SEUL AnimationController
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
@@ -111,24 +142,47 @@ class _AddJournalPageState extends State<AddJournalPage>
             .selectedIndex
             .value];
     final formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
-
-    final journal = FishingJournal(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleController.text,
-      location: _locationController.text,
-      speciesCaught: _speciesController.text,
-      fishingConditions: _conditionsController.text,
-      notes: _notesController.text,
-      date: formattedDate,
-      time: '${_selectedTime.hour}:${_selectedTime.minute}',
-    );
+    final formattedTime = '${_selectedTime.hour}:${_selectedTime.minute}';
 
     final controller = Get.find<JournalController>();
-    controller.addEntry(journal).then((_) {
-      controller.filterByDate(selectedDate);
-      Get.back();
-      Get.snackbar("Succès", "Journal enregistré !");
-    });
+
+    if (widget.entry != null) {
+      // Mode édition - Mise à jour de l'entrée existante
+      final updatedEntry = FishingJournal(
+        id: widget.entry!.id, // Garde le même ID
+        title: _titleController.text,
+        location: _locationController.text,
+        speciesCaught: _speciesController.text,
+        fishingConditions: _conditionsController.text,
+        notes: _notesController.text,
+        date: formattedDate,
+        time: formattedTime,
+      );
+
+      controller.updateEntry(updatedEntry.id, updatedEntry).then((_) {
+        controller.filterByDate(selectedDate);
+        Get.back(result: updatedEntry); // Retourne l'entrée modifiée
+        Get.snackbar("Succès", "Journal mis à jour !");
+      });
+    } else {
+      // Mode création - Nouvelle entrée
+      final newEntry = FishingJournal(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: _titleController.text,
+        location: _locationController.text,
+        speciesCaught: _speciesController.text,
+        fishingConditions: _conditionsController.text,
+        notes: _notesController.text,
+        date: formattedDate,
+        time: formattedTime,
+      );
+
+      controller.addEntry(newEntry).then((_) {
+        controller.filterByDate(selectedDate);
+        Get.back(result: newEntry);
+        Get.snackbar("Succès", "Journal enregistré !");
+      });
+    }
   }
 
   @override

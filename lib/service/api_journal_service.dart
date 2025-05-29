@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 class ApiJournalService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.13:8000/api'; // Adaptez l'URL
+  final String baseUrl = 'http://192.168.1.77:8000/api'; // Adaptez l'URL
 
   // Headers de base
   Map<String, String> get headers => {
@@ -24,10 +24,9 @@ class ApiJournalService {
   // Récupère toutes les entrées du journal
   Future<List<Map<String, dynamic>>> getJournalEntries() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/fishing-logs'),
-        headers: await _getAuthHeaders(),
-      );
+      final response = await http
+          .get(Uri.parse('$baseUrl/logs'), headers: await _getAuthHeaders())
+          .timeout(const Duration(seconds: 10));
 
       print('API Response: ${response.statusCode} - ${response.body}');
 
@@ -70,25 +69,24 @@ class ApiJournalService {
       final authHeaders = await _getAuthHeaders();
       final fullHeaders = {...headers, ...authHeaders};
 
-      print('🔵 Sending to API: ${jsonEncode(entry)}');
-      print('🔵 Headers: $fullHeaders');
+      print('🔵 Sending to API: ${jsonEncode(entry)}'); // Debug
 
-      final response = await http.post(
-        Uri.parse('$baseUrl/fishing-logs'),
-        headers: fullHeaders,
-        body: jsonEncode({'data': entry}), // Notez l'ajout de 'data'
-      );
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/logs'), // Changez le endpoint
+            headers: fullHeaders,
+            body: jsonEncode(
+              entry,
+            ), // Envoyez les données directement sans encapsuler
+          )
+          .timeout(const Duration(seconds: 10));
 
       print('Create Entry Response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
-        return responseData['data'] ??
-            responseData; // Gestion des différentes structures de réponse
+        return jsonDecode(response.body) as Map<String, dynamic>;
       } else {
-        throw Exception(
-          _handleError(http.Response(response.body, response.statusCode)),
-        );
+        throw Exception(_handleError(response));
       }
     } catch (e) {
       print('❌ Error creating journal entry: $e');
@@ -103,7 +101,7 @@ class ApiJournalService {
   ) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/fishing-logs/$id'),
+        Uri.parse('$baseUrl/logs/$id'),
         headers: await _getAuthHeaders(),
         body: jsonEncode(newData),
       );
@@ -123,7 +121,7 @@ class ApiJournalService {
   Future<void> deleteJournalEntry(String id) async {
     try {
       final response = await http.delete(
-        Uri.parse('$baseUrl/fishing-logs/$id'),
+        Uri.parse('$baseUrl/logs/$id'),
         headers: await _getAuthHeaders(),
       );
 

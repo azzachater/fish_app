@@ -57,6 +57,69 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
   }
 
   //nouveau travaille
+  Future<void> findFishingSpotsOnly() async {
+    setState(() {
+      isLoading = true;
+      prediction = null; // On n'affiche pas de prédiction météo ici
+    });
+
+    try {
+      final url = Uri.parse('http://192.168.1.13:5000/spots/recommend');
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              "lat": currentLocation.latitude,
+              "lon": currentLocation.longitude,
+              "temp": double.tryParse(temperature ?? '20') ?? 20,
+              "wind": double.tryParse(windSpeed ?? '5') ?? 5,
+              "humidity": double.tryParse(humidity ?? '60') ?? 60,
+              "radius": selectedRadius,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        setState(() {
+          if (result['spots'] != null && result['spots']['best_spot'] != null) {
+            fishingSpots = [
+              {
+                "latitude": result['spots']['best_spot']['latitude'],
+                "longitude": result['spots']['best_spot']['longitude'],
+                "distance": result['spots']['best_spot']['distance'],
+                "is_best": true,
+              },
+              ...(result['spots']['other_spots'] as List).map(
+                (spot) => ({
+                  "latitude": spot['latitude'],
+                  "longitude": spot['longitude'],
+                  "distance": spot['distance'],
+                  "is_best": false,
+                }),
+              ),
+            ];
+            showMap = true;
+          } else {
+            fishingSpots = [];
+            showMap = false;
+          }
+        });
+        await _fetchAndDisplayRoute();
+      } else {
+        throw Exception('Erreur serveur: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        showMap = false;
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   Future<void> _initLocationAndWeather() async {
     await _getCurrentLocation(); // Attend la position actuelle
@@ -179,6 +242,9 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     setState(() {
       isLoading = true;
       error = null;
+      prediction = null;
+      showMap = false; // On cache toujours la carte ici
+      fishingSpots = []; // On vide les spots
     });
 
     try {
@@ -199,27 +265,18 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        print(result);
-
-        final bool goodTime = (result['is_good_weather'] ?? false) == true;
-
         setState(() {
           prediction =
-              goodTime
+              result['is_good_weather']
                   ? '✅ Bon moment pour pêcher aujourd\'hui !'
-                  : ' Conditions difficiles, soyez prudent.';
+                  : '⛔ Conditions difficiles, soyez prudent.';
         });
-
-        // ➡️ Peu importe "goodTime" => on essaye quand même de chercher des spots !
-        await fetchRecommendedSpots();
-        await _fetchAndDisplayRoute();
       } else {
         throw Exception('Erreur serveur: ${response.statusCode}');
       }
     } catch (e) {
       setState(() {
         prediction = 'Erreur: ${e.toString()}';
-        showMap = false;
       });
     } finally {
       setState(() {
@@ -417,8 +474,8 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     final listTileTheme = const ListTileThemeData(
       contentPadding: EdgeInsets.symmetric(horizontal: 16),
     );
-    List<LatLng> routePoints = [];
 
+    List<LatLng> routePoints = [];
     if (fishingSpots.isNotEmpty) {
       final firstSpot = fishingSpots.first;
       routePoints = [
@@ -426,6 +483,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
         LatLng(firstSpot['latitude'], firstSpot['longitude']),
       ];
     }
+
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -448,8 +506,8 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                 )
                 : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-
                   children: [
+                    // Section localisation
                     Text(
                       'Localisation: $selectedLocationName',
                       style: theme.textTheme.bodyLarge?.copyWith(
@@ -524,7 +582,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                             _buildWeatherTile(
                               "🌡️ Température",
                               "${temperature ?? '...'} °C",
-                            ), // ✅ ajouté
+                            ),
                             _buildWeatherTile(
                               "💧 Humidité",
                               "${humidity ?? '...'} %",
@@ -562,9 +620,8 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                     Center(
                       child: ElevatedButton.icon(
                         onPressed: checkGoodFishingTime,
-
                         icon: const Icon(Icons.waves_rounded),
-                        label: const Text('Prédire la navigabilité'),
+                        label: const Text('Prédire navigabilité'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
                           foregroundColor: AppTheme.lightPrimary,
@@ -579,31 +636,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '🎯 Choisissez le rayon de recherche (km)',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Slider(
-                          value: selectedRadius,
-                          min: 10,
-                          max: 200,
-                          divisions: 19,
-                          label: '${selectedRadius.round()} km',
-                          onChanged: (value) {
-                            setState(() {
-                              selectedRadius = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
+                    const SizedBox(height: 16),
 
                     // Affichage de la prédiction
                     if (prediction != null)
@@ -622,9 +655,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                prediction!.split(
-                                  '\n',
-                                )[0], // Première ligne (titre)
+                                prediction!.split('\n')[0],
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -637,10 +668,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                               if (prediction!.contains('\n')) ...[
                                 const SizedBox(height: 8),
                                 Text(
-                                  prediction!
-                                      .split('\n')
-                                      .skip(1)
-                                      .join('\n'), // Lignes suivantes
+                                  prediction!.split('\n').skip(1).join('\n'),
                                   style: const TextStyle(fontSize: 16),
                                 ),
                               ],
@@ -648,6 +676,54 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
                           ),
                         ),
                       ),
+
+                    // Section spots (toujours visible)
+                    const SizedBox(height: 24),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '🎯 Rayon de recherche (km)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Slider(
+                          value: selectedRadius,
+                          min: 10,
+                          max: 200,
+                          divisions: 19,
+                          label: '${selectedRadius.round()} km',
+                          onChanged: (value) {
+                            setState(() {
+                              selectedRadius = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        Center(
+                          child: ElevatedButton.icon(
+                            onPressed: findFishingSpotsOnly,
+                            icon: const Icon(Icons.location_on),
+                            label: const Text('Trouver spots'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: AppTheme.lightPrimary,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 24,
+                              ),
+                              textStyle: const TextStyle(fontSize: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
                     // Affichage de la carte si prédiction favorable
                     if (showMap)
                       Padding(

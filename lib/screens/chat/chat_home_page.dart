@@ -21,6 +21,7 @@ class ChatHomePage extends StatelessWidget {
         backgroundColor: AppTheme.primaryColor,
         leading: IconButton(
   onPressed: () async {
+    //await PusherService.to.connect(); // si nécessaire
     Get.back(); // reviens sans détruire MainScreen
   },
   icon: Icon(Icons.arrow_back, color:Colors.white),
