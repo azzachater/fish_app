@@ -7,7 +7,7 @@ import 'package:http_parser/http_parser.dart';
 
 class ApiProductService {
   final ApiAuthService _authService = ApiAuthService();
-  final String baseUrl = 'http://192.168.1.77:8000/api';
+  final String baseUrl = 'http://192.168.1.85:8000/api';
 
   // Headers for requests
   Map<String, String> get headers => {
@@ -125,36 +125,47 @@ class ApiProductService {
   Future<Product> updateProduct(Product product, {File? imageFile}) async {
     try {
       final headers = await _getAuthHeaders();
-      headers.remove('Content-Type');
+      headers.remove('Content-Type'); // Important pour les requêtes multipart
 
       var request = http.MultipartRequest(
-        'POST', // Ou 'PUT' selon votre API
+        'POST', // Certaines APIs Laravel préfèrent POST avec _method=PUT
         Uri.parse('$baseUrl/products/${product.id}'),
       );
       request.headers.addAll(headers);
 
+      // Ajoutez tous les champs du produit
       request.fields.addAll({
+        '_method': 'PUT', // Nécessaire pour Laravel
         'name': product.name,
         'description': product.description,
         'price': product.price.toString(),
         'unit': product.unit,
         'stock': product.stock.toString(),
         'category': product.category,
-        '_method': 'PUT', // Si votre API nécessite cette méthode
       });
 
+      // Ajoutez l'image seulement si elle est fournie
       if (imageFile != null) {
         request.files.add(
-          await http.MultipartFile.fromPath('image', imageFile.path),
+          await http.MultipartFile.fromPath(
+            'image',
+            imageFile.path,
+            contentType: MediaType(
+              'image',
+              'jpeg',
+            ), // Adaptez selon le type d'image
+          ),
         );
       }
 
+      print('🔄 Sending update request for product ${product.id}');
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
+      print('📦 Update response: ${response.statusCode} - $responseBody');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(responseBody);
-        return Product.fromJson(responseData['data']);
+        return Product.fromJson(responseData['data'] ?? responseData);
       } else {
         throw Exception(
           _handleError(http.Response(responseBody, response.statusCode)),

@@ -10,7 +10,7 @@ class FavoriteController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    ever(productController.favoriteIds, (_) => _syncFavorites());
+    ever(productController.favoriteIds as RxInterface<Object?>, (_) => _syncFavorites());
     _syncFavorites();
   }
 

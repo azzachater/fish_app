@@ -1,4 +1,5 @@
 // cart_controller.dart
+import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/screens/marketplace/payment_success_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,26 +14,31 @@ class CartController extends GetxController {
   final RxString checkoutAddress = ''.obs;
   final RxString paymentMethod = ''.obs;
 
-  // Méthode pour mettre à jour les infos de checkout
-  void updateCheckoutInfo({String? phone, String? address, String? method}) {
-    if (phone != null) checkoutPhone.value = phone;
-    if (address != null) checkoutAddress.value = address;
-    if (method != null) paymentMethod.value = method;
-  }
-
   @override
   void onInit() {
     super.onInit();
-    fetchCartItems();
+    _loadCartOnUserChange();
   }
 
-  Future<void> fetchCartItems() async {
+  void _loadCartOnUserChange() {
+    ever(Get.find<UserController>().currentUser, (user) {
+      if (user != null) {
+        fetchCartItems();
+      } else {
+        clearCart();
+      }
+    });
+  }
+
+  Future<List<Product>> fetchCartItems() async {
     try {
       isLoading(true);
       final items = await _cartService.getCartItems();
       cartItems.assignAll(items);
+      return items;
     } catch (e) {
       Get.snackbar('Error', 'Failed to load cart items');
+      rethrow;
     } finally {
       isLoading(false);
     }
@@ -40,7 +46,11 @@ class CartController extends GetxController {
 
   Future<void> addToCart(Product product, {int quantity = 1}) async {
     try {
-      // Vérifier le stock d'abord
+      final userId = Get.find<UserController>().currentUser.value?.id;
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
+
       final stockCheck = await _cartService.checkStock(
         product.id.toString(),
         quantity,
@@ -54,11 +64,10 @@ class CartController extends GetxController {
         );
         return;
       }
-      // Ajout côté serveur
+
       final success = await _cartService.addToCart(product, quantity);
 
       if (success) {
-        // Mise à jour côté client
         final existingIndex = cartItems.indexWhere((p) => p.id == product.id);
         if (existingIndex >= 0) {
           cartItems[existingIndex].quantity += quantity;
@@ -68,7 +77,11 @@ class CartController extends GetxController {
         cartItems.refresh();
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to add product to cart');
+      Get.snackbar(
+        'Error',
+        'Failed to add product to cart: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
