@@ -27,10 +27,6 @@ class EventPage extends StatelessWidget {
           ),
         ),
         backgroundColor: AppTheme.primaryColor,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
         elevation: 3,
         centerTitle: true,
         shape: RoundedRectangleBorder(

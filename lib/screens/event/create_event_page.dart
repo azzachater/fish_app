@@ -63,7 +63,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
     final borderRadius = BorderRadius.circular(16);
     final inputDecoration = InputDecoration(
       filled: true,
-      fillColor: AppTheme.primaryColor,
+      fillColor: const Color.fromARGB(255, 210, 222, 240),
       border: OutlineInputBorder(borderRadius: borderRadius),
       focusedBorder: OutlineInputBorder(
         borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
@@ -79,9 +79,10 @@ class _CreateEventPageState extends State<CreateEventPage> {
             fontSize: 20,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.2,
+            color: Colors.white,
           ),
         ),
-        backgroundColor: Color(0xFF4A8BE5),
+        backgroundColor:AppTheme.primaryColor,
         elevation: 0,
         centerTitle: true,
         shape: RoundedRectangleBorder(
@@ -169,6 +170,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                     borderRadius: BorderRadius.circular(14),
                   ),
                   textStyle: TextStyle(
+                    color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),

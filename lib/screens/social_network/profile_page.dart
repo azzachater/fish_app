@@ -19,10 +19,6 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppTheme.primaryColor,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white), // <-- couleur de l’icône
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text('Profile', style: TextStyle(color: Colors.white)), // <-- titre en blanc
         iconTheme: const IconThemeData(color: Colors.white), // <-- couleur des autres icônes
       ),
