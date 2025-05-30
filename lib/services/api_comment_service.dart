@@ -6,7 +6,7 @@ import '../service/api_auth_service.dart'; // Pour récupérer le token d'auth
 class ApiCommentService {
   final ApiAuthService _authService = ApiAuthService();
   static const String baseUrl =
-      "http://192.168.1.52:8000/api"; // Remplace par ton URL backend
+      "http://192.168.1.85:8000/api"; // Remplace par ton URL backend
 
   // Headers pour les requêtes sans authentification
   Map<String, String> get headers => {

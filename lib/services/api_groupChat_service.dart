@@ -5,7 +5,7 @@ import '../models/group_conversation_model.dart';
 import '../models/group_message_model.dart';
 
 class ApiGroupChatService {
-  final String baseUrl = 'http://192.168.1.52:8000/api';
+  final String baseUrl = 'http://192.168.1.85:8000/api';
   final ApiAuthService _authService;
 
   ApiGroupChatService({ApiAuthService? authService})

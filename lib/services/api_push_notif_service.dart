@@ -14,6 +14,7 @@ class PusherService extends GetxService {
 
   final PusherChannelsFlutter _pusher = PusherChannelsFlutter.getInstance();
   final ApiAuthService _authService = ApiAuthService();
+  final Map<String, Function(PusherEvent)> _eventHandlers = {};
 
   bool _isConnected = false;
   bool _isInitialized = false;
@@ -33,7 +34,7 @@ class PusherService extends GetxService {
       await _pusher.init(
         apiKey: '2798f826b9ce70d037b5',
         cluster: 'eu',
-        authEndpoint: 'http://192.168.1.52:8000/api/broadcasting/auth',
+        authEndpoint: 'http://192.168.1.13:8000/api/broadcasting/auth',
         onAuthorizer: _onAuthorizer,
         onConnectionStateChange: _onConnectionStateChange,
         onError: _onError,
@@ -51,9 +52,7 @@ class PusherService extends GetxService {
         },
       );
 
-      // Configurer le handler d'événements après l'initialisation
       _pusher.onEvent = _handlePusherEvent;
-
       print('🟢 Initialisation de Pusher terminée avec succès');
     } catch (e) {
       print('❌ Erreur initialisation Pusher: $e');
@@ -64,63 +63,12 @@ class PusherService extends GetxService {
     }
   }
 
-  Future<Map<String, String>> _onAuthorizer(
-    String channelName,
-    String socketId,
-    dynamic options,
-  ) async {
-    try {
-      final token = await _authService.getToken();
-
-      print('🔑 Authentification pour le canal: $channelName');
-
-      final response = await GetConnect().post(
-        'http://192.168.1.52:8000/api/broadcasting/auth',
-        {'socket_id': socketId, 'channel_name': channelName},
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        print('📦 Réponse de l\'authorizer: ${response.bodyString}');
-
-        // Retourner directement la réponse JSON décodée
-        final authResponse = jsonDecode(response.bodyString!);
-        return authResponse.cast<String, String>();
-      } else {
-        throw Exception(
-          'Erreur authorizer: ${response.statusCode} - ${response.bodyString}',
-        );
-      }
-    } catch (e) {
-      print('❌ Erreur authorizer: $e');
-      rethrow;
-    }
+  void addEventHandler(String handlerName, Function(PusherEvent) handler) {
+    _eventHandlers[handlerName] = handler;
   }
 
-  void _onConnectionStateChange(dynamic currentState, dynamic previousState) {
-    print("📶 État connexion: $previousState ➡ $currentState");
-    _isConnected = currentState == 'CONNECTED';
-
-    if (_isConnected && _currentChannel != null) {
-      // Réessayer de s'abonner si on se reconnecte
-      subscribeToChannel(_currentChannel!);
-    }
-
-    if (currentState == 'DISCONNECTED') {
-      print('🔴 Pusher déconnecté - Tentative de reconnexion dans 2 secondes');
-      Future.delayed(Duration(seconds: 2), () => connect());
-    }
-  }
-
-  void _onError(String message, int? code, dynamic e) {
-    print("❌ Erreur Pusher: $message (Code: $code)");
-    if (e != null) {
-      print("Détails: $e");
-    }
+  void removeEventHandler(String handlerName) {
+    _eventHandlers.remove(handlerName);
   }
 
   Future<void> connect() async {
@@ -134,11 +82,12 @@ class PusherService extends GetxService {
         return;
       }
 
-      if (_pusher.connectionState != "CONNECTED") {
-        print('🔌 Connexion au serveur Pusher...');
-        await _pusher.connect();
-        await Future.delayed(Duration(seconds: 1));
-      }
+      if (_pusher.connectionState == "CONNECTED") return;
+
+      print('🔌 Connexion au serveur Pusher...');
+      await _pusher.connect();
+      await Future.delayed(Duration(seconds: 1));
+      _isConnected = true;
 
       final privateChannel = 'private-notifications.${currentUser.id}';
       await subscribeToChannel(privateChannel);
@@ -160,11 +109,22 @@ class PusherService extends GetxService {
       await _pusher.subscribe(channelName: channelName);
       _currentChannel = channelName;
       _isConnected = true;
-
       print('✅ Abonnement réussi à $channelName');
     } catch (e) {
       print('❌ Erreur lors de l\'abonnement à $channelName: $e');
       throw e;
+    }
+  }
+
+  Future<void> unsubscribeFromChannel(String channelName) async {
+    try {
+      await _pusher.unsubscribe(channelName: channelName);
+      if (_currentChannel == channelName) {
+        _currentChannel = null;
+      }
+      print('✅ Désabonnement réussi de $channelName');
+    } catch (e) {
+      print('❌ Erreur lors du désabonnement de $channelName: $e');
     }
   }
 
@@ -175,6 +135,12 @@ class PusherService extends GetxService {
       print("📦 Type de données: ${event.data.runtimeType}");
       print("📝 Données brutes: ${event.data}");
 
+      // Appeler tous les handlers enregistrés
+      _eventHandlers.forEach((name, handler) {
+        handler(event);
+      });
+
+      // Traitement spécifique des notifications
       if (event.eventName == 'new-message-notification' && event.data != null) {
         _handleNewNotification(event.data!);
       }
@@ -188,25 +154,22 @@ class PusherService extends GetxService {
       final data = jsonDecode(eventData);
       final notifController = Get.find<NotificationController>();
 
-      // Conversion sécurisée du receiver_id
       final receiverId = int.tryParse(data['receiver_id'].toString()) ?? 0;
 
       final notification = NotificationModel(
         id: data['id'] ?? 0,
         senderId: data['sender_id'] ?? 0,
-        receiverId: receiverId, // Utilisez la valeur convertie
+        receiverId: receiverId,
         message: data['message'] ?? 'Nouveau message',
         type: data['type'] ?? 'message',
         conversationId: data['conversation_id'],
         groupConversationId: data['group_conversation_id'],
         isRead: data['is_read'] == 1,
-        createdAt:
-            data['created_at'] != null
-                ? DateTime.parse(data['created_at'])
-                : DateTime.now(),
+        createdAt: data['created_at'] != null
+            ? DateTime.parse(data['created_at'])
+            : DateTime.now(),
       );
 
-      //notifController.notifications.insert(0, notification);
       notifController.addNotification(notification);
 
       Future.delayed(Duration(milliseconds: 500), () {
@@ -224,6 +187,59 @@ class PusherService extends GetxService {
       print('❌ Erreur traitement notification: $e');
       print('Données reçues: ${eventData}');
       print('Stack trace: ${StackTrace.current}');
+    }
+  }
+
+  Future<Map<String, String>> _onAuthorizer(String channelName, String socketId, dynamic options) async {
+    try {
+      final token = await _authService.getToken();
+
+      print('🔑 Authentification pour le canal: $channelName');
+      
+      final response = await GetConnect().post(
+        'http://192.168.1.13:8000/api/broadcasting/auth',
+        {
+          'socket_id': socketId,
+          'channel_name': channelName,
+        },
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('📦 Réponse de l\'authorizer: ${response.bodyString}');
+        final authResponse = jsonDecode(response.bodyString!);
+        return authResponse.cast<String, String>();
+      } else {
+        throw Exception('Erreur authorizer: ${response.statusCode} - ${response.bodyString}');
+      }
+    } catch (e) {
+      print('❌ Erreur authorizer: $e');
+      rethrow;
+    }
+  }
+
+  void _onConnectionStateChange(dynamic currentState, dynamic previousState) {
+    print("📶 État connexion: $previousState ➡ $currentState");
+    _isConnected = currentState == 'CONNECTED';
+
+    if (_isConnected && _currentChannel != null) {
+      subscribeToChannel(_currentChannel!);
+    }
+
+    if (currentState == 'DISCONNECTED') {
+      print('🔴 Pusher déconnecté - Tentative de reconnexion dans 2 secondes');
+      Future.delayed(Duration(seconds: 2), () => connect());
+    }
+  }
+
+  void _onError(String message, int? code, dynamic e) {
+    print("❌ Erreur Pusher: $message (Code: $code)");
+    if (e != null) {
+      print("Détails: $e");
     }
   }
 
@@ -245,4 +261,8 @@ class PusherService extends GetxService {
     disconnect();
     super.onClose();
   }
+
+  // Méthodes utilitaires
+  String? getCurrentChannel() => _currentChannel;
+  bool isConnected() => _isConnected;
 }

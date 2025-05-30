@@ -8,11 +8,9 @@ class ApiOrderService {
   final ApiAuthService _authService;
   final String baseUrl;
 
-  ApiOrderService({
-    ApiAuthService? authService,
-    String? baseUrl,
-  })  : _authService = authService ?? ApiAuthService(),
-        baseUrl = baseUrl ?? 'http://192.168.1.77:8000/api';
+  ApiOrderService({ApiAuthService? authService, String? baseUrl})
+    : _authService = authService ?? ApiAuthService(),
+      baseUrl = baseUrl ?? 'http://192.168.1.85:8000/api';
 
   // Headers de base (sans auth)
   static const Map<String, String> _baseHeaders = {
@@ -25,10 +23,10 @@ class ApiOrderService {
     try {
       final headers = Map<String, String>.from(_baseHeaders);
       final authHeaders = await _authService.getAuthHeaders();
-      
+
       headers.addAll(authHeaders); // Fusion des headers
       debugPrint("🔵 Auth Headers: $headers");
-      
+
       return headers;
     } catch (e) {
       debugPrint('❌ Failed to get auth headers: $e');
@@ -43,11 +41,15 @@ class ApiOrderService {
         headers: await _getAuthHeaders(),
       );
 
-      debugPrint('📦 Orders Response: ${response.statusCode} - ${response.body}');
+      debugPrint(
+        '📦 Orders Response: ${response.statusCode} - ${response.body}',
+      );
 
       return _handleResponse<List<Order>>(
         response,
-        parse: (data) => (data as List).map((json) => Order.fromJson(json)).toList(),
+        parse:
+            (data) =>
+                (data as List).map((json) => Order.fromJson(json)).toList(),
         successCode: 200,
         errorMessage: 'Failed to fetch orders',
       );
@@ -73,7 +75,9 @@ class ApiOrderService {
         }),
       );
 
-      debugPrint('📤 Create Order Response: ${response.statusCode} - ${response.body}');
+      debugPrint(
+        '📤 Create Order Response: ${response.statusCode} - ${response.body}',
+      );
 
       return _handleResponse<Order>(
         response,
@@ -96,7 +100,9 @@ class ApiOrderService {
         headers: await _getAuthHeaders(),
       );
 
-      debugPrint('📄 Order Details Response: ${response.statusCode} - ${response.body}');
+      debugPrint(
+        '📄 Order Details Response: ${response.statusCode} - ${response.body}',
+      );
 
       return _handleResponse<Order>(
         response,

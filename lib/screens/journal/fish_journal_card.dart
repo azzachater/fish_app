@@ -80,7 +80,7 @@ class FishJournalCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      '${entry.location} - ${entry.fishingConditions}',
+                      '${entry.location} - ${entry.fishing_conditions}',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
@@ -131,7 +131,7 @@ class FishJournalCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          entry.speciesCaught,
+                          entry.species_caught,
                           style: const TextStyle(
                             color: AppTheme.primaryColor,
                             fontWeight: FontWeight.w600,

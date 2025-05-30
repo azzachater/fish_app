@@ -4,8 +4,10 @@ class FishingJournal {
   final String id;
   final String title;
   final String location;
-  final String speciesCaught;
-  final String fishingConditions;
+  // ignore: non_constant_identifier_names
+  final String species_caught;
+  // ignore: non_constant_identifier_names
+  final String fishing_conditions;
   final String notes;
   final String date;
   final String time;
@@ -14,8 +16,10 @@ class FishingJournal {
     required this.id,
     required this.title,
     required this.location,
-    required this.speciesCaught,
-    required this.fishingConditions,
+    // ignore: non_constant_identifier_names
+    required this.species_caught,
+    // ignore: non_constant_identifier_names
+    required this.fishing_conditions,
     required this.notes,
     required this.date,
     required this.time,
@@ -26,8 +30,8 @@ class FishingJournal {
       id: json['id']?.toString() ?? '',
       title: json['title'] ?? 'Sans titre',
       location: json['location'] ?? 'Lieu non spécifié',
-      speciesCaught: json['species_caught'] ?? '', // Adaptation ici
-      fishingConditions: json['fishing_conditions'] ?? '', // Adaptation ici
+      species_caught: json['species_caught'] ?? '', // Adaptation ici
+      fishing_conditions: json['fishing_conditions'] ?? '', // Adaptation ici
       notes: json['notes'] ?? '',
       date: json['date'] ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
       time: json['time'] ?? '00:00',
@@ -39,8 +43,8 @@ class FishingJournal {
       'id': id,
       'title': title,
       'location': location,
-      'species_caught': speciesCaught, // Adaptation ici
-      'fishing_conditions': fishingConditions, // Adaptation ici
+      'species_caught': species_caught, // Adaptation ici
+      'fishing_conditions': fishing_conditions, // Adaptation ici
       'notes': notes,
       'date': date,
       'time': time,

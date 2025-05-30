@@ -5,11 +5,9 @@ import 'package:fish_app/controllers/notification_controller.dart';
 import 'package:fish_app/controllers/profile_controller.dart';
 import 'package:fish_app/controllers/user_controller.dart';
 import 'package:fish_app/controller/add_journal_controller.dart';
-import 'package:fish_app/controller/forecast_controller.dart';
 import 'package:fish_app/controllers/auth_controller.dart';
 import 'package:fish_app/controller/event_controller.dart';
 import 'package:fish_app/controller/journal_controller.dart';
-import 'package:fish_app/controller/task_controller.dart';
 import 'package:fish_app/screens/Authentification/signup_page.dart';
 import 'package:fish_app/screens/Authentification/verify_code_page.dart';
 import 'package:fish_app/screens/marketplace/product_detail_page.dart';
@@ -33,11 +31,9 @@ void main() async {
   Get.put(CartController());
   Get.put(FavoriteController());
   Get.put(EventController());
-  Get.put(TaskController());
   Get.put(JournalController());
   Get.put(DateSelectorController());
   Get.put(AddJournalController());
-  Get.put(ForecastController());
   Get.put(OrderController());
   await Get.putAsync(() => PusherService().init());
 

@@ -20,6 +20,7 @@ class VerifyCodePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Vérification Email'),
         backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
       ),
       body: Center(
         child: Container(
@@ -39,8 +40,11 @@ class VerifyCodePage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.mark_email_read_rounded,
-                  size: 60, color: AppTheme.primaryColor),
+              Icon(
+                Icons.mark_email_read_rounded,
+                size: 60,
+                color: AppTheme.primaryColor,
+              ),
               const SizedBox(height: 20),
               Text(
                 'Un code de vérification a été envoyé à',
@@ -74,33 +78,40 @@ class VerifyCodePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              Obx(() => authController.isLoading.value
-                  ? const CircularProgressIndicator()
-                  : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          if (codeController.text.length == 6) {
-                            await authController.verifyCode(
-                              userId: userId,
-                              code: codeController.text,
-                            );
-                          } else {
-                            Get.snackbar('Erreur', 'Le code doit contenir 6 chiffres',
-                                backgroundColor: Colors.red[100],
-                                colorText: Colors.red[800]);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+              Obx(
+                () =>
+                    authController.isLoading.value
+                        ? const CircularProgressIndicator()
+                        : SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              if (codeController.text.length == 6) {
+                                await authController.verifyCode(
+                                  userId: userId,
+                                  code: codeController.text,
+                                );
+                              } else {
+                                Get.snackbar(
+                                  'Erreur',
+                                  'Le code doit contenir 6 chiffres',
+                                  backgroundColor: Colors.red[100],
+                                  colorText: Colors.red[800],
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            child: const Text('Vérifier'),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        child: const Text('Vérifier'),
-                      ),
-                    )),
+              ),
               TextButton(
                 onPressed: () => authController.resendCode(userId),
                 child: Text(

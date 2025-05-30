@@ -1,7 +1,5 @@
 import 'package:fish_app/constants/theme.dart';
-import 'package:fish_app/screens/social_network/social_home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String selectedView;
@@ -16,6 +14,7 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      automaticallyImplyLeading: true,
       title: const Text(
         'journal',
         style: TextStyle(
@@ -26,12 +25,6 @@ class JournalAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       backgroundColor: AppTheme.primaryColor, // Couleur bleue unifiée
       elevation: 0,
-      leading: IconButton(
-        onPressed: () async {
-          await Get.offAll(() => SocialHomePage());
-        },
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-      ),
       actions: [
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

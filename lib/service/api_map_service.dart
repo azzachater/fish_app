@@ -9,7 +9,7 @@ import 'api_auth_service.dart';
 class MapService {
   final ApiAuthService _authService = ApiAuthService();
   final ApiUserService apiUserService = ApiUserService();
-  final String baseUrl = 'http://192.168.1.115:8000/api/spots';
+  final String baseUrl = 'http://192.168.1.85:8000/api/spots';
 
   // Headers for requests
   Map<String, String> get headers => {

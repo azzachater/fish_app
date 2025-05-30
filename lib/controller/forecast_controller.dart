@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+/*import 'package:get/get.dart';
 
 class ForecastController extends GetxController {
   // Données observables
@@ -22,3 +22,4 @@ class ForecastController extends GetxController {
     update();
   }
 }
+*/

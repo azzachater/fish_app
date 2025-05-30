@@ -10,7 +10,7 @@ ImageProvider _getImageProvider(String imagePath) {
   } else if (imagePath.startsWith('assets/')) {
     return AssetImage(imagePath);
   } else {
-    return NetworkImage('http://192.168.1.77:8000/storage/$imagePath');
+    return NetworkImage('http://192.168.1.85:8000/storage/$imagePath');
   }
 }
 

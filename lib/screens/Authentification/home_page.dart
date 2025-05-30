@@ -27,7 +27,7 @@ class HomePage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    'FISH APP',
+                    'CATCHY',
                     style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,

@@ -41,8 +41,8 @@ class _AddJournalPageState extends State<AddJournalPage>
       final entry = widget.entry!;
       _titleController.text = entry.title;
       _locationController.text = entry.location;
-      _speciesController.text = entry.speciesCaught;
-      _conditionsController.text = entry.fishingConditions;
+      _speciesController.text = entry.species_caught;
+      _conditionsController.text = entry.fishing_conditions;
       _notesController.text = entry.notes;
 
       // Parse le temps existant
@@ -152,8 +152,8 @@ class _AddJournalPageState extends State<AddJournalPage>
         id: widget.entry!.id, // Garde le même ID
         title: _titleController.text,
         location: _locationController.text,
-        speciesCaught: _speciesController.text,
-        fishingConditions: _conditionsController.text,
+        species_caught: _speciesController.text,
+        fishing_conditions: _conditionsController.text,
         notes: _notesController.text,
         date: formattedDate,
         time: formattedTime,
@@ -170,8 +170,8 @@ class _AddJournalPageState extends State<AddJournalPage>
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: _titleController.text,
         location: _locationController.text,
-        speciesCaught: _speciesController.text,
-        fishingConditions: _conditionsController.text,
+        species_caught: _speciesController.text,
+        fishing_conditions: _conditionsController.text,
         notes: _notesController.text,
         date: formattedDate,
         time: formattedTime,

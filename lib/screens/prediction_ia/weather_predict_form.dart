@@ -61,10 +61,12 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     setState(() {
       isLoading = true;
       prediction = null; // On n'affiche pas de prédiction météo ici
+      fishingSpots = []; // Réinitialiser les spots
+      showMap = false; // Cacher la carte
     });
 
     try {
-      final url = Uri.parse('http://192.168.1.80:5000/spots/recommend');
+      final url = Uri.parse('http://192.168.1.85:5000/spots/recommend');
       final response = await http
           .post(
             url,
@@ -102,6 +104,9 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
             ];
             showMap = true;
           } else {
+            // Aucun spot trouvé - afficher un message
+            prediction =
+                'Aucun spot recommandé près de vous. Élargissez votre rayon de recherche.';
             fishingSpots = [];
             showMap = false;
           }
@@ -172,7 +177,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
 
   Future<void> fetchRecommendedSpots() async {
     try {
-      final url = Uri.parse('http://192.168.1.80:5000/recommend');
+      final url = Uri.parse('http://192.168.1.85:5000/recommend');
       final response = await http
           .post(
             url,
@@ -248,7 +253,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     });
 
     try {
-      final url = Uri.parse('http://192.168.1.80:5000/weather/predict');
+      final url = Uri.parse('http://192.168.1.85:5000/weather/predict');
       final response = await http
           .post(
             url,
@@ -365,7 +370,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     });
 
     try {
-      final url = Uri.parse('http://192.168.1.80:5000/combined/predict');
+      final url = Uri.parse('http://192.168.1.85:5000/combined/predict');
       final response = await http
           .post(
             url,
@@ -412,7 +417,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
   void _showFishingStats() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.80:5000/api/session-stats'),
+        Uri.parse('http://192.168.1.85:5000/api/session-stats'),
       );
 
       if (response.statusCode == 200) {
