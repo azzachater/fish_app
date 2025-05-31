@@ -61,6 +61,8 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     setState(() {
       isLoading = true;
       prediction = null; // On n'affiche pas de prédiction météo ici
+      fishingSpots = []; // Réinitialiser les spots
+      showMap = false; // Cacher la carte
     });
 
     try {
@@ -80,7 +82,7 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
           )
           .timeout(const Duration(seconds: 10));
 
-      if (response.statusCode == 200) {
+if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
         setState(() {
           if (result['spots'] != null && result['spots']['best_spot'] != null) {
@@ -102,11 +104,14 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
             ];
             showMap = true;
           } else {
+            // Aucun spot trouvé - afficher un message
+            prediction =
+                'Aucun spot recommandé près de vous. Élargissez votre rayon de recherche.';
             fishingSpots = [];
             showMap = false;
           }
         });
-        await _fetchAndDisplayRoute();
+await _fetchAndDisplayRoute();
       } else {
         throw Exception('Erreur serveur: ${response.statusCode}');
       }
@@ -117,9 +122,9 @@ class _WeatherPredictFormState extends State<WeatherPredictForm>
     } finally {
       setState(() {
         isLoading = false;
-      });
-    }
-  }
+        });
+        }
+        }
 
   Future<void> _initLocationAndWeather() async {
     await _getCurrentLocation(); // Attend la position actuelle
